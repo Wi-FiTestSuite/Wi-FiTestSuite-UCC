@@ -1,0 +1,68 @@
+#List WMM Testcase files
+#File format - Testcase Name ! Init File Name ! Command File Name
+
+#WMM-S1-T02! init_WMM.txt!  WMM-S1-T02.txt
+#WMM-S1-T03! init_WMM.txt!  WMM-S1-T03.txt
+#WMM-S1-T04! init_WMM.txt!  WMM-S1-T04.txt
+#WMM-S1-T05! init_WMM.txt!  WMM-S1-T05.txt
+
+WMM-S2-T02! init_WMM.txt!  WMM-S2-T02.txt
+WMM-S2-T03! init_WMM.txt!  WMM-S2-T03.txt
+WMM-S2-T04! init_WMM.txt!  WMM-S2-T04.txt
+WMM-S2-T05! init_WMM.txt!  WMM-S2-T05.txt
+WMM-S2-T06! init_WMM.txt!  WMM-S2-T06.txt
+WMM-S2-T07! init_WMM.txt!  WMM-S2-T07.txt
+WMM-S2-T08! init_WMM.txt!  WMM-S2-T08.txt
+
+# No Security
+WMM-S3-T02! init_WMM.txt!  WMM-S3-T02.txt
+WMM-S3-T03! init_WMM.txt!  WMM-S3-T03.txt
+WMM-S3-None-T04! init_WMM.txt!  WMM-S3-T04.txt
+WMM-S3-None-T05! init_WMM.txt!  WMM-S3-T05.txt
+WMM-S3-None-T06! init_WMM.txt!  WMM-S3-T06.txt
+WMM-S3-None-T07! init_WMM.txt!  WMM-S3-T07.txt
+
+#WEP
+WMM-S3-WEP-T04! init_WMM.txt!  WMM-S3-T04-WEP.txt
+WMM-S3-WEP-T05! init_WMM.txt!  WMM-S3-T05-WEP.txt
+WMM-S3-WEP-T06! init_WMM.txt!  WMM-S3-T06-WEP.txt
+WMM-S3-WEP-T07! init_WMM.txt!  WMM-S3-T07-WEP.txt
+
+#WPA
+WMM-S3-WPA-T04! init_WMM.txt!  WMM-S3-T04-WPA.txt
+WMM-S3-WPA-T05! init_WMM.txt!  WMM-S3-T05-WPA.txt
+WMM-S3-WPA-T06! init_WMM.txt!  WMM-S3-T06-WPA.txt
+WMM-S3-WPA-T07! init_WMM.txt!  WMM-S3-T07-WPA.txt
+
+#WPA2
+WMM-S3-WPA2-T04! init_WMM.txt!  WMM-S3-T04-WPA2.txt
+WMM-S3-WPA2-T05! init_WMM.txt!  WMM-S3-T05-WPA2.txt
+WMM-S3-WPA2-T06! init_WMM.txt!  WMM-S3-T06-WPA2.txt
+WMM-S3-WPA2-T07! init_WMM.txt!  WMM-S3-T07-WPA2.txt
+
+WMM-S4-T02! init_WMM.txt!  WMM-S4-T02.txt
+WMM-S4-T03! init_WMM.txt!  WMM-S4-T03.txt
+WMM-S4-T04! init_WMM.txt!  WMM-S4-T04.txt
+WMM-S4-T05! init_WMM.txt!  WMM-S4-T05.txt
+WMM-S4-T06! init_WMM.txt!  WMM-S4-T06.txt
+
+WMM-S5-T02! init_WMM.txt!  WMM-S5-T02.txt
+WMM-S5-T03! init_WMM.txt!  WMM-S5-T03.txt
+WMM-S5-T04! init_WMM.txt!  WMM-S5-T04.txt
+
+WMM-S6-T02! init_WMM.txt!  WMM-S6-T02.txt
+WMM-S6-T03! init_WMM.txt!  WMM-S6-T03.txt
+WMM-S6-T04! init_WMM.txt!  WMM-S6-T04.txt
+
+WMM-S7-T02! init_WMM.txt!  WMM-S7-T02.txt
+WMM-S7-T04! init_WMM.txt!  WMM-S7-T04.txt
+WMM-S7-T06! init_WMM.txt!  WMM-S7-T06.txt
+
+WMM-S8-T02! init_WMM.txt!  WMM-S8-T02.txt
+WMM-S8-T03! init_WMM.txt!  WMM-S8-T03.txt
+WMM-S8-T04! init_WMM.txt!  WMM-S8-T04.txt
+
+WMM-S9-T02! init_WMM.txt!  WMM-S9-T02.txt
+WMM-S9-T03! init_WMM.txt!  WMM-S9-T03.txt
+WMM-S9-T04! init_WMM.txt!  WMM-S9-T04.txt
+WMM-S9-T06! init_WMM.txt!  WMM-S9-T06.txt

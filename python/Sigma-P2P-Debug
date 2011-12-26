@@ -1,0 +1,14 @@
+#List P2P Debug Test
+#File format - Testcase Name ! Init File Name ! Command File Name
+
+#AutoGO
+P2P-Test1!init_STA_compliance.txt!Test1-AutoGO.txt
+
+#Group Formation
+P2P-Test2!init_STA_compliance.txt!Test2-Group_Formation.txt
+
+#P2P Invitation
+P2P-Test3!init_STA_compliance.txt!Test3-Invite.txt
+
+#Get PSK
+P2P-Test4!init_STA_compliance.txt!Test4-GetPSK.txt
