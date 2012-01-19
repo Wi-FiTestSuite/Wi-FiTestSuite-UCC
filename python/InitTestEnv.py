@@ -509,7 +509,7 @@ def GetTestbedDeviceInfo (TestCaseID):
         else:
             VarList.setdefault("bssid",("$%sAPMACAddress_24G"%AP))
             VarList.setdefault(("AP%sMACAddress"%iCount),("$%sAPMACAddress_24G"%AP))
-            
+        VarList.setdefault("AP%s_control_agent" %(iCount),"wfa_control_agent_%s_ap" %(AP.lower()))            
         iCount=iCount+1
         
         
@@ -1001,7 +1001,12 @@ def find_TestbedFile(testID):
       for node2 in L:
           LogMsg ("----Node2 = %s" %node2.nodeName)
           for node3 in node2.childNodes:
-              
+         
+	      if node3.nodeName == "_Value":
+                  LogMsg ('--------Found %s' % node3.firstChild.nodeValue)
+                  result = node3.firstChild.nodeValue
+                  break;
+         
               if node3.nodeType == Node.TEXT_NODE and node3.nodeValue.isalnum() == True:
                   LogMsg ('--------Found -%s-' % node3.nodeValue)    
                   if node3.nodeValue == '0':                  
