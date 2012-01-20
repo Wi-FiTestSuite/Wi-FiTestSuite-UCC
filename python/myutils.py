@@ -65,11 +65,16 @@ streamSendResultArray = []
 streamRecvResultArray = []
 streamInfoArray = []
 versionInfoArray = []
+lhs = []
+rhs = []
+oper = []
+boolOp = []
 runningPhase='1'
 testRunning=0
 threadCount=0
 resultPrinted=0
 ifcondBit=1
+ifCondBit=1
 iDNB=0
 iINV=0
 RTPCount=1
@@ -139,7 +144,7 @@ class resultInfo:
                 script_version=retValueTable["$scriptVersion"]
             else:
                 script_version="-"
-            self.versionTable.rows.append(['UCC',"4.3.0","WFA","-",script_version])            
+            self.versionTable.rows.append(['UCC',"5.0.0","WFA","-",script_version])            
 
             for v in versionInfoArray:
                 self.versionTable.rows.append([v.ComponentName,v.SigmaVersion,v.VendorName,v.DeviceModel,v.DeviceFirmware])
@@ -457,9 +462,13 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
    
 def process_cmd(line):
     global conntable,threadCount,waitsocks_par,runningPhase,testRunning,streamInfoArray,resultPrinted
-    global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV
+    global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV, ifCondBit
     line = line.rstrip()
     str=line.split ('#')
+    lhs = []
+    rhs = []
+    boolOp = []
+    oper = []
     #logging.debug("\r\n")
     recv_id = {}
 
@@ -479,44 +488,75 @@ def process_cmd(line):
             ifcondBit = 1
             return
         if command[0].lower() == "if":
-            if command[1] in retValueTable:
-                command[1]=retValueTable[command[1]]
-            if command[3] in retValueTable:
-                command[3]=retValueTable[command[3]]
-            if(command[2]).lower() == "=":
-                if command[1] == command[3]:
-                    ifcondBit = 1
-                else:
-                    ifcondBit = 0
-            elif (command[2]).lower() == ">":
-                if long(command[1]) > long(command[3]):
-                    ifcondBit = 1
-                else:
-                    ifcondBit = 0
-            elif (command[2]).lower() == "<":
-                if long(command[1]) < long(command[3]):
-                    ifcondBit = 1
-                else:
-                    ifcondBit = 0
-            elif (command[2]).lower() == ">=":
-                if long(command[1]) >= long(command[3]):
-                    ifcondBit = 1
-                else:
-                    ifcondBit = 0
-            elif (command[2]).lower() == "<=":
-                if long(command[1]) <= long(command[3]):
-                    ifcondBit = 1
-                else:
-                    ifcondBit = 0
-            elif (command[2]).lower() == "<>":
-                if command[1] != command[3]:
-                    ifcondBit = 1
-                else:
-                    ifcondBit = 0
-            return
+            #logging.info("Length of command = %d" %len(command))
+            itern= 0
+            for count,val in enumerate(command):
+                if count % 4 == 0:
+                    itern = itern + 1
+                    boolOp.append(val)
+                elif count % 4 == 1:
+                    lhs.append(val)
+                elif count % 4 == 2:
+                    oper.append(val)
+                elif count % 4 == 3:
+                    rhs.append(val)
+            itern = itern - 1
+            #logging.info(" Iteretion - %d " % (itern))
+            for iCount in range(0,itern):
+                #logging.info(" FOR ICOUNT %d " % iCount)
+                if lhs[iCount] in retValueTable:
+                    lhs[iCount]=retValueTable[lhs[iCount]]
+                if rhs[iCount] in retValueTable:
+                    rhs[iCount]=retValueTable[rhs[iCount]]
+                if(oper[iCount]).lower() == "=":
+                    #logging.info("%s == %s" %(lhs[iCount],rhs[iCount]))
+                    if lhs[iCount] == rhs[iCount]:
+                        ifcondBit = 1
+                    else:
+                        ifcondBit = 0
+                elif (oper[iCount]).lower() == ">":
+                    if long(lhs[iCount]) > long(rhs[iCount]):
+                        ifcondBit = 1
+                    else:
+                        ifcondBit = 0
+                elif (oper[iCount]).lower() == "<":
+                    if long(lhs[iCount]) < long(rhs[iCount]):
+                        ifcondBit = 1
+                    else:
+                        ifcondBit = 0
+                elif (oper[iCount]).lower() == ">=":
+                    if long(lhs[iCount]) >= long(rhs[iCount]):
+                        ifcondBit = 1
+                    else:
+                        ifcondBit = 0
+                elif (oper[iCount]).lower() == "<=":
+                    if long(lhs[iCount]) <= long(rhs[iCount]):
+                        ifcondBit = 1
+                    else:
+                        ifcondBit = 0
+                elif (oper[iCount]).lower() == "<>":
+                    if lhs[iCount] != rhs[iCount]:
+                        ifcondBit = 1
+                    else:
+                        ifcondBit = 0
+                #logging.info("boolOper = %s" % boolOp[iCount])
+                if boolOp[iCount] == "if":
+                    ifCondBit = ifcondBit
+                elif boolOp[iCount] == "or":
+                    temp_or = ifcondBit
+                    if ifCondBit or temp_or:
+                        ifCondBit = 1
+                    else:
+                        ifCondBit = 0
+                elif boolOp[iCount] == "and":
+                    temp_and = ifcondBit
+                    if ifCondBit and temp_and:
+                        ifCondBit = 1
+                    else:
+                        ifCondBit = 0
+                #return
             
-           
-        if int( ifcondBit) == 0:
+        if int( ifCondBit) == 0:
             return
         if command[0].lower() == "_dnb_":
             iDNB=1
@@ -629,12 +669,18 @@ def process_cmd(line):
             logging.debug(vInfo)
             return        
 
-        if re.search("STA",command[0]) or re.search("AP",command[0]):
+        if re.search("STA",command[0]) or ( not re.search("TestbedAPConfigServer",command[0]) and re.search("AP",command[0])):
             if command[0] in retValueTable:
                 command[0]=retValueTable[command[0]]
             else:
                 return
-        
+
+        if re.search("wfa_tester",command[0]):
+            if command[0] in retValueTable:
+                command[0]=retValueTable[command[0]]
+            else:
+                return
+
         if command[0].lower() == 'exit':
             set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
             wfa_sys_exit("Exiting - %s" % command[1])
@@ -1031,9 +1077,9 @@ def process_cmd(line):
         ss = status.rstrip('\r\n')
         logging.info( "%s (%-15s) <-- %s" % (displayName,toaddr,ss ))
         #Exit in case of ERROR
-        if re.search('ERROR', ss) or re.search('INVALID', ss) and iDNB == 0 and iINV == 0:
+        if (re.search('ERROR', ss) or re.search('INVALID', ss)) and (iDNB == 0 and iINV == 0):
         #if re.search('ERROR', ss):
-	    set_test_result("ERROR","-","Command retunred Error")
+            set_test_result("ERROR","-","Command retunred Error")
             wfa_sys_exit(" Command returned Error. Aborting the test")
                                    
         stitems = ss.split(',')
@@ -1064,6 +1110,8 @@ def process_cmd(line):
             elif capi_elem[0] == 'traffic_stop_ping':
                 retValueTable["%s;%s"%(capi_elem[2],toaddr)]= stitems[5]
                 logging.debug("%s = %s" %  (capi_elem[2],retValueTable["%s;%s"%(capi_elem[2],toaddr)]))
+                retValueTable["$pingResp"]= retValueTable["%s;%s"%(capi_elem[2],toaddr)]
+                #logging.info("%s" % (retValueTable["$pingResp"]))     
                 if "PingInternalChk" in retValueTable:
                     if retValueTable["PingInternalChk"] == "0":
                         logging.debug("Ping Internal Check")
@@ -1451,7 +1499,7 @@ def init_logging (_filename,level):
         logging.getLogger('').addHandler(console)
     set_color(FOREGROUND_INTENSITY)
     logging.info ("###########################################################\n")    
-    logging.info ("UCC Version - Sigma-4.3.0")    
+    logging.info ("UCC Version- Sigma-5.0.0")    
     logging.info('Logging started in file - %s' % (fname))
 
     

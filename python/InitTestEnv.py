@@ -118,6 +118,12 @@ def main():
     if (os.getenv("PROG_NAME")=="P2P"):
         ProgName="P2P"
         InitFile="\init_P2P.txt"
+
+    #PMF Specific
+    if (os.getenv("PROG_NAME")=="PMF"):
+        ProgName="PMF"
+        TestbedAPFile="\PMF-Testbed-APs.txt"
+        InitFile="\init_PMF.txt"
         
         
     TestID = sys.argv[1]
@@ -252,14 +258,15 @@ class envVariables:
         self.TestbedConfigCAPIFile=TestbedConfigCAPIFile
         self.DUTConfigCAPIFile=DUTConfigCAPIFile
         self.STAConfigCAPIFile=STAConfigCAPIFile
+        self.WLANTestCAPIFile=WLANTestCAPIFile
 
     def __setattr__(self, attr, value):
         self.__dict__[attr] = value
 
     def formatNameUCC(self):
-        return ("define!$Channel!%s!\ndefine!$Band!%s!\ndefine!$SSID!%s!\ndefine!$STA1!%s!\ndefine!$STA2!%s!\ndefine!$STA3!%s!\ndefine!$TestbedConfigCAPIFile!%s!\ndefine!$DUTConfigCAPIFile!%s!\ndefine!$STAConfigCAPIFile!%s!\n" %(self.Channel,self.Band,self.SSID,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile))
+        return ("define!$Channel!%s!\ndefine!$Band!%s!\ndefine!$SSID!%s!\ndefine!$STA1!%s!\ndefine!$STA2!%s!\ndefine!$STA3!%s!\ndefine!$TestbedConfigCAPIFile!%s!\ndefine!$DUTConfigCAPIFile!%s!\ndefine!$STAConfigCAPIFile!%s!\ndefine!$WLANTestCAPIFile!%s!\n" %(self.Channel,self.Band,self.SSID,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
     def __str__(self):
-        return ("Channel = %s | Band = %s | SSID = %s | STA1 - %s   STA2 - %s   STA3 - %s Testbed File - %s DUTConfig File - %s STAConfig File - %s" %(self.Channel,self.Band,self.SSID,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile))
+        return ("Channel = %s | Band = %s | SSID = %s | STA1 - %s   STA2 - %s   STA3 - %s Testbed File - %s DUTConfig File - %s STAConfig File - %s WLANTest File - %s" %(self.Channel,self.Band,self.SSID,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
 
 #Global Object to handle Test ENV Variables
 testEnvVariables = envVariables()
@@ -377,36 +384,65 @@ def ReadDUTInfo (filename,TestCaseID):
 
     if "N-5.2" in TestCaseID or "N-ExS" in TestCaseID :
         VarList.setdefault("APUT_state","off")
-		
-    if (ProgName == "P2P"):
+	
+    if (ProgName == "P2P" or ProgName == "PMF"):
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
         T.rows.append(R1)
-            
-        P2PVarList = ReadAllMapFile(DUTFile,"P2P","!")
-        if P2PVarList != -1:
-            P2PVarList=P2PVarList.split('!')
-            LogMsg("P2P Supported Features = %s" % P2PVarList)
-            for var in P2PVarList:
-                if var != "":
-                    v=var.split(',')
-                    VarList.setdefault(v[0],v[1])
-                    featureSupport=find_TestcaseInfo_Level1(TestCaseID,v[0])
-                    if featureSupport != "":
-                        LogMsg ("%s-%s"%(featureSupport,v[1]))
-                        if featureSupport != v[1]:
-                            LogMsg ("DUT does not support the feature")
-                            VarList.setdefault("TestNA","DUT does not support the feature")
+
+        if (ProgName == "P2P"):    
+            P2PVarList = ReadAllMapFile(DUTFile,"P2P","!")
+            if P2PVarList != -1:
+                P2PVarList=P2PVarList.split('!')
+                LogMsg("P2P Supported Features = %s" % P2PVarList)
+                for var in P2PVarList:
+                    if var != "":
+                        v=var.split(',')
+                        VarList.setdefault(v[0],v[1])
+                        featureSupport=find_TestcaseInfo_Level1(TestCaseID,v[0])
+                        if featureSupport != "":
+                            LogMsg ("%s-%s"%(featureSupport,v[1]))
+                            if featureSupport != v[1]:
+                                LogMsg ("DUT does not support the feature")
+                                VarList.setdefault("TestNA","DUT does not support the feature")
                             
-                    if v[1] == "0":
-                        dis = "No"
-                    elif v[1] == "1":
-                        dis = "Yes"
-                    else:
-                        dis=v[1]
-                    if "DUT_" not in v[0]:
-                        T.rows.append([v[0],dis])
+                        if v[1] == "0":
+                            dis = "No"
+                        elif v[1] == "1":
+                            dis = "Yes"
+                        else:
+                            dis=v[1]
+                        if "DUT_" not in v[0]:
+                            T.rows.append([v[0],dis])
+                            
+        else:
+            ProgVarList = ReadAllMapFile(DUTFile,ProgName,"!")
+            if ProgVarList != -1:
+                ProgVarList=ProgVarList.split('!')
+                LogMsg("%s Supported Features = %s" % (ProgName,ProgVarList))
+                checkFeatureFlag = find_TestcaseInfo_Level1(TestCaseID,"checkFeatureFlag")
+                LogMsg("checkFeatureFlag = %s" % checkFeatureFlag)        
+                for var in ProgVarList:
+                    if var != "":
+                        v=var.split(',')
+                        VarList.setdefault(v[0],v[1])
+                        featureSupport=find_TestcaseInfo_Level1(TestCaseID,v[0])
+                        #LogMsg("Feature Support = %s" % featureSupport)
+                        if (checkFeatureFlag == v[0]):
+                            LogMsg ("%s-%s"%(checkFeatureFlag,v[1]))
+                            if v[1] != "1":
+                                LogMsg ("DUT does not support the feature")
+                                VarList.setdefault("TestNA","DUT does not support the feature")
+                            
+                        if v[1] == "0":
+                            dis = "No"
+                        elif v[1] == "1":
+                            dis = "Yes"
+                        else:
+                            dis=v[1]
+                        if "DUT_" not in v[0]:
+                            T.rows.append([v[0],dis])
                     
         htmlcode = str(T)
         fFile.write(htmlcode)
@@ -437,6 +473,9 @@ def GetCAPIFileNames (TestCaseID):
         setattr (testEnvVariables,"DUTConfigCAPIFile",find_STAFile(TestCaseID,"DUTFile"))
         VarList.setdefault("SigmaMsg","")
     setattr (testEnvVariables,"STAConfigCAPIFile",find_STAFile(TestCaseID,"STAFile"))
+    if ProgName=="PMF":
+	setattr (testEnvVariables,"WLANTestCAPIFile",find_WLANTestFile(TestCaseID,"WLanTestFile"))
+	
     return 1
 
 #
@@ -657,6 +696,23 @@ def GetOtherVariables(TID):
     if (cw != ""):
       VarList.setdefault("APChannelWidth",cw)
       
+    if ProgName=="PMF":
+        #Security get parameters
+	findSecurity(TID,"Security")
+	#PMF Capability get parameters
+	findPMFCap(TID,"PMFCapability")
+	if "PMF-4" in TID:
+            VarList.setdefault("sender","sta")
+	
+        if "PMF-5" in TID:
+            VarList.setdefault("sender","ap")
+	#WLAN Tester for frame injection-sniffing
+	cond=find_TestcaseInfo_Level1(TID,"WFA_Tester")
+	VarList.setdefault("WFA_Tester",cond)
+	VarList.setdefault("TBAPConfigServer","TestbedAPConfigServer")
+	VarList.setdefault("WFA_Sniffer","wfa_sniffer")
+	VarList.setdefault("WFA_TEST_control_agent","wfa_test_control_agent")
+    
     combo=find_TestcaseInfo_Level1(TID,"QualCombinationInfo")
     LogMsg("Combination Info = %s"%combo)
     if (combo != ""):
@@ -817,8 +873,10 @@ def FindBandChannel (TestCaseID):
     Channel = find_TestcaseInfo_Level1(TestCaseID,"Channel").split("/")
     if band != "11a" and band != "11na" and band != -1:
         channel= Channel[1]
+        interface= 2.4
     elif band != -1:
         channel= Channel[0]
+        interface= 5.0
     if band == -1 and ProgName != "P2P":
         VarList.setdefault("TestNA","Invalid Band. DUT Capable Band is [%s] and Test requires [%s]" % (dutInfoObject.DUTBand,Band))
          
@@ -837,7 +895,8 @@ def FindBandChannel (TestCaseID):
     
     setattr(testEnvVariables,"Band",band)
     setattr(testEnvVariables,"Channel",channel)
-    
+    VarList.setdefault("Interface",interface)
+        
     
 # Function: Init band selection array
 def LoadBandSelection():
@@ -1067,6 +1126,89 @@ def find_Server(testID,tag):
                        
     LogMsg ("\n|\n|\n| Found server File -%s-" % (result))
     return result
+
+#PMF specific
+def find_WLANTestFile(testID,tag):
+    result=""
+    LogMsg ("\n|\n|\n| Searching WLAN Tester File for TestID %s" % (testID))
+    for node in doc.getElementsByTagName(testID):
+      LogMsg ("Node1 = %s" %node.nodeName)
+      L = node.getElementsByTagName(tag)
+      
+      for node2 in L:
+          LogMsg ("----Node2 = %s" %node2.nodeName)
+          for node3 in node2.childNodes:
+              if node3.nodeName == "_Value":
+                 LogMsg ("------------Node4 = %s" %node3.firstChild.nodeValue)
+                 result = node3.firstChild.nodeValue
+                 break;
+                       
+                       
+    LogMsg ("\n|\n|\n| Found WLAN Tester File -%s-" % (result))
+    return result
+	
+def findSecurity(testID,tag):
+    result=""
+    LogMsg ("\n|\n|\n| Searching Security Info for TestID %s" % (testID))
+    for node in doc.getElementsByTagName(testID):
+      LogMsg ("Node1 = %s" %node.nodeName)
+      L = node.getElementsByTagName(tag)
+      
+      for node2 in L:
+          LogMsg ("----Node2 = %s" %node2.nodeName)
+          for node3 in node2.childNodes:
+              if node3.nodeName == "KeyMgmt":
+                  LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
+                  result = node3.firstChild.nodeValue
+                  if result == "WPA2-Ent":
+                      if dutInfoObject.DUTType == "WPA2-Enterprise":
+                          VarList.setdefault("Keymgnt",node3.firstChild.nodeValue)
+                          VarList.setdefault("keymgmttpye","%s" %("WPA2"))
+                      else:
+                          VarList.setdefault("Keymgnt","%s" %("WPA2-PSK"))
+                          VarList.setdefault("keymgmttpye","%s" %("WPA2"))
+                  else:
+                      VarList.setdefault("Keymgnt","%s-%s" % (node3.firstChild.nodeValue,"PSK"))
+                      VarList.setdefault("keymgmttpye",node3.firstChild.nodeValue)
+              elif node3.nodeName == "Encryption":
+                  LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
+                  result = node3.firstChild.nodeValue
+		  VarList.setdefault("encpType",node3.firstChild.nodeValue)
+              elif node3.nodeName == "Passphrase":
+                  LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
+                  result = node3.firstChild.nodeValue
+		  VarList.setdefault("passphrase",node3.firstChild.nodeValue)
+				       
+    LogMsg ("\n|\n|\n| Found Security Info -%s-" % (result))
+	
+def findPMFCap(testID,tag):
+    result=""
+    LogMsg ("\n|\n|\n| Searching PMF Capability for TestID %s" % (testID))
+    for node in doc.getElementsByTagName(testID):
+      LogMsg ("Node1 = %s" %node.nodeName)
+      L = node.getElementsByTagName(tag)
+
+    for node2 in L:
+        LogMsg ("----Node2 = %s" %node2.nodeName)
+        for node3 in node2.childNodes:
+            if node3.nodeName == "DUT_PMFCap":
+                LogMsg ("------------DUT PMF Cap= %s" %node3.firstChild.nodeValue)
+                VarList.setdefault("DUT_PMFCap",node3.firstChild.nodeValue)
+            elif node3.nodeName == "PMFCap1":
+                LogMsg ("------------Testbed PMF Cap1= %s" %(node3.firstChild.nodeValue))
+                VarList.setdefault("PMFCap1",node3.firstChild.nodeValue)
+            elif node3.nodeName == "PMFCap2":
+                LogMsg ("------------Testbed PMF Cap2= %s" %(node3.firstChild.nodeValue))
+                VarList.setdefault("PMFCap2",node3.firstChild.nodeValue)
+            elif node3.nodeName == "PMFCap3":
+                LogMsg ("------------Testbed PMF Cap3= %s" %(node3.firstChild.nodeValue))
+                VarList.setdefault("PMFCap3",node3.firstChild.nodeValue)
+            #else:
+             #   for iCount in range(1,3):
+              #      LogMsg ("------------Testbed PMF Cap%s= %s" %(iCount,node3.firstChild.nodeValue))
+               #     VarList.setdefault("PMFCap%s" %(iCount),node3.firstChild.nodeValue)
+	
+
 def find_throughput_values(testID,tag):
     result=""
     tag1=""
