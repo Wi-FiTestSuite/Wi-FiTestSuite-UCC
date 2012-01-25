@@ -233,7 +233,7 @@ serverInfo = server()
 #
 class envVariables:
     global ProgName 
-    def __init__(self,Channel="",Band="",SSID="",TSTA1="",TSTA2="",TSTA3="",TSTA4="",TSTA5="",TestbedConfigCAPIFile="",DUTConfigCAPIFile="",STAConfigCAPIFile=""):
+    def __init__(self,Channel="",Band="",SSID="",TSTA1="",TSTA2="",TSTA3="",TSTA4="",TSTA5="",TestbedConfigCAPIFile="",DUTConfigCAPIFile="",STAConfigCAPIFile="",WLANTestCAPIFile=""):
         self.Channel=Channel
         self.Band=Band
         self.SSID=SSID
@@ -871,12 +871,16 @@ def FindBandChannel (TestCaseID):
         LogMsg("Invalid band information %s" % Band)
         
     Channel = find_TestcaseInfo_Level1(TestCaseID,"Channel").split("/")
+    
     if band != "11a" and band != "11na" and band != -1:
         channel= Channel[1]
         interface= 2.4
     elif band != -1:
         channel= Channel[0]
         interface= 5.0
+    else:
+        interface= 2.4
+        
     if band == -1 and ProgName != "P2P":
         VarList.setdefault("TestNA","Invalid Band. DUT Capable Band is [%s] and Test requires [%s]" % (dutInfoObject.DUTBand,Band))
          

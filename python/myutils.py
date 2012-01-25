@@ -479,13 +479,13 @@ def process_cmd(line):
 	command=str[0].split('!')
         
         if command[0].lower() == "else":
-            if(int(ifcondBit)):
-                ifcondBit=0
+            if(int(ifCondBit)):
+                ifCondBit=0
             else:
-                ifcondBit=1
+                ifCondBit=1
             return
         if command[0].lower() == "endif":
-            ifcondBit = 1
+            ifCondBit = 1
             return
         if command[0].lower() == "if":
             #logging.info("Length of command = %d" %len(command))
