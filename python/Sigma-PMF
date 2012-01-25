@@ -1,0 +1,24 @@
+#List PMF Testcase files
+#File format - Testcase Name ! Init File Name ! Command File Name
+
+#PMF - STAUT
+PMF-5.1!init_PMF.txt!PMF-5.1.txt
+PMF-5.2!init_PMF.txt!PMF-5.2.txt
+PMF-5.3.3.1!init_PMF.txt!PMF-5.3.3.1.txt
+PMF-5.3.3.2!init_PMF.txt!PMF-5.3.3.2.txt
+PMF-5.3.3.3!init_PMF.txt!PMF-5.3.3.3.txt
+PMF-5.3.3.4!init_PMF.txt!PMF-5.3.3.4.txt
+PMF-5.3.3.5!init_PMF.txt!PMF-5.3.3.5.txt
+PMF-5.4.3.1!init_PMF.txt!PMF-5.4.3.1.txt
+PMF-5.4.3.2!init_PMF.txt!PMF-5.4.3.2.txt
+
+#PMF - APUT
+PMF-4.1!init_PMF.txt!PMF-4.1.txt
+PMF-4.2!init_PMF.txt!PMF-4.2.txt
+PMF-4.3.3.1!init_PMF.txt!PMF-4.3.3.1.txt
+PMF-4.3.3.2!init_PMF.txt!PMF-4.3.3.2.txt
+PMF-4.3.3.3!init_PMF.txt!PMF-4.3.3.3.txt
+PMF-4.3.3.4!init_PMF.txt!PMF-4.3.3.4.txt
+PMF-4.4!init_PMF.txt!PMF-4.4.txt
+PMF-4.5!init_PMF.txt!PMF-4.5.txt
+PMF-4.6!init_PMF.txt!PMF-4.6.txt
