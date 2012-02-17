@@ -12,7 +12,7 @@ set MASTER_XML_FILE=\MasterTestInfo.xml
 set PROG_NAME=WPA2
 set isValid=
 echo .
-echo          Running Testcase - %1 * [Version 1.9 - WPA2 System Interoperability Test Plan]
+echo          Running Testcase - %1 * [Version 1.15 - WPA2 System Interoperability Test Plan]
 echo .
 
 del result.html
@@ -20,12 +20,8 @@ del result.html
 IF "%1"=="" GOTO HELP
 IF "%1"=="group" GOTO GROUP
 
-IF "%1"=="all" GOTO ALL
-IF NOT "%1"=="all" GOTO SINGLE
+IF NOT "%1"=="group" GOTO SINGLE
 
-:ALL
-set searchString=WPA2
-GOTO S
 :SINGLE
 set searchString=%1
 GOTO S
@@ -70,7 +66,6 @@ GOTO EOF
 
 :HELP
 echo "Usage - 'wpa2Test <WPA2 Testcase Name>'  or"
-echo "        'wpa2Test all'  or"
 echo "        'wpa2Test group <file with list of test cases>'"
 
 :EOF

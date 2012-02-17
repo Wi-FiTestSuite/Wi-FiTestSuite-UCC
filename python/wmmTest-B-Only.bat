@@ -12,7 +12,7 @@ set isValid=
 IF "%1"=="" GOTO HELP
 
 echo .
-echo          Running Testcase - %1 * [Version 1.6 - WMM System Interoperability Test Plan]
+echo          Running Testcase - %1 * [Version 2.2.2 - WMM System Interoperability Test Plan]
 echo .
 
 

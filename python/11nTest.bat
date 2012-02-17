@@ -12,7 +12,7 @@ set PROG_NAME=11n
 set MASTER_XML_FILE=\MasterTestInfo.xml
 set isValid=
 echo .
-echo          Running Testcase - %1 * [Version 2.0.11 - 11n System Interoperability Test Plan]
+echo          Running Testcase - %1 * [Version 2.0.15 - 11n System Interoperability Test Plan]
 echo .
 
 del result.html
@@ -20,12 +20,9 @@ del result.html
 IF "%1"=="" GOTO HELP
 IF "%1"=="group" GOTO GROUP
 
-IF "%1"=="all" GOTO ALL
-IF NOT "%1"=="all" GOTO SINGLE
+IF NOT "%1"=="group" GOTO SINGLE
 
-:ALL
-set searchString=11n
-GOTO S
+
 :SINGLE
 set searchString=%1
 GOTO S
@@ -70,9 +67,9 @@ FOR /F  %%T in ('findstr "N" %2') do (
 
 GOTO EOF
 
+
 :HELP
 echo "Usage - '11nTest <11n Testcase Name>'  or"
-echo "        '11nTest all'  or"
 echo "        '11nTest group <file with list of test cases>'"
 
 :EOF

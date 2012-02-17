@@ -2,7 +2,7 @@
 cls
 REM #################################################################
 REM This batch file runs the UCC script for given 11n testcases Name
-REM Usage - 11nTest <11n Testcase Name>
+REM Usage - PMFTest <PMF Testcase Name>
 REM #################################################################
 
 
