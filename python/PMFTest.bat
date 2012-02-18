@@ -12,7 +12,7 @@ set MASTER_XML_FILE=\MasterTestInfo.xml
 set PROG_NAME=PMF
 set isValid=
 echo .
-echo          Running Testcase - %1 * [Version V1-0-0-3 - PMF System Interoperability Test Plan]
+echo          Running Testcase - %1 * [Version V1-0-1 - PMF System Interoperability Test Plan]
 echo .
 
 del result.html
