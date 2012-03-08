@@ -405,7 +405,14 @@ def printStreamResults_WMM():
     set_color(FOREGROUND_INTENSITY)
 
 def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
-    global waitsocks, readsocks, writesocks,runningPhase,testRunning,streamInfoArray
+    global waitsocks, readsocks, writesocks,runningPhase,testRunning,streamInfoArray, retValueTable
+    if "$MT" in retValueTable :
+	logging.info("MT START")
+	while 1:
+	  if retValueTable["$MT"] == "0" :
+		break
+	  time.sleep(0.1)
+	logging.info("MT STOP")
     
     logging.debug( "responseWaitThreadFunc started %s" % testRunning)
     while testRunning > 0:
@@ -556,7 +563,27 @@ def process_cmd(line):
                         ifCondBit = 0
                 #return
             
-        if int( ifCondBit) == 0:
+        if command[0].lower() == "math":
+	    tmp=command[1]
+            if command[1] in retValueTable:
+                command[1]=retValueTable[command[1]]
+            if command[3] in retValueTable:
+                command[3]=retValueTable[command[3]]
+	    if (command[1].lstrip('-')).isdigit() and (command[3].lstrip('-')).isdigit():
+	        if(command[2]).lower() == "+":
+			retValueTable[tmp] = "%s" % (int(command[1]) +  int(command[3]))
+	        if(command[2]).lower() == "-":
+			retValueTable[tmp] = "%s" % (int(command[1]) -  int(command[3]))
+	        if(command[2]).lower() == "*":
+			retValueTable[tmp] = "%s" % (int(command[1]) *  int(command[3]))
+	        if(command[2]).lower() == "/":
+			retValueTable[tmp] = "%s" % (int(command[1]) /  int(command[3]))
+
+	    else:
+   	        logging.error("Invalid parameters to math function")
+		
+		
+        if int( ifcondBit) == 0:
             return
         if command[0].lower() == "_dnb_":
             iDNB=1
@@ -1100,7 +1127,8 @@ def process_cmd(line):
                     retValueTable.setdefault(ret_data_idx, "%s;%s" %(stitems[3],toaddr))
                 #retValueTable.setdefault(ret_data_idx,stitems[3])
             elif stitems[2] == 'interfaceType':
-                retValueTable.setdefault(ret_data_idx, stitems[5])
+                retValueTable[ret_data_idx]= ("%s" %(stitems[5]))
+                #retValueTable.setdefault(ret_data_idx, stitems[5])
             elif stitems[2].lower() == 'interfaceid':
                 #TBD - AP interface selection
 		if ret_data_idx in retValueTable:

@@ -400,7 +400,7 @@ def process_cmd(line):
             if command[3] in retValueTable:
                 command[3]=retValueTable[command[3]]
             if(command[2]).lower() == "=":
-                if command[1] == command[3]:
+                if (command[1]).lower() == (command[3]).lower():
                     ifcondBit = 1
                 else:
                     ifcondBit = 0
@@ -425,7 +425,7 @@ def process_cmd(line):
                 else:
                     ifcondBit = 0
             elif (command[2]).lower() == "<>":
-                if command[1] != command[3]:
+                if (command[1]).lower() != (command[3]).lower():
                     ifcondBit = 1
                 else:
                     ifcondBit = 0

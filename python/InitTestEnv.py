@@ -125,7 +125,11 @@ def main():
         TestbedAPFile="\PMF-Testbed-APs.txt"
         InitFile="\init_PMF.txt"
         
-        
+    if (os.getenv("PROG_NAME")=="VENT"):
+        ProgName="VENT"
+        TestbedAPFile="\Voice-Ent-Testbed-APs.txt"
+        InitFile="\init_Voice-Ent.txt"  
+		
     TestID = sys.argv[1]
     #TestID=TestID.split('_')[0]
     InitLog(InitEnvLogFile)
@@ -232,11 +236,17 @@ serverInfo = server()
 # This class holds all the required variables for the test
 #
 class envVariables:
-    global ProgName 
-    def __init__(self,Channel="",Band="",SSID="",TSTA1="",TSTA2="",TSTA3="",TSTA4="",TSTA5="",TestbedConfigCAPIFile="",DUTConfigCAPIFile="",STAConfigCAPIFile="",WLANTestCAPIFile=""):
+    global ProgName
+    def __init__(self,Channel="",Channel_1="",Channel_2="",Channel_3="",Band="",SSID="",SSID_1="",SSID_2="",SSID_3="",TSTA1="",TSTA2="",TSTA3="",TSTA4="",TSTA5="",TestbedConfigCAPIFile="",DUTConfigCAPIFile="",STAConfigCAPIFile="",WLANTestCAPIFile=""):
         self.Channel=Channel
+        self.Channel_1=Channel_1
+        self.Channel_2=Channel_2
+        self.Channel_3=Channel_3
         self.Band=Band
         self.SSID=SSID
+        self.SSID_1=SSID_1
+        self.SSID_2=SSID_2
+        self.SSID_3=SSID_3
         self.APs={}
 
         # For each program, create a file 'TestbedAPNames.txt' in cmds folder and list the name of APs in that file
@@ -264,9 +274,9 @@ class envVariables:
         self.__dict__[attr] = value
 
     def formatNameUCC(self):
-        return ("define!$Channel!%s!\ndefine!$Band!%s!\ndefine!$SSID!%s!\ndefine!$STA1!%s!\ndefine!$STA2!%s!\ndefine!$STA3!%s!\ndefine!$TestbedConfigCAPIFile!%s!\ndefine!$DUTConfigCAPIFile!%s!\ndefine!$STAConfigCAPIFile!%s!\ndefine!$WLANTestCAPIFile!%s!\n" %(self.Channel,self.Band,self.SSID,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
+        return ("define!$Channel!%s!\ndefine!$Channel_1!%s!\ndefine!$Channel_2!%s!\ndefine!$Channel_3!%s!\ndefine!$Band!%s!\ndefine!$SSID!%s!\ndefine!$SSID_1!%s!\ndefine!$SSID_2!%s!\ndefine!$SSID_3!%s!\ndefine!$STA1!%s!\ndefine!$STA2!%s!\ndefine!$STA3!%s!\ndefine!$TestbedConfigCAPIFile!%s!\ndefine!$DUTConfigCAPIFile!%s!\ndefine!$STAConfigCAPIFile!%s!\ndefine!$WLANTestCAPIFile!%s!\n" %(self.Channel,self.Channel_1,self.Channel_2,self.Channel_3,self.Band,self.SSID,self.SSID_1,self.SSID_2,self.SSID_3,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
     def __str__(self):
-        return ("Channel = %s | Band = %s | SSID = %s | STA1 - %s   STA2 - %s   STA3 - %s Testbed File - %s DUTConfig File - %s STAConfig File - %s WLANTest File - %s" %(self.Channel,self.Band,self.SSID,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
+        return ("Channel = %s  Channel_1 = %s  Channel_2 = %s  Channel_3 = %s | Band = %s | SSID = %s  SSID_1 = %s  SSID_2 = %s  SSID_3 = %s  | STA1 - %s   STA2 - %s   STA3 - %s Testbed File - %s DUTConfig File - %s STAConfig File - %s WLANTest File - %s" %(self.Channel,self.Channel_1,self.Channel_2,self.Channel_3,self.Band,self.SSID,self.SSID_1,self.SSID_2,self.SSID_3,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
 
 #Global Object to handle Test ENV Variables
 testEnvVariables = envVariables()
@@ -360,6 +370,8 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("OBSS",ReadMapFile(DUTFile,"OBSS","!"))
     dutInfoObject.__setattr__("AMPDU_TX",ReadMapFile(DUTFile,"AMPDU_TX","!"))
     dutInfoObject.__setattr__("AP_Concurrent",ReadMapFile(DUTFile,"AP_Concurrent","!"))
+    
+    dutInfoObject.__setattr__("BSS_Trans_Query_Support",ReadMapFile(DUTFile,"BSS_Trans_Query_Support","!"))
     
     dutInfoObject.__setattr__("TestCaseID",TestCaseID)
     
@@ -545,10 +557,14 @@ def GetTestbedDeviceInfo (TestCaseID):
         if int(testEnvVariables.Channel) > 35 :
             VarList.setdefault("bssid",("$%sAPMACAddress_5G"%AP))
             VarList.setdefault(("AP%sMACAddress"%iCount),("$%sAPMACAddress_5G"%AP))
+            VarList.setdefault(("AP%sMACAddress2"%iCount),("$%sAPMACAddress2_5G"%AP))
+            VarList.setdefault(("AP%sMACAddress3"%iCount),("$%sAPMACAddress3_5G"%AP))
         else:
             VarList.setdefault("bssid",("$%sAPMACAddress_24G"%AP))
             VarList.setdefault(("AP%sMACAddress"%iCount),("$%sAPMACAddress_24G"%AP))
-        VarList.setdefault("AP%s_control_agent" %(iCount),"wfa_control_agent_%s_ap" %(AP.lower()))            
+            VarList.setdefault(("AP%sMACAddress2"%iCount),("$%sAPMACAddress2_24G"%AP))
+            VarList.setdefault(("AP%sMACAddress3"%iCount),("$%sAPMACAddress3_24G"%AP))
+        VarList.setdefault("AP%s_control_agent" %(iCount),"wfa_control_agent_%s_ap" %(AP.lower()))             
         iCount=iCount+1
         
         
@@ -573,8 +589,17 @@ def GetTestbedDeviceInfo (TestCaseID):
                                    
         iCount=iCount+1
     # Searching SSID
+    iCount = 1
     SSID= find_TestcaseInfo_Level1(TestCaseID,"SSID")
-    setattr(testEnvVariables,"SSID",SSID)
+    setattr(testEnvVariables,"SSID_1",find_TestcaseInfo_Level1(TestCaseID,"SSID"))
+    SSIDs= find_TestcaseInfo_Level1(TestCaseID,"SSID").split(" ")
+    #LogMsg("SSID = %s %d"% (SSIDs,len(SSIDs)))
+    for SSID in SSIDs:
+        if (len(SSIDs) > 1):
+            setattr(testEnvVariables,"SSID_%s"%(iCount),SSID)
+            iCount = iCount + 1
+        #else:
+            #setattr(testEnvVariables,"SSID",SSID)
 
     
     if (ProgName != "P2P"):
@@ -726,6 +751,7 @@ def GetOtherVariables(TID):
     VarList.setdefault("MCS32_Value",dutInfoObject.MCS32)
     VarList.setdefault("STBC_RX_Value",dutInfoObject.STBC_RX)
     VarList.setdefault("STBC_TX_Value",dutInfoObject.STBC_TX)
+    VarList.setdefault("BSS_Trans_Query_Support",dutInfoObject.BSS_Trans_Query_Support)
 
     #Check for 11n Optional Test Cases Flag
     FindCheckFlag11n(TID)
@@ -850,6 +876,7 @@ def FindBandChannel (TestCaseID):
     LoadBandSelection()
     band=-1
     channel=-1
+	channel1 = []
     
     Band = find_TestcaseInfo_Level1(TestCaseID,"Band")
     if (Band == "A/G"):
@@ -984,6 +1011,16 @@ def LoadBandSelection():
     bandSelectionList.setdefault("AGN:AN","11na")
     bandSelectionList.setdefault("AN:AN","11na")
     bandSelectionList.setdefault("GN:AN","11na")
+
+    bandSelectionList.setdefault("AGN:ABG","11a")
+    bandSelectionList.setdefault("AGN:BG","11g")
+    bandSelectionList.setdefault("AGN:B","11b")
+    bandSelectionList.setdefault("AN:ABG","11a")
+    bandSelectionList.setdefault("AN:BG","11g")
+    bandSelectionList.setdefault("AN:B","11b")
+    bandSelectionList.setdefault("GN:ABG","11g")
+    bandSelectionList.setdefault("GN:BG","11g")
+    bandSelectionList.setdefault("GN:B","11b")
     
 
 
