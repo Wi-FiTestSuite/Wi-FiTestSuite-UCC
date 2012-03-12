@@ -21,9 +21,9 @@ N_CMD_PATH=..\cmds\Sigma-11n
 N_TESTBED_AP=\802.11n-Testbed-APs.txt
 
 # Voice Enterprise
-N_TEST_LIST=Sigma-Voice-Ent
-N_CMD_PATH=..\cmds\Sigma-Voice-Ent
-N_TESTBED_AP=\Voice-Ent-Testbed-APs.txt
+VE_TEST_LIST=Sigma-Voice-Ent
+VE_CMD_PATH=..\..\cmds\Sigma-Voice-Ent
+VE_TESTBED_AP=\Voice-Ent-Testbed-APs.txt
 
 
 # WMM B only device

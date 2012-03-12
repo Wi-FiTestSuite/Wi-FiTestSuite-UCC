@@ -1480,13 +1480,14 @@ def wfa_sys_exit(msg):
         setattr(ResInfo,"status","ABORTED")
         setattr(ResInfo,"rdata", msg)
     ResInfo.log()
-    sys.exit(msg)
+    raise StandardError("Exit - %s" % msg)
+    
 
 def wfa_sys_exit_0():
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
     logging.disable("ERROR")
-    sys.exit(0)
+    raise StandardError("Exit")
 
  
 

@@ -120,10 +120,12 @@ def main():
             if not l: break
             setattr(U,"testID",l.strip())
             runTestCase(tests,U.testID)
+    
     else:
         setattr(U,"testID",sys.argv[2])
         runTestCase(tests,U.testID)
     
+    return
 
 def runTestCase (testListFile, testID):
     print "\n*** Running Test - %s *** \n" % testID
@@ -167,10 +169,16 @@ def runTestCase (testListFile, testID):
         
     logging.info("\n %7s Testcase Init File = %s \n" %( "",initFile))
     logging.info("\n %7s Testcase Command File = %s \n" % ("",testFile))
+
+    logging.info ("START: TEST CASE [%s] " % testID)
+    try:  
+        file = open(initFile)
+        scanner(file, firstword)
+        process_cmdfile(testFile)
+    except StandardError:
+        logging.info ("END: TEST CASE [%s] " % testID)
+        return
     
-    file = open(initFile)
-    scanner(file, firstword)
-    process_cmdfile(testFile)
     
     #delay for last receive_stop response
     time.sleep(5)

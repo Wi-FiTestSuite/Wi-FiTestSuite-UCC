@@ -106,9 +106,9 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile):
 
     uccPath=cmdPath
     doc = xml.dom.minidom.parse(uccPath + MasterTestInfo)
-    InitFile=initFile
+    InitFile="\\" + initFile
     ProgName=progName
-    TestbedAPFile=TBFile
+    TestbedAPFile="\\" + TBFile
     TestID = testID
     
     #TestID=TestID.split('_')[0]
