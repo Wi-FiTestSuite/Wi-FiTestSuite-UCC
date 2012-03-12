@@ -56,56 +56,121 @@ from myutils import printStreamResults
 from myutils import close_conn
 from myutils import wfa_sys_exit
 from myutils import setUCCPath
+from InitTestEnv import InitTestEnv
 import logging
 import time
+import re
 nargs = len(sys.argv)
+
+class UCCTestConfig:
+    
+    def __init_(self,testID,cmdPath,progName,initFile,TBFile):
+        self.cmdPath=cmdPath
+        self.progName=progName
+        self.initFile=initFile
+        self.TBFile=TBFile
+        self.testID=testID
+      
+  
+    def __str__(self):
+        return("\n Test ID = [%s] CmdPath = [%s] Prog Name = [%s] initFile =[%s] TBFile =[%s]" % (self.testID,self.cmdPath,self.progName,self.initFile,self.TBFile))
+
+U = UCCTestConfig()
 
 def main():
 
-    if nargs < 4 :
-        print('Incorrect Command line !!! \n\rUSAGE : <program name> <console logging level> <Init Filename> <TestCase command file>\
-        \n\r      logging level : 0 - Logging disable\
-        \n\r                      1 - Logging enable (info level)\
-	\n\r                      2 - Logging enable (debug level)\
-	\n\r\n\r      Init File Name : Initializtion file for program\
-	\n\r\n\r      Testcase Command File Name : Command File Name for test case.\
-        \n\r        For example, WMM-S2-T04.txt to run Step 4 of WMM S2 test case.\
-        \n\r\n\rSAMPLE - c:\python25\python.exe 1 ..\\..\\cmds\\init_WMM.txt ..\\..\\cmds\\WMM-S2-T04.txt\
+    if (nargs < 3) or (sys.argv[2]=='group' and nargs < 4):
+        print('Incorrect Command line !!! \n\rUSAGE : UCC <Program Name> <Test ID>/\
+        \n\r    [1]Program Name :PMF\
+        \n\r                     P2P\
+        \n\r                     N\
+        \n\r                     WPA2\
+        \n\r                     WMM-B/WMM-BG/WMM-ABG\
+	\n\r\n\r [2] Test ID : Test case ID for that program            OR\
+	\n\r\n\r [2] group : group if running group of test cases followed by group file name\
+	\n\r\n\r [3] group file name: Group file name which contains list of test cases\
+        \n\r\n\r\
+        \n\r        For example, To run test P2P-4.1.1 of P2P(Wi-Fi Direct) program,\
+        \n\r\n\r    UCC P2P P2P-4.1.1        OR\
+        \n\r        For example, To run group of P2P test cases listed in file L1.txt\
+        \n\r\n\r    UCC P2P group L1.txt\
     	')
-	wfa_sys_exit("")
-    
-    init_logging(sys.argv[3],sys.argv[1])
-    uccPath = os.getenv("UCC_CMD_PATH")
-    init=sys.argv[2]
-    cmd=sys.argv[3]
-    if (uccPath):
-        logging.info("UCC CMD Path = %s" % uccPath)
-    else:
-        uccPath="..\..\cmds"
-        logging.info("UCC cmd Path = %s " % uccPath)
+	return
 
-    uccPath=uccPath.strip()
+
+    cmdPath = ReadMapFile("Sigma-UCC.txt","%s_CMD_PATH" %(sys.argv[1]),"=")
+    tbAP = ReadMapFile("Sigma-UCC.txt","%s_TESTBED_AP" %(sys.argv[1]),"=")
+    tests= ReadMapFile("Sigma-UCC.txt","%s_TEST_LIST" %(sys.argv[1]),"=")
+    
+    if cmdPath == -1 or tbAP == -1 or tests == -1:
+        print "Invalid Program Name - %s" % sys.argv[1]
+        return
+    setattr(U,"cmdPath",cmdPath)
+    setattr(U,"progName",sys.argv[1])
+    setattr(U,"TBFile",tbAP)
+    
+    
+    if sys.argv[2] == "group":
+        grpFile = sys.argv[3]
+        if os.path.exists(grpFile) == 0:
+            print ("Invalid Group File -%s-" % grpFile)
+            return
+        fileP = open(grpFile,'r')
+        for l in (fileP.readlines()):
+            if not l: break
+            setattr(U,"testID",l.strip())
+            runTestCase(tests,U.testID)
+    else:
+        setattr(U,"testID",sys.argv[2])
+        runTestCase(tests,U.testID)
+    
+
+def runTestCase (testListFile, testID):
+    print "\n*** Running Test - %s *** \n" % testID
+    
+    initFile = ReadMapFile(testListFile,testID,"!")
+    testFile = ReadMapFile(testListFile,testID,"!",2)
+        
+    if initFile == -1 or testFile == -1:
+        print ("Invalid test case - %s" % testID)
+        
+    setattr(U,"initFile",initFile)
+
+    #init Logging
+    init_logging(U.testID,1)
+
+    logging.info("\n Test Info %s" % U)
+
+
+    uccPath=U.cmdPath
     if (uccPath.endswith('\\') == 0 ):
         uccPath=uccPath + '\\'
 
     setUCCPath(uccPath)
-    init=uccPath+init
-    cmd=uccPath + cmd
+    initFile = uccPath + initFile
+    testFile= uccPath + testFile
+    # Run Init Env
+    if not re.search("WMM",testID):
+        InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile)
 
-    if os.path.exists(init) == 0:
-        logging.error ("Invalid file name - %s" % init)
-        wfa_sys_exit("1")
-    else :
-        initfile = init
+    # UCC 
+    #Run UCC Core
     
-    if os.path.exists(cmd) == 0:
+    if os.path.exists(initFile) == 0:
+        logging.error ("Invalid file name - %s" % initFile)
+        wfa_sys_exit("1")
+   
+    
+    if os.path.exists(testFile) == 0:
         logging.error ("Invalid file name - %s" % cmd)
         wfa_sys_exit("1")
-    logging.info("\n %7s Testcase Init File = %s \n" %( "",init))
-    logging.info("\n %7s Testcase Command File = %s \n" % ("",cmd))
-    file = open(initfile)
+        
+    logging.info("\n %7s Testcase Init File = %s \n" %( "",initFile))
+    logging.info("\n %7s Testcase Command File = %s \n" % ("",testFile))
+    
+    file = open(initFile)
     scanner(file, firstword)
-    process_cmdfile(cmd)
+    process_cmdfile(testFile)
     
     #delay for last receive_stop response
     time.sleep(5)
@@ -113,6 +178,29 @@ def main():
     file.close()
     close_conn()
     time.sleep(2)
+
+def ReadMapFile (filename,index,delim,n=1):
+
+    iCount=1
+    returnString=-1
+    if os.path.exists(filename) == 0:
+        print ("File not found -%s-" % filename)
+        return -1
+    #print ("ReadMapFile ------- %s-%s-%s" %(filename,index,delim))
+    fileP = open(filename,'r')
+    for l in (fileP.readlines()):
+        if not l: break
+        line=l.split('#')
+        command = line[0].split(delim)
+        #print ("ReadMapFile ------- %s" %(command))
+        if index in command:
+            returnString=command[command.index(index)+n].strip()
+            break
+
+    fileP.close()   
+    return returnString
+
+
 
 if __name__ == "__main__":
     main()

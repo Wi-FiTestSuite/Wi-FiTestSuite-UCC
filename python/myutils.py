@@ -1127,8 +1127,10 @@ def process_cmd(line):
                     retValueTable.setdefault(ret_data_idx, "%s;%s" %(stitems[3],toaddr))
                 #retValueTable.setdefault(ret_data_idx,stitems[3])
             elif stitems[2] == 'interfaceType':
-                retValueTable[ret_data_idx]= ("%s" %(stitems[5]))
-                #retValueTable.setdefault(ret_data_idx, stitems[5])
+                if ret_data_idx in retValueTable:
+                    retValueTable[ret_data_idx]= ("%s" %(stitems[5]))
+                else:
+                    retValueTable.setdefault(ret_data_idx, stitems[5])
             elif stitems[2].lower() == 'interfaceid':
                 #TBD - AP interface selection
 		if ret_data_idx in retValueTable:
@@ -1527,7 +1529,7 @@ def init_logging (_filename,level):
         logging.getLogger('').addHandler(console)
     set_color(FOREGROUND_INTENSITY)
     logging.info ("###########################################################\n")    
-    logging.info ("UCC Version- Sigma-5.0.0")    
+    logging.info ("UCC Version- Sigma-6.0.0-RC")    
     logging.info('Logging started in file - %s' % (fname))
 
     

@@ -96,42 +96,23 @@ EAPList = ["TLS","TTLS","PEAP0","FAST","PEAP1","SIM","AKA"]
 WPSConfigList = ["WPS_Keypad" ,"WPS_Display","WPS_PushButton","WPS_Label"]
            
 #default command file path
-uccPath = os.getenv("UCC_CMD_PATH")
+uccPath = "..\\cmds"
 
 bandSelectionList = {}
-doc = xml.dom.minidom.parse(uccPath + MasterTestInfo)
+doc = ""
 # Main function
-def main():
-    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName
-    if (os.getenv("MASTER_XML_FILE")):
-        MasterTestInfo=os.getenv("MASTER_XML_FILE")
-        doc = xml.dom.minidom.parse(uccPath + MasterTestInfo)
+def InitTestEnv(testID,cmdPath,progName,initFile,TBFile):
+    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName,uccPath
 
-    if (os.getenv("INIT_FILE")):
-        InitFile=os.getenv("INIT_FILE")
-
-    if (os.getenv("PROG_NAME")=="WPA2"):
-        ProgName="WPA2"
-        TestbedAPFile="\WPA2-Testbed-APs.txt"
-        InitFile="\init_WPA2.txt"
-        
-    if (os.getenv("PROG_NAME")=="P2P"):
-        ProgName="P2P"
-        InitFile="\init_P2P.txt"
-
-    #PMF Specific
-    if (os.getenv("PROG_NAME")=="PMF"):
-        ProgName="PMF"
-        TestbedAPFile="\PMF-Testbed-APs.txt"
-        InitFile="\init_PMF.txt"
-        
-    if (os.getenv("PROG_NAME")=="VENT"):
-        ProgName="VENT"
-        TestbedAPFile="\Voice-Ent-Testbed-APs.txt"
-        InitFile="\init_Voice-Ent.txt"  
-		
-    TestID = sys.argv[1]
+    uccPath=cmdPath
+    doc = xml.dom.minidom.parse(uccPath + MasterTestInfo)
+    InitFile=initFile
+    ProgName=progName
+    TestbedAPFile=TBFile
+    TestID = testID
+    
     #TestID=TestID.split('_')[0]
+    
     InitLog(InitEnvLogFile)
     ReadDUTInfo(DUTInfoFile,TestID)
 
@@ -875,8 +856,8 @@ def FindBandChannel (TestCaseID):
     global ProgName
     LoadBandSelection()
     band=-1
-    channel=-1
-	channel1 = []
+    channel1 = []
+    testChannel = []
     
     Band = find_TestcaseInfo_Level1(TestCaseID,"Band")
     if (Band == "A/G"):
@@ -897,25 +878,32 @@ def FindBandChannel (TestCaseID):
     except KeyError:
         LogMsg("Invalid band information %s" % Band)
         
-    Channel = find_TestcaseInfo_Level1(TestCaseID,"Channel").split("/")
-    
-    if band != "11a" and band != "11na" and band != -1:
-        channel= Channel[1]
-        interface= 2.4
-    elif band != -1:
-        channel= Channel[0]
-        interface= 5.0
-    else:
-        interface= 2.4
-        
-    if band == -1 and ProgName != "P2P":
-        VarList.setdefault("TestNA","Invalid Band. DUT Capable Band is [%s] and Test requires [%s]" % (dutInfoObject.DUTBand,Band))
-         
-    LogMsg("Test execution in %s Band and Channel %s" % (band,channel))
+    Channel1 = find_TestcaseInfo_Level1(TestCaseID,"Channel").split(",")
+    if Channel1[0] == "":
+        return 
 
+    for chan in range(0, len(Channel1)):
+        channel1.append(Channel1[chan].split("/"))
+        LogMsg("Test case Channel %s %s" % (channel1[chan][0], channel1[chan][1]))
+        
+        if band != "11a" and band != "11na" and band != -1:
+            testChannel.append(channel1[chan][1])
+        elif band != -1:
+            testChannel.append(channel1[chan][0])
+        if band == -1 and ProgName != "P2P":
+            VarList.setdefault("TestNA","Invalid Band. DUT Capable Band is [%s] and Test requires [%s]" % (dutInfoObject.DUTBand,Band))
+            
+    LogMsg("Test execution in %s Band and Channel %s" % (band,testChannel))
+
+    if band == "11a" or band == "11g":
+        VarList.setdefault("STAPHY","ag")
+    elif band == "11b":
+        VarList.setdefault("STAPHY","b")
+    elif band == "11na" or band == "11ng":
+        VarList.setdefault("STAPHY","11n")
 
     # APUT Band for 11n
-    if int(channel) > 35:
+    if int(testChannel[0]) > 35:
         VarList.setdefault("APUT_Band","11na")
         VarList.setdefault("STAUT_Band","11na")
         VarList.setdefault("Band_Legacy","11a")
@@ -925,8 +913,17 @@ def FindBandChannel (TestCaseID):
         VarList.setdefault("Band_Legacy","11g")
     
     setattr(testEnvVariables,"Band",band)
-    setattr(testEnvVariables,"Channel",channel)
-    VarList.setdefault("Interface",interface)
+    iCount = 1
+    for chan in testChannel:
+        if (len(testChannel) > 1):
+            setattr(testEnvVariables,"Channel_%s"%(iCount),chan)
+            iCount = iCount + 1
+            setattr(testEnvVariables,"Channel",testEnvVariables.Channel_1)
+        else:
+            setattr(testEnvVariables,"Channel",chan)
+        LogMsg("%s %s %s" %(testEnvVariables.Channel_1, testEnvVariables.Channel_2, testEnvVariables.Channel_3))
+
+    return(testChannel)
         
     
 # Function: Init band selection array
@@ -1320,6 +1317,3 @@ def createDownloadLog():
     #PCEndpoint Log
 
     downloadLogs.close()
-if __name__ == "__main__":
-    main()
-    
