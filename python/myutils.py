@@ -57,6 +57,11 @@ import logging
 import re
 import ctypes
 import HTML
+from xml.dom.minidom import Document
+from XMLLogger import XMLLogger
+
+VERSION="6.0.0-RC"
+
 
 conntable = {}
 retValueTable = {}
@@ -100,91 +105,6 @@ FOREGROUND_WHITE = FOREGROUND_GREEN | FOREGROUND_RED
 
 
 std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
-class resultInfo:
-    def __init__(self,fileName,TestCase="",LogFileName="",snLogFileName="",status="NOT STARTED",data="-",rdata="-",resultTable="",header=0,versionTable=""):
-        self.fileName=fileName
-        self.LogFileName=LogFileName
-        self.snLogFileName=snLogFileName
-        self.TestCase=TestCase
-        self.status=status
-        self.data=data
-        self.rdata=rdata
-        self.resultTable=resultTable
-        self.versionTable=versionTable
-        self.header=0
-        self.isPrinted=0
-
-        if os.path.exists(fileName):
-            self.header=1
-        self.fileD=open(self.fileName,'a')               
-        
-    def __str__(self):
-        return("%-12s | %-13s | %-12s | %-12s | %-30s | %-30s |" %(self.TestCase,self.status,self.rdata,self.data,self.LogFileName,self.LogFileName))
-    def log(self):
-        if (self.isPrinted):
-            return
-        self.isPrinted=1
-        if "$QualCombinationInfo" in retValueTable:
-            QualInfo =retValueTable["$QualCombinationInfo"]
-        else:
-            QualInfo=""
-        if "$DUT_SIGMA_VERSION" not in retValueTable:
-            retValueTable.setdefault("$DUT_SIGMA_VERSION","NA")            
-        if (self.header == 0):
-            self.versionTable=HTML.Table(col_width=['30%','15%','20%','15%','20%'])
-            r1=HTML.TableRow(cells=['Component Name','Sigma Version','Vendor Name','Device Model','Device Firmware'],bgcolor="Gray",header="True")
-            self.versionTable.rows.append(r1)
-            
-            if "$DUT_Vendor_Name" in retValueTable:
-                if retValueTable["$Sigma_ControlAgent_Support"] == "0":
-                    retValueTable.setdefault("$DUT_SIGMA_VERSION","Not Supported")
-
-                self.versionTable.rows.append(["Device Under Test (DUT)<br><a href =%s>Features Supported</a>" %(DUTFeatureInfoFile)  ,retValueTable["$DUT_SIGMA_VERSION"],retValueTable["$DUT_Vendor_Name"],retValueTable["$DUT_Model_Number"],retValueTable["$DUT_Firmware_Version"]])
-            if "$scriptVersion" in retValueTable:
-                script_version=retValueTable["$scriptVersion"]
-            else:
-                script_version="-"
-            self.versionTable.rows.append(['UCC',"5.0.0","WFA","-",script_version])            
-
-            for v in versionInfoArray:
-                self.versionTable.rows.append([v.ComponentName,v.SigmaVersion,v.VendorName,v.DeviceModel,v.DeviceFirmware])
-            htmlcode = str(self.versionTable)
-            self.fileD.write(htmlcode)
-            self.fileD.write('<p>')
-
-            self.resultTable=HTML.Table(col_width=['10%','10%','15%','15%','40%','10%'])
-            r1=HTML.TableRow(cells=['Testcase','Result','Required','Actual','Log File','Sniffer'],bgcolor="Silver",header="True")
-            self.resultTable.rows.append(r1)
-            self.header=1
-        else:
-            self.resultTable=HTML.Table(col_width=['10%','10%','15%','15%','40%','10%'])
-        if re.search("FAIL",self.status) or re.search("ERROR",self.status) or re.search("ABORT",self.status):
-		font_color="FF0000"
-	elif re.search("PASS",self.status):
-		font_color="00CC00"
-	else:
-		font_color="000000"
-	self.resultTable.rows.append([("%s:%s"%(self.TestCase,QualInfo)),("%s%s%s%s%s" %("<font color=",font_color,">",self.status,"</font>")),self.rdata,self.data,"<a href=%s>%s</a>" %(self.LogFileName,self.LogFileName),"<a href=%s>Sniffer Log</a>" %(self.snLogFileName)])
-        htmlcode = str(self.resultTable)
-        self.fileD.write(htmlcode)
-        self.fileD.write('<p>')
-        #self.fileD.write("%-8s:%-5s | %-13s | %-12s | %-12s |%-30s |\n" %(self.TestCase,QualInfo,self.status,self.rdata,self.data,self.LogFileName))
-    def result(self):
-        setattr(ResInfo,"resPrinted", resultPrinted)
-    def __del__(self):
-        self.fileD.close()
-        
-class versionInfo:
-    def __init__(self,ComponentName,SigmaVersion,VendorName,DeviceModel,DeviceFirmware):
-        self.ComponentName=ComponentName
-        self.SigmaVersion=SigmaVersion
-        self.VendorName=VendorName
-        self.DeviceModel=DeviceModel
-        self.DeviceFirmware=DeviceFirmware
-      
-      
-    def __str__(self):
-        return "%s:%s:%s:%s:%s" %(self.ComponentName,self.SigmaVersion,self.VendorName,self.DeviceModel,self.DeviceFirmware)
 
 # Global Handler for classified Logs
 cSLog = ""
@@ -239,9 +159,6 @@ waitsocks, readsocks, writesocks = [], [], []
 #Multicast test
 multicast = 0
 
-#Result Info
-ResInfo =resultInfo("result.html")
-setattr(ResInfo,"status", "NOT COMPLETED")
 
 def set_color(color, handle=std_out_handle):
     """(color) -> BOOL
@@ -310,7 +227,7 @@ def printStreamResults():
     if resultPrinted == 1:
         return
 
-    setattr(ResInfo,"status", "COMPLETED")
+    XLogger.setTestResult("COMPLETED")
     if ProgName == "P2P":
         return  
     if "WPA2Test" in retValueTable :
@@ -692,11 +609,53 @@ def process_cmd(line):
                 if vInfo[i] in DisplayNameTable:
                     vInfo[i]=DisplayNameTable[vInfo[i]]
                 i = i+1
-            versionInfoArray.append(versionInfo(vInfo[0],vInfo[1],vInfo[2],vInfo[3],vInfo[4],))
+            XLogger.AddTestbedDevice(vInfo[1],vInfo[2],vInfo[3],vInfo[4])
+            logging.debug(vInfo)
+            return
+        
+        if command[0].lower() == 'adduccscriptversion':
+            XLogger.AddSigmaComponent("UCC",VERSION,command[1])
+        
+
+        if command[0].lower() == 'add_media_file':
+            XLogger.addMediaLog(command[1])
+
+        if command[0].lower() == 'manual_check_info':
+            XLogger.setManualCheckInfo(command[1])
+            
+        if command[0].lower() == 'addsigmacompversioninfo' or command[0].lower() == 'adddutversioninfo':
+
+            vInfo=command[1].split(",")
+            i=0
+
+            if len(vInfo) < 5:
+                logging.info("Incorrect version format...")
+                return
+
+
+            if vInfo[0] in retValueTable:
+                vInfo[0] = retValueTable[vInfo[0]]
+                
+            #print vInfo
+            print len(retValueTable)
+            for c in vInfo:
+                if c in retValueTable:
+                    vInfo[i]=retValueTable[c]
+                if vInfo[i] in DisplayNameTable:
+                    vInfo[i]=DisplayNameTable[vInfo[i]]
+                i = i+1
+                
+            if command[0].lower() == 'adddutversioninfo':
+                XLogger.AddDUTInfo(vInfo[1],vInfo[2],vInfo[3],vInfo[4])
+                logging.debug("DUT INFO [%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
+            else:
+                logging.debug("Sigma Comp[%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
+                XLogger.AddSigmaComponent(vInfo[0],vInfo[1],"%s:%s:%s" % (vInfo[2], vInfo[3],vInfo[4]))
+                
             logging.debug(vInfo)
             return        
 
-        if re.search("STA",command[0]) or ( not re.search("TestbedAPConfigServer",command[0]) and re.search("AP",command[0])):
+        if re.search("STA",command[0]) or re.search("AP",command[0]):
             if command[0] in retValueTable:
                 command[0]=retValueTable[command[0]]
             else:
@@ -789,6 +748,7 @@ def process_cmd(line):
                 rdata=command[2]
             resultPrinted=1
             set_test_result(command[1],rdata,"-")
+       	    XLogger.setTestResult(command[1],rdata)
 	    wfa_sys_exit_0()
             return
 
@@ -1224,17 +1184,14 @@ def process_cmdfile(line):
        file.close()
        i = i+1
 def set_test_result(result,data,rdata):
-        setattr(ResInfo,"status", result)
-        setattr(ResInfo,"data", data)
-        setattr(ResInfo,"rdata", rdata)
+    
+        XLogger.setTestResult(result,data,rdata)       
         if (re.search("PASS",result)) :
             set_color(FOREGROUND_GREEN |FOREGROUND_INTENSITY)
             logging.info ("\n     TEST RESULT ---> %15s" % result)
         elif (re.search("FAIL",result)):
             set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
             logging.info ("\n     TEST RESULT ---> %15s | %s |" % (result,data))
-
-        ResInfo.log()
 
 def process_passFailWMM_1(line):
     global runningPhase
@@ -1465,7 +1422,8 @@ def process_ResultCheck(line):
             result = cmd[2]
         else:
             result = cmd[3]
-        setattr(ResInfo,"status", result)
+
+        XLogger.setTestResult(result)
         logging.info ("\nTEST RESULT ---> %15s" % result)
 
     except:
@@ -1475,11 +1433,11 @@ def wfa_sys_exit(msg):
     time.sleep(2)
     set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
     if (re.search("not applicable", msg) or re.search("not supported", msg) ):
-        setattr(ResInfo,"status","TEST N/A")
+        XLogger.setTestResult("TEST N/A")
     else:  
-        setattr(ResInfo,"status","ABORTED")
+        XLogger.setTestResult("ABORTED",msg)
         setattr(ResInfo,"rdata", msg)
-    ResInfo.log()
+    XLogger.writeXML()
     raise StandardError("Exit - %s" % msg)
     
 
@@ -1487,12 +1445,22 @@ def wfa_sys_exit_0():
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
     logging.disable("ERROR")
+    XLogger.writeXML()
     raise StandardError("Exit")
 
+class XMLLogHandler(logging.FileHandler):
+    
+    def emit(self,record):
+        try:
+            XLogger.log(self.format(record))
+            self.flush()
+        except:
+            self.handleError(record)
  
+XLogger=""
 
 def init_logging (_filename,level):
-    global cSLog
+    global cSLog, XLogger
     p=_filename.split('\\')
     resultCollectionFile = open("TestResults","a")
     for s in p:
@@ -1500,6 +1468,7 @@ def init_logging (_filename,level):
 
     directory= "./log/%s_%s" %(tFileName.rstrip(".txt"),time.strftime("%b-%d-%Y__%H-%M-%S", time.localtime()))
     os.mkdir(directory)
+    retValueTable["$logDir"]= directory.lstrip("./log")
     
     
     os.system("echo %s > p" % directory)
@@ -1511,9 +1480,6 @@ def init_logging (_filename,level):
         datefmt='%a, %d %b %Y %H:%M:%S',
         filename=fname,
         filemode='w')
-    setattr(ResInfo,"LogFileName",fname)
-    setattr(ResInfo,"snLogFileName",fname_sniffer)
-    setattr(ResInfo,"TestCase",tFileName.rstrip(".txt"))
     cSLog = classifiedLogs("SNIFFER",fname_sniffer,"SNIFFER CHECKS LOG - Testcase: %s \n\n" % tFileName.rstrip(".txt"))
     #  a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
@@ -1529,8 +1495,17 @@ def init_logging (_filename,level):
     if level != '0':
         logging.getLogger('').addHandler(console)
     set_color(FOREGROUND_INTENSITY)
+
+    # Add XML Log Handler
+    XLogger = XMLLogger("%s/%s_%s.xml" % (directory,tFileName.rstrip(".txt"),time.strftime("%Y-%m-%dT%H_%M_%SZ", time.localtime())),"%s" % (tFileName.rstrip(".txt")))
+    hXML = XMLLogHandler('t')
+    XMLformatter = logging.Formatter('%(message)s')
+    hXML.setFormatter(XMLformatter)
+    logging.getLogger('').addHandler(hXML)
+    XLogger.writeXML()
+
     logging.info ("###########################################################\n")    
-    logging.info ("UCC Version- Sigma-6.0.0-RC")    
+    logging.info ("UCC Version [%s]" % VERSION)    
     logging.info('Logging started in file - %s' % (fname))
 
     

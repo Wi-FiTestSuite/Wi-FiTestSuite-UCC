@@ -50,6 +50,7 @@ import time
 import xml.dom.minidom
 import inspect
 import re
+import subprocess
 
 from xml.dom.minidom import Document
 from xml.dom.minidom import getDOMImplementation
@@ -93,7 +94,7 @@ class TBDevice:
 
         #Check if verification node to be added
         if ver:
-            logging.info("TBDevice::AddXMLNode : ver")
+            logging.debug("TBDevice::AddXMLNode : ver")
             verification = doc.createElement("Verification")
             if self.verified : status = "OK"
             else: status = "Mismatch"
@@ -199,7 +200,7 @@ class TestCase:
         pass
 
 class ResultSummary:
-    def __init__(self,fileName,TestCriteriaFile,uid="",logpath="",stylesheet="Results-Format.xsl"):
+    def __init__(self,fileName,TestCriteriaFile,Prog,uid="",logpath="",mChk=1,stylesheet="Results-Format.xsl"):
         self.fileName=fileName
         self.TestResults=""
         self.doc=XMLDoc()
@@ -210,7 +211,7 @@ class ResultSummary:
         self.testplanID=""
         self.sigKeyID=""
         self.TestCases=[]
-        self.ProgramName="P2P"
+        self.ProgramName=Prog
         self.TestCriteriaFile=xml.dom.minidom.parse(TestCriteriaFile)
         # Stylesheet
         self.doc.appendChild(self.doc.createProcessingInstruction("xml-stylesheet",
@@ -236,6 +237,8 @@ class ResultSummary:
         self.ResultInfo.appendChild(self.doc.createElement("TestCriteriaFileVersion",self.getAttrValue(self.TestCriteriaFile,"ConfigSets","Version")))
         self.ResultInfo.appendChild(self.doc.createElement("TestplanID",self.testplanID))
         self.ResultInfo.appendChild(self.doc.createElement("SignatureKeyID",self.sigKeyID))
+
+        self.mChk=mChk
         
     def addVersionInfo(self,dlog):
         
@@ -249,11 +252,12 @@ class ResultSummary:
             tRight = getNodeHandle(self.TestCriteriaFile,["ConfigSets",self.ProgramName,"ConfigSet"],"",1)           
             t = getNodeHandle(dlog,["Log","Info","Testbed","Device"],"",1)
             
-            for tLeft in t:
-                l=self.compareTwoTBNodes(tLeft,tRight) 
-                l.AddXMLNode(self.doc,vTestbed,1)
-                
-            self.Result.appendChild(vTestbed)
+            if t:
+                for tLeft in t:
+                    l=self.compareTwoTBNodes(tLeft,tRight) 
+                    l.AddXMLNode(self.doc,vTestbed,1)
+                    
+                self.Result.appendChild(vTestbed)
 
         DUT = getNodeHandle(dlog,["Log","Info","DUT"])
         if DUT:
@@ -267,48 +271,68 @@ class ResultSummary:
         
     def generateSummary(self):
         
-        for f in os.listdir(self.logpath):
-            #if len(f.split('.')) > 1 and f.split('.')[1] == "xml":
-            if f.endswith(".xml"):
-                logging.info ("XML %s/%s\n" % (self.logpath,f))
-                dlogFile = xml.dom.minidom.parse(self.logpath + f)
-                if not self.versionInfoFlag:
-                    self.addVersionInfo(dlogFile)
-                tID = self.getAttrValue(dlogFile,"Log","id")
-                tResult = self.getNodeValue(dlogFile,"Log","TestCaseResult")
-                #sig=self.getNodeValue(dlogFile,"Log","Signature")
-                sig="1"
+        for f1 in os.listdir(self.logpath):
+          logging.debug("Folder name [%s]" % f1)
+          
+          if f1.startswith(self.ProgramName):
+            for f in os.listdir(self.logpath + "\\" + f1):
+                logging.debug("--File name [%s]" % f)
+                #if len(f.split('.')) > 1 and f.split('.')[1] == "xml":
+                if f.endswith(".xml"):
+                    lf= "%s%s/%s" % (self.logpath,f1,f)
+                    logging.info ("Processing log file - %s \n", lf)
+                    dlogFile = xml.dom.minidom.parse(lf)
+                    if not self.versionInfoFlag:
+                        self.addVersionInfo(dlogFile)
+                    tID = self.getAttrValue(dlogFile,"Log","id")
+                    tResult = self.getNodeValue(dlogFile,"Log","TestCaseResult")
+                    #sig=self.getNodeValue(dlogFile,"Log","Signature")
+                    sig="1"
+                                    
+                    # Add result nodes to TestCase
+                    if tID and tResult: 
+                        tList=""
+                        # check if test already present
+                        for tList in self.TestCases:
+                            if tList.testID == tID:break
+                            logging.debug("%s" % tList.testID)
+
+                        # Always pick the latest results    
+                        if tList=="" or tList.testID != tID:
+                            t1=TestCase(tID,tResult)
+                            self.TestCases.append(t1)
+                        else:
+                            t1=tList
+                            t1.result=tResult
+                            
+                        if tResult == "PASS" or tResult == "PASSED" or tResult == "COMPLETED":
+                            t1.nPass = int(t1.nPass) + 1
+                            
+                        elif tResult == "FAILED" or tResult =="FAIL":
+                            t1.nFail = int(t1.nFail) + 1
+                        else:
+                            #Check if manual check should be done
+                            mchkInfo=self.getNodeValue(dlogFile,"Log","ManualCheckInfo")
+                            if self.mChk and mchkInfo:
+                                os.startfile(self.logpath + "\\" + f1)
+                                var = raw_input("-Manual Analysis Needed- Test ID -[%s]\n %s \n\n-Enter the result [P or F]: " % (tID, mchkInfo))
+                                t1.result=var
+                                if var=="P":
+                                    t1.nPass = int(t1.nPass) + 1
+                                    t1.result="PASS"
+                                else:
+                                     t1.nFail = int(t1.nFail) + 1
+                                     t1.result="FAILED"
                                 
-                # Add result nodes to TestCase
-                if tID and tResult: 
-                    tList=""
-                    # check if test already present
-                    for tList in self.TestCases:
-                        if tList.testID == tID:break
-                        logging.debug("%s" % tList.testID)
-
-                    # Always pick the latest results    
-                    if tList=="" or tList.testID != tID:
-                        t1=TestCase(tID,tResult)
-                        self.TestCases.append(t1)
-                    else:
-                        t1=tList
-                        t1.result=tResult
-                        
-                    if tResult == "PASS" or tResult == "PASSED" or tResult == "COMPLETED":
-                        t1.nPass = int(t1.nPass) + 1
-                        
-                    elif tResult == "FAILED" or tResult =="FAIL":
-                        t1.nFail = int(t1.nFail) + 1
-                    else:
-                        t1.nErr = int(t1.nErr) + 1
-                        
-                    t1.totalRun = t1.totalRun + 1
-                        
-                    t1.logfiles.append(LogFile(f,sig))
+                            else:
+                                t1.nErr = int(t1.nErr) + 1
+                            
+                        t1.totalRun = t1.totalRun + 1
+                            
+                        t1.logfiles.append(LogFile(lf,sig))
 
 
-        testList = getNodeHandle(self.TestCriteriaFile,["ConfigSets",self.ProgramName,"ConfigSet","TestCases","TestCase"],"",1)            
+        testList = getNodeHandle(self.TestCriteriaFile,["ConfigSets",self.ProgramName,"TestCases","TestCase"],"",1)            
         for t in testList:
             for tList in self.TestCases:
                 iTestFound = 0
@@ -342,7 +366,7 @@ class ResultSummary:
     def getNodeValue(self,node,tag,attr):
         #return the first match
             for l in node.getElementsByTagName(attr):
-                print l
+                logging.debug(l)
                 return l.firstChild.data
             
     def getTBDeviceObject(self,node):
@@ -354,7 +378,7 @@ class ResultSummary:
        return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],lList["OS"],lList["SigmaControlAgent"]))
         
     def compareTwoTBNodes(self,left,right):
-        print ("TLeft = %s TRight = %s" % (left,right))
+        logging.debug ("TLeft = %s TRight = %s" % (left,right))
     
         lTBDevice = self.getTBDeviceObject(left)
         #print rList["Vendor"]
@@ -367,7 +391,7 @@ class ResultSummary:
             if lTBDevice.verified: break
 
         if lTBDevice.verified == 0:
-            print lTBDevice.msg
+            logging.debug (lTBDevice.msg)
             
         return lTBDevice
             
@@ -393,7 +417,7 @@ class ResultValidation:
 def printNode(node):
 
        for n in node.getElementsByTagName("*"):
-           logging.info("[%s]=[%s] " % (n.tagName.strip(),n.firstChild.data.strip()))
+           logging.debug("[%s]=[%s] " % (n.tagName.strip(),n.firstChild.data.strip()))
           
 
 def _get_elements_by_tagName_helper(parent, name, rc):
@@ -415,9 +439,13 @@ def getNodeHandle(node,tagList,string="",lst=0):
          while TagCounter < len(tagList):
              nHandle=[]
              _get_elements_by_tagName_helper(node,tagList[TagCounter],nHandle)
-             node=nHandle[0]
+                              
              logging.debug("Level = %s Element = %s Search %s"  % (TagCounter,nHandle,tagList[TagCounter]))
-             if nHandle==[]: break
+             if nHandle==[]:
+                 break
+             else:
+                 node=nHandle[0]
+                 
              TagCounter = TagCounter + 1
 
          #return the first match            
@@ -437,7 +465,7 @@ def init_logging (_filename):
         filemode='w')
     console = logging.StreamHandler()
    
-    console.setLevel(logging.DEBUG)
+    console.setLevel(logging.INFO)
     
     formatter = logging.Formatter('%(message)s')
     console.setFormatter(formatter)
@@ -446,13 +474,34 @@ def init_logging (_filename):
 
     
     logging.info ("###########################################################\n")    
-    logging.info('Logging started in file - %s' % (_filename))
+    logging.info('Debug log in file - %s' % (_filename))
 
 
 def main():
-   
-    rSummary = ResultSummary("log\\summary.xml","C:\\MyDocs\\Self-Cert\\Self-Cert_Result-Files\\TestCriteria\\TestCriteria.xml","1","./log/")
-    init_logging("test-result-summary.txt")
+
+    if nargs < 4 :
+        print('\n\rUSAGE : ResultSummary <output file name> <program name> <UID> \
+        \n\r Output File Name : The result summary file name \
+        \n\r Program Name     : WFA Program Name [HS2/WFD/P2P/PMF/N/WPA2/WMM] \
+	\n\r UID              : Unique identifier for the result summary. You can use any number or string to uniquely identify the summary that you are generating.\
+        \n\n\n\r\n\r        For example, ResultSummary P2P CID12345\
+    	')
+	exit(0)
+    
+
+    if not sys.argv[1].startswith(".xml"):
+        f= "%s.xml" % sys.argv[1]
+    else:
+        f=sys.argv[1]
+
+    #Skip manual check. Enable by default
+    sm=1
+    
+    if nargs > 4 and sys.argv[4]=="0":
+        sm=0
+    
+    rSummary = ResultSummary(f,"TestCriteria.xml",sys.argv[2],sys.argv[3],"./log/",sm)
+    init_logging("debug-log-result-summary.txt")
     rSummary.generateSummary()
     rSummary.writeXML()
     
@@ -461,6 +510,6 @@ def main():
     #validator.validate()
     #logging.info("%s" % validator)
 
-    
+nargs = len(sys.argv)    
 if __name__ == "__main__":
     main()

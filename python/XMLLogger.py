@@ -61,7 +61,7 @@ class XMLDoc(Document):
         return el
     
 class XMLLogger:
-    def __init__(self,fileName,testID,stylesheet="Log-Format.xsl"):
+    def __init__(self,fileName,testID,stylesheet="..\\Log-Format.xsl"):
         self.fileName=fileName
         self.doc = XMLDoc()
         self.result="NOT COMPLETED"
@@ -93,13 +93,30 @@ class XMLLogger:
         self.Info.appendChild(self.Sigma)
         self.Info.appendChild(self.DUT)
 
+        # Media Log
+        self.mediaLogCounter=0
+
     def setTestID(self,testID):
         self.Log.setAttribute("id", testID)
        
     def setTestResult(self,result,r1="",r2=""):
         self.result=result
         #print("*----> Setting results [%s] [%s] [%s] [%s]" % (result, self.LogItemCounter,r1,r2))
+
+    def setManualCheckInfo(self,mChk):
+        self.Log.appendChild(self.doc.createElement("ManualCheckInfo",mChk))
+
+    def addMediaLog(self,filename):
+
+        if self.mediaLogCounter == 0:
+            self.mediaLogNode = self.doc.createElement("MediaLog")
+            self.Log.appendChild(self.mediaLogNode)
         
+        self.mediaLogNode.appendChild(self.doc.createElement("MediaFile",filename))
+        self.mediaLogCounter = self.mediaLogCounter + 1
+        
+        #print("*----> Setting results [%s] [%s] [%s] [%s]" % (result, self.LogItemCounter,r1,r2))
+       
     def log(self,command):
 
         destName = ""
@@ -207,7 +224,7 @@ class XMLLogger:
 
 
 
-XLogger = XMLLogger("log\\abc.xml","P2P-5.1.12","Log-Format.xsl")
+XLogger = XMLLogger("log\\abc.xml","P2P-5.1.12","..\\Log-Format.xsl")
 
 class abc(logging.FileHandler):
     
@@ -247,8 +264,8 @@ def main():
     global XLogger
     #rSummary = ResultSummary("log\\summary.xml","1","log")
     init_logging("test.txt")
-    rLog = open("sample.txt","r")
-    logPath="\\\scdc\\Lab_Share\\SIGMA\\P2P-CERT-Results\\log2"
+    #rLog = open("sample.txt","r")
+    logPath="\\\\WFASHARE\\LabShare\\SCDC backup\\SIGMA\\P2P-CERT-Results\\log2"
 
 
     
@@ -264,7 +281,8 @@ def main():
                 XLogger.AddTestbedDevice("WINv04.00.00","Intel","622ANHMW","14.0.101.67","Win7")
                 XLogger.AddSigmaComponent("UCC","4.1.0","09022010_1")
                 XLogger.AddSigmaComponent("Sniffer","4.1.0","Wireshark 1.4.0-rc1")
-    
+                logging.info("---- Opening File [%s]" % logPath + "\\" + f + "\\"+ f1)
+                
                 rLog = open(logPath + "\\" + f + "\\"+ f1,"r")
                 for r in rLog:
                     r1=r.split('INFO')
@@ -273,7 +291,7 @@ def main():
                     else:
                         logging.info(r1[0])
                 XLogger.writeXML()
-                XLogger = XMLLogger("log\\abc.xml","P2P-5.1.12","Log-Format.xsl")
+                XLogger = XMLLogger("log\\abc.xml","P2P-5.1.12","..\\Log-Format.xsl")
                  
     #XLogger.writeXML()
     #rSummary.writeXML()
