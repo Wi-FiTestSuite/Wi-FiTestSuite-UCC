@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-
+import io
 VERSION="6.0.0-RC"
 
 
@@ -69,7 +69,6 @@ DisplayNameTable = {}
 streamSendResultArray = []
 streamRecvResultArray = []
 streamInfoArray = []
-versionInfoArray = []
 lhs = []
 rhs = []
 oper = []
@@ -210,6 +209,10 @@ def process_ipadd(line):
         ip = addrlist[i].split(',', 1)
         ipa = ip[0].split('=')[1]    # ip adress
         ipp = ip[1].split('=')[1]    # ip port
+        
+        if "%s:%s" %(ipa,ipp) in conntable:
+            logging.info('Already Connected to - IP Addr = %s Port =%s',ipa,ipp )
+            return
         logging.info( 'Connecting to - IP Addr = %s Port =%s',ipa,ipp )
         
         sockhdlr = sock_tcp_conn(ipa, int(ipp))
@@ -1436,7 +1439,8 @@ def wfa_sys_exit(msg):
         XLogger.setTestResult("TEST N/A")
     else:  
         XLogger.setTestResult("ABORTED",msg)
-        setattr(ResInfo,"rdata", msg)
+        #setattr(ResInfo,"rdata", msg)
+    logging.info("ABORTED: %s" % msg)
     XLogger.writeXML()
     raise StandardError("Exit - %s" % msg)
     
@@ -1459,7 +1463,7 @@ class XMLLogHandler(logging.FileHandler):
  
 XLogger=""
 
-def init_logging (_filename,level):
+def init_logging (_filename,level,loop=0):
     global cSLog, XLogger
     p=_filename.split('\\')
     resultCollectionFile = open("TestResults","a")
@@ -1475,43 +1479,85 @@ def init_logging (_filename,level):
     
     fname="%s/log_%s.log" %( directory , tFileName.rstrip(".txt"))
     fname_sniffer="%s/sniffer_log_%s.log" % ( directory , tFileName.rstrip(".txt"))
+    
+    logStream = open(fname,"w")
+    
     logging.basicConfig(level=logging.INFO,
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%a, %d %b %Y %H:%M:%S',
-        filename=fname,
-        filemode='w')
-    cSLog = classifiedLogs("SNIFFER",fname_sniffer,"SNIFFER CHECKS LOG - Testcase: %s \n\n" % tFileName.rstrip(".txt"))
-    #  a Handler which writes INFO messages or higher to the sys.stderr
-    console = logging.StreamHandler()
-    if level == '2':
-        console.setLevel(logging.DEBUG)
-    else:
-        console.setLevel(logging.INFO)
-    # set a format which is simpler for console use
-    formatter = logging.Formatter('%(levelname)-8s %(message)s')
-    # tell the handler to use this format
-    console.setFormatter(formatter)
-    # add the handler to the root logger
-    if level != '0':
-        logging.getLogger('').addHandler(console)
-    set_color(FOREGROUND_INTENSITY)
+        stream=logStream)
+    
+    
+    
+    if not loop:
+        cSLog = classifiedLogs("SNIFFER",fname_sniffer,"SNIFFER CHECKS LOG - Testcase: %s \n\n" % tFileName.rstrip(".txt"))
 
+        #a Handler which writes INFO messages or higher to the sys.stderr
+    
+        console = logging.StreamHandler()
+        
+        if level == '2':
+            console.setLevel(logging.DEBUG)
+        else:
+            console.setLevel(logging.INFO)
+        # set a format which is simpler for console use
+        formatter = logging.Formatter('%(levelname)-8s %(message)s')
+        # tell the handler to use this format
+        console.setFormatter(formatter)
+        # add the handler to the root logger
+        if level != '0':
+            logging.getLogger('').addHandler(console)
+        set_color(FOREGROUND_INTENSITY)
+    else:
+    # replace the stream
+        for each in logging.getLogger('').handlers:
+            if re.search("log_","%s" % each.stream):
+                each.stream.close()
+                each.stream = logStream
+
+        
+    
     # Add XML Log Handler
     XLogger = XMLLogger("%s/%s_%s.xml" % (directory,tFileName.rstrip(".txt"),time.strftime("%Y-%m-%dT%H_%M_%SZ", time.localtime())),"%s" % (tFileName.rstrip(".txt")))
     hXML = XMLLogHandler('t')
     XMLformatter = logging.Formatter('%(message)s')
     hXML.setFormatter(XMLformatter)
-    logging.getLogger('').addHandler(hXML)
-    XLogger.writeXML()
-
+    if not loop:
+        logging.getLogger('').addHandler(hXML)
+    
+    
+        
     logging.info ("###########################################################\n")    
     logging.info ("UCC Version [%s]" % VERSION)    
     logging.info('Logging started in file - %s' % (fname))
 
-    
+def reset():
+    global retValueTable, DisplayNameTable, streamSendResultArray, streamRecvResultArray, streamInfoArray,lhs,rhs,oper,boolOp,runningPhase,testRunning,threadCount,resultPrinted, ifcondBit, ifCondBit, iDNB,iINV,RTPCount
+    logging.info("Reset After Test End")
+
+    retValueTable = {}
+    DisplayNameTable = {}
+    streamSendResultArray = []
+    streamRecvResultArray = []
+    streamInfoArray = []
+    lhs = []
+    rhs = []
+    oper = []
+    boolOp = []
+    runningPhase='1'
+    testRunning=0
+    threadCount=0
+    resultPrinted=0
+    ifcondBit=1
+    ifCondBit=1
+    iDNB=0
+    iINV=0
+    RTPCount=1
+    set_color(FOREGROUND_WHITE)
+
 
 def firstword(line):
-    global maxThroughput, payloadValue , uccPath,ResInfo
+    global maxThroughput, payloadValue , uccPath
     str=line.split ('#')
     command=str[0].split('!')
 
@@ -1553,8 +1599,6 @@ def firstword(line):
             retValueTable[command[1]] = command[2]
         else:
             #logging.info("DFINE")
-            if command[1]=="$QualCombinationInfo":
-                logging.info("======>>> Qualification Test -- %s %s" % (ResInfo.TestCase,command[2]))
             retValueTable.setdefault(command[1],command[2])
     elif re.search('DisplayName',command[0]):
         if (command[1] in retValueTable):

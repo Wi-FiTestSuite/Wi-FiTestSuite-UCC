@@ -56,6 +56,7 @@ from myutils import printStreamResults
 from myutils import close_conn
 from myutils import wfa_sys_exit
 from myutils import setUCCPath
+from myutils import reset
 from InitTestEnv import InitTestEnv
 import logging
 import time
@@ -109,6 +110,7 @@ def main():
     setattr(U,"progName",sys.argv[1])
     setattr(U,"TBFile",tbAP)
     
+    grp = 0
     
     if sys.argv[2] == "group":
         grpFile = sys.argv[3]
@@ -119,7 +121,8 @@ def main():
         for l in (fileP.readlines()):
             if not l: break
             setattr(U,"testID",l.strip())
-            runTestCase(tests,U.testID)
+            runTestCase(tests,U.testID,grp)
+            grp=1
     
     else:
         setattr(U,"testID",sys.argv[2])
@@ -127,7 +130,7 @@ def main():
     
     return
 
-def runTestCase (testListFile, testID):
+def runTestCase (testListFile, testID,grp=0):
     print "\n*** Running Test - %s *** \n" % testID
     
     initFile = ReadMapFile(testListFile,testID,"!")
@@ -139,7 +142,7 @@ def runTestCase (testListFile, testID):
     setattr(U,"initFile",initFile)
 
     #init Logging
-    init_logging(U.testID,1)
+    init_logging(U.testID,1,grp)
 
     logging.info("\n Test Info %s" % U)
 
@@ -177,6 +180,7 @@ def runTestCase (testListFile, testID):
         process_cmdfile(testFile)
     except StandardError:
         logging.info ("END: TEST CASE [%s] " % testID)
+        reset()
         return
     
     
