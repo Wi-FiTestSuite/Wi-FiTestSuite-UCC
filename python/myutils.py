@@ -658,7 +658,7 @@ def process_cmd(line):
             logging.debug(vInfo)
             return        
 
-        if re.search("STA",command[0]) or re.search("AP",command[0]):
+        if re.search("STA",command[0]) or ( re.search("AP",command[0]) and not re.search("TestbedAPConfigServer",command[0])):
             if command[0] in retValueTable:
                 command[0]=retValueTable[command[0]]
             else:

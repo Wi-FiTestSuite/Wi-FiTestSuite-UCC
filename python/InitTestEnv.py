@@ -100,16 +100,24 @@ uccPath = "..\\cmds"
 
 bandSelectionList = {}
 doc = ""
+
+#Global Object to handle Test ENV Variables
+testEnvVariables = ""
+
+
 # Main function
 def InitTestEnv(testID,cmdPath,progName,initFile,TBFile):
-    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName,uccPath
+    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName,uccPath,testEnvVariables
 
     uccPath=cmdPath
+    
+        
     doc = xml.dom.minidom.parse(uccPath + MasterTestInfo)
     InitFile="\\" + initFile
     ProgName=progName
     TestbedAPFile="\\" + TBFile
     TestID = testID
+    testEnvVariables = envVariables()
     
     #TestID=TestID.split('_')[0]
     
@@ -217,7 +225,7 @@ serverInfo = server()
 # This class holds all the required variables for the test
 #
 class envVariables:
-    global ProgName
+    global ProgName, uccPath
     def __init__(self,Channel="",Channel_1="",Channel_2="",Channel_3="",Band="",SSID="",SSID_1="",SSID_2="",SSID_3="",TSTA1="",TSTA2="",TSTA3="",TSTA4="",TSTA5="",TestbedConfigCAPIFile="",DUTConfigCAPIFile="",STAConfigCAPIFile="",WLANTestCAPIFile=""):
         self.Channel=Channel
         self.Channel_1=Channel_1
@@ -232,14 +240,13 @@ class envVariables:
 
         # For each program, create a file 'TestbedAPNames.txt' in cmds folder and list the name of APs in that file
         # E.G., for 11n, create a file 'TestbedAPNames.txt' in cmds\Sigma-11n folder with list of AP Names
-        
         if os.path.exists(uccPath + TestbedAPList):
             APNames = open(uccPath + TestbedAPList, 'r')
             for l in (APNames.readlines()):
                 n = l.rstrip("\n")
                 self.APs.setdefault(n,testbedAP(n))
         else:
-            print("No Testbed APs")
+            print("No Testbed APs-")
         
         self.TSTA1=TSTA1
         self.TSTA2=TSTA2
@@ -259,8 +266,6 @@ class envVariables:
     def __str__(self):
         return ("Channel = %s  Channel_1 = %s  Channel_2 = %s  Channel_3 = %s | Band = %s | SSID = %s  SSID_1 = %s  SSID_2 = %s  SSID_3 = %s  | STA1 - %s   STA2 - %s   STA3 - %s Testbed File - %s DUTConfig File - %s STAConfig File - %s WLANTest File - %s" %(self.Channel,self.Channel_1,self.Channel_2,self.Channel_3,self.Band,self.SSID,self.SSID_1,self.SSID_2,self.SSID_3,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
 
-#Global Object to handle Test ENV Variables
-testEnvVariables = envVariables()
 
 
 #
