@@ -503,7 +503,7 @@ def process_cmd(line):
    	        logging.error("Invalid parameters to math function")
 		
 		
-        if int( ifcondBit) == 0:
+        if int( ifCondBit) == 0:
             return
         if command[0].lower() == "_dnb_":
             iDNB=1

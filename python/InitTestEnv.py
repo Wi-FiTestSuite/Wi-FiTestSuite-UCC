@@ -576,7 +576,8 @@ def GetTestbedDeviceInfo (TestCaseID):
         iCount=iCount+1
     # Searching SSID
     iCount = 1
-    SSID= find_TestcaseInfo_Level1(TestCaseID,"SSID")
+    #SSID= find_TestcaseInfo_Level1(TestCaseID,"SSID")
+    setattr(testEnvVariables,"SSID",find_TestcaseInfo_Level1(TestCaseID,"SSID"))
     setattr(testEnvVariables,"SSID_1",find_TestcaseInfo_Level1(TestCaseID,"SSID"))
     SSIDs= find_TestcaseInfo_Level1(TestCaseID,"SSID").split(" ")
     #LogMsg("SSID = %s %d"% (SSIDs,len(SSIDs)))
