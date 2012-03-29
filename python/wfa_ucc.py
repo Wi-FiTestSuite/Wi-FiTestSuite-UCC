@@ -82,11 +82,13 @@ def main():
 
     if (nargs < 3) or (sys.argv[2]=='group' and nargs < 4):
         print('Incorrect Command line !!! \n\rUSAGE : UCC <Program Name> <Test ID>/\
-        \n\r    [1]Program Name :PMF\
+        \n\r    [1]Program Name : VE\
+		\n\r					 PMF\
         \n\r                     P2P\
         \n\r                     N\
         \n\r                     WPA2\
         \n\r                     WMM-B/WMM-BG/WMM-ABG\
+		\n\r                     AC-11AG/AC-11B/AC-11N\
 	\n\r\n\r [2] Test ID : Test case ID for that program            OR\
 	\n\r\n\r [2] group : group if running group of test cases followed by group file name\
 	\n\r\n\r [3] group file name: Group file name which contains list of test cases\
@@ -157,6 +159,8 @@ def runTestCase (testListFile, testID,grp=0):
     # Run Init Env
     if not re.search("WMM",testID):
         InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile)
+	
+
 
     # UCC 
     #Run UCC Core
@@ -176,8 +180,11 @@ def runTestCase (testListFile, testID,grp=0):
     logging.info ("START: TEST CASE [%s] " % testID)
     try:  
         file = open(initFile)
+        print "\n-------------------\n"
         scanner(file, firstword)
+        print "\n-------------------\n"
         process_cmdfile(testFile)
+        
     except StandardError:
         logging.info ("END: TEST CASE [%s] " % testID)
         reset()

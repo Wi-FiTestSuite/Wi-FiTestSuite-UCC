@@ -59,7 +59,6 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-import io
 VERSION="6.0.0-RC"
 
 
@@ -398,6 +397,7 @@ def process_cmd(line):
     oper = []
     #logging.debug("\r\n")
     recv_id = {}
+
 
     try:
         if str[0] == '' : 
