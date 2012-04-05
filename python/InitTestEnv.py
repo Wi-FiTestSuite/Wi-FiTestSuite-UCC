@@ -358,6 +358,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("AP_Concurrent",ReadMapFile(DUTFile,"AP_Concurrent","!"))
     
     dutInfoObject.__setattr__("BSS_Trans_Query_Support",ReadMapFile(DUTFile,"BSS_Trans_Query_Support","!"))
+    dutInfoObject.__setattr__("TSM_Support",ReadMapFile(DUTFile,"TSM_Support","!"))
     
     dutInfoObject.__setattr__("TestCaseID",TestCaseID)
     
@@ -739,6 +740,7 @@ def GetOtherVariables(TID):
     VarList.setdefault("STBC_RX_Value",dutInfoObject.STBC_RX)
     VarList.setdefault("STBC_TX_Value",dutInfoObject.STBC_TX)
     VarList.setdefault("BSS_Trans_Query_Support",dutInfoObject.BSS_Trans_Query_Support)
+    VarList.setdefault("TSM_Support",dutInfoObject.TSM_Support)
 
     #Check for 11n Optional Test Cases Flag
     FindCheckFlag11n(TID)
