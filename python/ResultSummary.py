@@ -281,10 +281,16 @@ class ResultSummary:
                 if f.endswith(".xml"):
                     lf= "%s%s/%s" % (self.logpath,f1,f)
                     logging.info ("Processing log file - %s \n", lf)
-                    dlogFile = xml.dom.minidom.parse(lf)
+                    try:
+                        dlogFile = xml.dom.minidom.parse(lf)
+                    except:
+                        logging.debug ( "------------------------ Malformed file %s--" % f)
+                        #continue
+                    
                     if not self.versionInfoFlag:
                         self.addVersionInfo(dlogFile)
                     tID = self.getAttrValue(dlogFile,"Log","id")
+                    tID=tID.strip()
                     tResult = self.getNodeValue(dlogFile,"Log","TestCaseResult")
                     #sig=self.getNodeValue(dlogFile,"Log","Signature")
                     sig="1"
@@ -293,20 +299,26 @@ class ResultSummary:
                     if tID and tResult: 
                         tList=""
                         # check if test already present
+                        
                         for tList in self.TestCases:
                             if tList.testID == tID:break
-                            logging.debug("%s" % tList.testID)
-
+                            logging.debug("-----------------[%s][%s]" % (tList.testID,tID))
+                        
+                        
                         # Always pick the latest results    
                         if tList=="" or tList.testID != tID:
                             t1=TestCase(tID,tResult)
                             self.TestCases.append(t1)
+                            logging.debug("-----------------Appending[%s]" % (tID))
                         else:
                             t1=tList
                             t1.result=tResult
-                            
+
+                        
+                        tResult = tResult.strip()
+                                                
                         if tResult == "PASS" or tResult == "PASSED" or tResult == "COMPLETED":
-                            t1.nPass = int(t1.nPass) + 1
+                            t1.nPass = int(t1.nPass) + 1                            
                             
                         elif tResult == "FAILED" or tResult =="FAIL":
                             t1.nFail = int(t1.nFail) + 1
@@ -337,7 +349,10 @@ class ResultSummary:
             for tList in self.TestCases:
                 iTestFound = 0
                 tID = self.getNodeValue(t,"TestCase","TestID")
+                tID=tID.strip()
+                
                 if tID == tList.testID:
+                    logging.debug("----------------- MATCH[%s][%s]" % (tList.testID,tID))
                     printNode(t)
                     iTestFound = 1
                     tList.type=self.getNodeValue(t,"TestCase","Type")
@@ -347,14 +362,14 @@ class ResultSummary:
                     tList.AddXMLNode(self.doc,self.TestResults)
                     break
                 
-                # If results not found for the test, mark it mising
-                if not iTestFound:
-                    tMissing = TestCase(tID,"NO Results Found")
-                    tMissing.type=self.getNodeValue(t,"TestCase","Type")
-                    if tMissing.type == "Optional":
-                        tMissing.optionalFeature=self.getNodeValue(t,"TestCase","OptionalFeature")
-                    tMissing.AddXMLNode(self.doc,self.TestResults)
-                    
+            # If results not found for the test, mark it mising
+            if not iTestFound:
+                tMissing = TestCase(tID,"NO Results Found")
+                tMissing.type=self.getNodeValue(t,"TestCase","Type")
+                if tMissing.type == "Optional":
+                    tMissing.optionalFeature=self.getNodeValue(t,"TestCase","OptionalFeature")
+                tMissing.AddXMLNode(self.doc,self.TestResults)
+                
         
             
 
