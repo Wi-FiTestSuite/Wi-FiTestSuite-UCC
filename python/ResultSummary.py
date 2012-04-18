@@ -166,6 +166,9 @@ class TestCase:
         self.nErr=0
         self.type=""
         self.optionalFeature=""
+        self.passLogFile=""
+        self.SignVerification=0
+        self.SignVerificationResult=0
 
     def AddXMLNode(self,doc,parent):
         TestCase = doc.createElement("TestCase")
@@ -175,6 +178,13 @@ class TestCase:
         TestCase.appendChild(doc.createElement("Result",self.result))
         TestCase.appendChild(doc.createElement("R1",self.r1))
         TestCase.appendChild(doc.createElement("R2",self.r2))
+        TestCase.appendChild(doc.createElement("LatestPassLogFile",self.passLogFile))
+
+        #Signature verification
+        logging.info("Signature verification required ? [%s]" % self.SignVerification)
+        logging.info("Verifying Signature for [%s]" % self.passLogFile)
+        
+        TestCase.appendChild(doc.createElement("SignVerification",self.SignVerificationResult))
         LogFiles = doc.createElement("LogFiles")
         
         for l in self.logfiles:
@@ -213,6 +223,8 @@ class ResultSummary:
         self.TestCases=[]
         self.ProgramName=Prog
         self.TestCriteriaFile=xml.dom.minidom.parse(TestCriteriaFile)
+        self.SignVerification=0
+        
         # Stylesheet
         self.doc.appendChild(self.doc.createProcessingInstruction("xml-stylesheet",
 	"type=\"text/xsl\" href=\"%s\"" % stylesheet))
@@ -285,7 +297,7 @@ class ResultSummary:
                         dlogFile = xml.dom.minidom.parse(lf)
                     except:
                         logging.debug ( "------------------------ Malformed file %s--" % f)
-                        #continue
+                        continue
                     
                     if not self.versionInfoFlag:
                         self.addVersionInfo(dlogFile)
@@ -297,6 +309,7 @@ class ResultSummary:
                                     
                     # Add result nodes to TestCase
                     if tID and tResult: 
+                        tResult = tResult.strip()
                         tList=""
                         # check if test already present
                         
@@ -305,20 +318,20 @@ class ResultSummary:
                             logging.debug("-----------------[%s][%s]" % (tList.testID,tID))
                         
                         
-                        # Always pick the latest results    
+                        # Always pick the latest PASS results    
                         if tList=="" or tList.testID != tID:
                             t1=TestCase(tID,tResult)
+                            t1.passLogFile=lf
+                            t1.SignVerification=self.SignVerification 
                             self.TestCases.append(t1)
                             logging.debug("-----------------Appending[%s]" % (tID))
                         else:
-                            t1=tList
-                            t1.result=tResult
-
-                        
-                        tResult = tResult.strip()
+                            t1=tList                                                                       
                                                 
                         if tResult == "PASS" or tResult == "PASSED" or tResult == "COMPLETED":
-                            t1.nPass = int(t1.nPass) + 1                            
+                            t1.nPass = int(t1.nPass) + 1
+                            t1.result=tResult
+                            t1.passLogFile=lf
                             
                         elif tResult == "FAILED" or tResult =="FAIL":
                             t1.nFail = int(t1.nFail) + 1
@@ -343,11 +356,13 @@ class ResultSummary:
                             
                         t1.logfiles.append(LogFile(lf,sig))
 
-
-        testList = getNodeHandle(self.TestCriteriaFile,["ConfigSets",self.ProgramName,"TestCases","TestCase"],"",1)            
+		
+        testList = getNodeHandle(self.TestCriteriaFile,["ConfigSets",self.ProgramName,"TestCases","TestCase"],"",1)
         for t in testList:
+            listEmpty=1
             for tList in self.TestCases:
                 iTestFound = 0
+                listEmpty=0
                 tID = self.getNodeValue(t,"TestCase","TestID")
                 tID=tID.strip()
                 
@@ -363,7 +378,7 @@ class ResultSummary:
                     break
                 
             # If results not found for the test, mark it mising
-            if not iTestFound:
+            if not listEmpty and not iTestFound:
                 tMissing = TestCase(tID,"NO Results Found")
                 tMissing.type=self.getNodeValue(t,"TestCase","Type")
                 if tMissing.type == "Optional":
@@ -491,40 +506,71 @@ def init_logging (_filename):
     logging.info ("###########################################################\n")    
     logging.info('Debug log in file - %s' % (_filename))
 
+def ReadMapFile (filename,index,delim,n=1):
+
+	iCount=1
+	returnString=-1
+	if os.path.exists(filename) == 0:
+		print ("File not found -%s-" % filename)
+		return -1
+	#print ("ReadMapFile ------- %s-%s-%s" %(filename,index,delim))
+	fileP = open(filename,'r')
+	for l in (fileP.readlines()):
+		if not l: break
+		line=l.split('#')
+		command = line[0].split(delim)
+		#print ("ReadMapFile ------- %s" %(command))
+		if index in command:
+			returnString=command[command.index(index)+n].strip()
+			break
+
+	fileP.close()
+	return returnString
+
 
 def main():
 
-    if nargs < 4 :
-        print('\n\rUSAGE : ResultSummary <output file name> <program name> <UID> \
-        \n\r Output File Name : The result summary file name \
-        \n\r Program Name     : WFA Program Name [HS2/WFD/P2P/PMF/N/WPA2/WMM] \
-	\n\r UID              : Unique identifier for the result summary. You can use any number or string to uniquely identify the summary that you are generating.\
-        \n\n\n\r\n\r        For example, ResultSummary P2P CID12345\
-    	')
-	exit(0)
-    
+	if nargs < 2 :
+		print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - ResultSummary.conf")
+		exit(1)
 
-    if not sys.argv[1].startswith(".xml"):
-        f= "%s.xml" % sys.argv[1]
-    else:
-        f=sys.argv[1]
 
-    #Skip manual check. Enable by default
-    sm=1
-    
-    if nargs > 4 and sys.argv[4]=="0":
-        sm=0
-    
-    rSummary = ResultSummary(f,"TestCriteria.xml",sys.argv[2],sys.argv[3],"./log/",sm)
-    init_logging("debug-log-result-summary.txt")
-    rSummary.generateSummary()
-    rSummary.writeXML()
-    
-    # valid results C:\MyDocs\Self-Cert\Self-Cert_Result-Files\TestCriteria\TestCriteria.xml
-    #validator = ResultValidation(rSummary.fileName,"C:\\MyDocs\\Self-Cert\\Self-Cert_Result-Files\\TestCriteria\\TestCriteria.xml",rSummary.ProgramName)
-    #validator.validate()
-    #logging.info("%s" % validator)
+	f = ReadMapFile(sys.argv[1],"OUTPUT_FILE","=")
+	if not f.endswith(".xml"):
+		f= "%s.xml" % f
 
+	sm = ReadMapFile (sys.argv[1],"M_CHECK",'=')
+	log_path = ReadMapFile (sys.argv[1],"LOG_PATH",'=')
+
+	if not log_path.endswith("/"):
+		log_path= "%s/" % log_path
+	
+	prog_name = ReadMapFile (sys.argv[1],"PROG_NAME",'=')
+	UID = ReadMapFile (sys.argv[1],"UID",'=')
+	test_criteria=ReadMapFile (sys.argv[1],"TEST_CRITERIA_FILE",'=')
+	format_style=ReadMapFile (sys.argv[1],"FORMAT_STYLE",'=')
+
+	init_logging("debug-log-result-summary.txt")
+	logging.info ("LOG_PATH [%s] PROG_NAME [%s] UID [%s] OUTPUT_FILE [%s] TEST_CRITERIA_FILE [%s] FORMAT_STYLE [%s]"  % (log_path,prog_name,UID,f,test_criteria,format_style))
+
+	rSummary = ResultSummary(f,test_criteria,prog_name,UID,log_path,sm,format_style)
+
+	signVerification=ReadMapFile (sys.argv[1],"SIGN_VERIFICATION",'=')
+
+	# Enable Signature verification - by default it is disabled
+	if signVerification == "1":            
+            setattr(rSummary,"SignVerification",1)
+	
+	rSummary.generateSummary()
+	rSummary.writeXML()
+
+	# valid results C:\MyDocs\Self-Cert\Self-Cert_Result-Files\TestCriteria\TestCriteria.xml
+	#validator = ResultValidation(rSummary.fileName,"C:\\MyDocs\\Self-Cert\\Self-Cert_Result-Files\\TestCriteria\\TestCriteria.xml",rSummary.ProgramName)
+	#validator.validate()
+	#logging.info("%s" % validator)
+
+
+## Main
 nargs = len(sys.argv)    
 if __name__ == "__main__":
     main()
