@@ -43,6 +43,8 @@
 
 
 #!/usr/bin/evn python
+from socket import *
+from select import select
 import os, sys
 import logging
 import logging.handlers
@@ -152,7 +154,46 @@ class LogFile:
 
     def __str__(self):
         pass
+
+class ACCClient:
+    def __init__(self,ipaddr,ipport):
+        self.ipaddr=ipaddr
+        self.ipport=ipport
+        self.socket=0
         
+    def connect (self):
+      
+        addr = (self.ipaddr, int(self.ipport))
+        self.socket = socket(AF_INET, SOCK_STREAM)
+        logging.info ("Opening connection with ACC module at %s %s" % addr)
+    
+        try:
+            self.socket.connect(addr)
+            time.sleep(2)
+        except:
+            exc_info = sys.exc_info( )
+            logging.error('Connection Error, IP = %s PORT = %s REASON = %s',ipaddr,ipport,exc_info[1])
+            exit(1)
+    def verifySign(self,filename):
+
+        logging.info("ACC Client: Verifying Signature for [%s]" % filename)
+        
+        if not self.socket:
+            self.connect()
+            
+        cmd = "FileName,%s" % filename
+        logging.info(">> ACC:%s" % cmd )
+        status = self.socket.send(cmd)
+        logging.info("<< ACC: status %s" % status)
+        time.sleep(3)
+        status = self.socket.recv(1024)
+        logging.info("<< ACC: status %s" % status)
+        
+        exit(1)
+        
+    def __str__(self):
+        return ("%s:%s [%s]" % (self.ipaddr,self.ipport,self.socket))
+    
 class TestCase:
     def __init__(self,testID,result,r1="",r2="",logfiles=[]):
         self.testID=testID
@@ -181,8 +222,8 @@ class TestCase:
         TestCase.appendChild(doc.createElement("LatestPassLogFile",self.passLogFile))
 
         #Signature verification
-        logging.info("Signature verification required ? [%s]" % self.SignVerification)
-        logging.info("Verifying Signature for [%s]" % self.passLogFile)
+        logging.debug("Signature verification required ? [%s]" % self.SignVerification)
+        logging.debug("Verifying Signature for [%s]" % self.passLogFile)
         
         TestCase.appendChild(doc.createElement("SignVerification",self.SignVerificationResult))
         LogFiles = doc.createElement("LogFiles")
@@ -526,10 +567,12 @@ def ReadMapFile (filename,index,delim,n=1):
 
 	fileP.close()
 	return returnString
+    
 
-
+ACC=""
 def main():
-
+        global ACC
+        
 	if nargs < 2 :
 		print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - ResultSummary.conf")
 		exit(1)
@@ -560,7 +603,12 @@ def main():
 	# Enable Signature verification - by default it is disabled
 	if signVerification == "1":            
             setattr(rSummary,"SignVerification",1)
-	
+            acc_ip=ReadMapFile (sys.argv[1],"ACC_IP_ADDR",'=')
+            acc_port=ReadMapFile (sys.argv[1],"ACC_IP_PORT",'=')
+            ACC = ACCClient(acc_ip,acc_port)
+            ACC.verifySign("abc")
+
+            
 	rSummary.generateSummary()
 	rSummary.writeXML()
 
