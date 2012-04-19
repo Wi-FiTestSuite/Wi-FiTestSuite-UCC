@@ -53,11 +53,34 @@ import xml.dom.minidom
 import inspect
 import re
 import subprocess
+import thread, Queue 
+import ctypes
+import pprint
+import HTML
 
 from xml.dom.minidom import Document
 from xml.dom.minidom import getDOMImplementation
 from xml.dom.minidom import parse
 from xml.dom.minidom import Node
+
+# Other libs needed for binary packaging
+try:
+    from myutils import scanner
+    from myutils import process_ipadd
+    from myutils import process_cmdfile
+    from myutils import firstword
+    from myutils import init_logging
+    from myutils import printStreamResults 
+    from myutils import close_conn
+    from myutils import wfa_sys_exit
+    from myutils import setUCCPath
+    from myutils import reset
+    from InitTestEnv import InitTestEnv
+    from time import gmtime, strftime
+    from XMLLogger import XMLLogger
+except ImportError:
+    print ("")
+
 
 
 # Override createElement:
@@ -160,6 +183,7 @@ class ACCClient:
         self.ipaddr=ipaddr
         self.ipport=ipport
         self.socket=0
+        self.info=""
         
     def connect (self):
       
@@ -172,24 +196,48 @@ class ACCClient:
             time.sleep(2)
         except:
             exc_info = sys.exc_info( )
-            logging.error('Connection Error, IP = %s PORT = %s REASON = %s',ipaddr,ipport,exc_info[1])
-            exit(1)
+            logging.error('Connection Error, IP = %s PORT = %s REASON = %s',self.ipaddr,self.ipport,exc_info[1])
+            raise StandardError("")
+            
     def verifySign(self,filename):
 
         logging.info("ACC Client: Verifying Signature for [%s]" % filename)
+        verResult=0
         
         if not self.socket:
             self.connect()
             
-        cmd = "FileName,%s" % filename
-        logging.info(">> ACC:%s" % cmd )
-        status = self.socket.send(cmd)
-        logging.info("<< ACC: status %s" % status)
-        time.sleep(3)
-        status = self.socket.recv(1024)
-        logging.info("<< ACC: status %s" % status)
+        cmd = "verify_signature,FileName,%s" % filename
         
-        exit(1)
+        logging.info(">> ACC:%s" % cmd )
+        
+        status = self.socket.send(cmd)
+        logging.info("SENT: %s Bytes" % status)
+        #time.sleep(1)
+        status = self.socket.recv(1024)
+
+        #status="result,0,sigfile,%s.asc,errMsg,sig mismatch" % filename
+        logging.info("<< ACC:%s" % status)
+        
+        if status:
+            status=status.lower()
+            ss=status.split(",")
+            logging.info(ss)
+            if len(ss) < 3:
+                logging.error("<< Invalid ACC response: %s" % status)
+                
+            logging.info("Sign result [%s] Sign file [%s]" % (ss[1],ss[3]))
+            verResult=ss[1]
+            
+            if len(ss) > 4:
+                self.info=":%s" % ss[5]
+               
+        else:
+            logging.error("<< Invalid ACC response: %s" % status)
+            
+        return verResult
+        
+
         
     def __str__(self):
         return ("%s:%s [%s]" % (self.ipaddr,self.ipport,self.socket))
@@ -222,10 +270,21 @@ class TestCase:
         TestCase.appendChild(doc.createElement("LatestPassLogFile",self.passLogFile))
 
         #Signature verification
-        logging.debug("Signature verification required ? [%s]" % self.SignVerification)
-        logging.debug("Verifying Signature for [%s]" % self.passLogFile)
+        logging.info("Signature verification required ? [%s]" % self.SignVerification)
         
-        TestCase.appendChild(doc.createElement("SignVerification",self.SignVerificationResult))
+        if self.passLogFile:
+            if self.passLogFile.startswith("./"):
+                fullPathFile = ("%s\\%s" % (os.getcwd(),self.passLogFile.lstrip("./").replace("/","\\")))
+            else:
+                fullPathFile = self.passLogFile
+        
+            logging.debug("Verifying Signature for [%s]" % fullPathFile)
+        
+        if self.passLogFile and self.SignVerification:
+            self.SignVerificationResult=ACC.verifySign(fullPathFile)
+            
+        TestCase.appendChild(doc.createElement("SignVerification","%s%s" %(self.SignVerificationResult,ACC.info)))
+        
         LogFiles = doc.createElement("LogFiles")
         
         for l in self.logfiles:
@@ -571,11 +630,12 @@ def ReadMapFile (filename,index,delim,n=1):
 
 ACC=""
 def main():
+    try:
         global ACC
         
 	if nargs < 2 :
-		print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - ResultSummary.conf")
-		exit(1)
+		print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - Sigma-ResultSummary.conf")
+		return
 
 
 	f = ReadMapFile(sys.argv[1],"OUTPUT_FILE","=")
@@ -606,7 +666,8 @@ def main():
             acc_ip=ReadMapFile (sys.argv[1],"ACC_IP_ADDR",'=')
             acc_port=ReadMapFile (sys.argv[1],"ACC_IP_PORT",'=')
             ACC = ACCClient(acc_ip,acc_port)
-            ACC.verifySign("abc")
+            #unit test with hard coded file name
+            #ACC.verifySign("HS2-5.1_2012-03-20T10_00_12Z.xml")
 
             
 	rSummary.generateSummary()
@@ -616,7 +677,10 @@ def main():
 	#validator = ResultValidation(rSummary.fileName,"C:\\MyDocs\\Self-Cert\\Self-Cert_Result-Files\\TestCriteria\\TestCriteria.xml",rSummary.ProgramName)
 	#validator.validate()
 	#logging.info("%s" % validator)
-
+    except StandardError:
+        err=sys.exc_info( )
+        logging.error("End %s" % err[1])
+            
 
 ## Main
 nargs = len(sys.argv)    
