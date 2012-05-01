@@ -222,7 +222,7 @@ class ACCClient:
         if status:
             status=status.lower()
             ss=status.split(",")
-            logging.info(ss)
+            logging.debug(ss)
             if len(ss) < 3:
                 logging.error("<< Invalid ACC response: %s" % status)
                 
@@ -230,7 +230,7 @@ class ACCClient:
             verResult=ss[1]
             
             if len(ss) > 4:
-                self.info=":%s" % ss[5]
+                self.info="%s" % ss[5]
                
         else:
             logging.error("<< Invalid ACC response: %s" % status)
@@ -270,7 +270,7 @@ class TestCase:
         TestCase.appendChild(doc.createElement("LatestPassLogFile",self.passLogFile))
 
         #Signature verification
-        logging.info("Signature verification required ? [%s]" % self.SignVerification)
+        logging.debug("Signature verification required ? [%s]" % self.SignVerification)
         
         if self.passLogFile:
             if self.passLogFile.startswith("./"):
@@ -278,13 +278,18 @@ class TestCase:
             else:
                 fullPathFile = self.passLogFile
         
-            logging.debug("Verifying Signature for [%s]" % fullPathFile)
-        
-        if self.passLogFile and self.SignVerification:
-            self.SignVerificationResult=ACC.verifySign(fullPathFile)
             
-        TestCase.appendChild(doc.createElement("SignVerification","%s%s" %(self.SignVerificationResult,ACC.info)))
         
+        # Verify signature if Sign Flag is ON and .asc signature file exists
+        if self.passLogFile and int(self.SignVerification) and os.path.exists("%s.asc"%fullPathFile):
+        #if self.passLogFile and int(self.SignVerification):
+            logging.info("Verifying Signature for [%s]" % fullPathFile)
+            self.SignVerificationResult=ACC.verifySign(fullPathFile)            
+            TestCase.appendChild(doc.createElement("SignVerificationInfo","%s" %(ACC.info)))
+        else:
+            TestCase.appendChild(doc.createElement("SignVerificationInfoInfo","NO sign verification"))
+
+        TestCase.appendChild(doc.createElement("SignVerification","%s" %(self.SignVerificationResult)))
         LogFiles = doc.createElement("LogFiles")
         
         for l in self.logfiles:

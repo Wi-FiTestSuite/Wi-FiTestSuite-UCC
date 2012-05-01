@@ -138,8 +138,10 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile):
     GetTestbedDeviceInfo(TestID)
     if ProgName =="P2P":
         GetP2PVariables(TestID)
-    else:
+        
+    if not (ProgName == "P2P" or ProgName == "TDLS"):
         GetServerSupplicantInfo(TestID)
+        
     GetSnifferInfo(TestID)
     LogMsg (dutInfoObject)
     LogMsg (testEnvVariables)
@@ -152,7 +154,7 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile):
 # This class holds all the required information about DUT
 #
 class dutInfo:
-    def __init__(self,DUTType="",DUTCategory="",DUTBand="",TestCaseID="",DUTEAPMethod="",WEP=0,preAuth=0,_11h=0,SupportedChannelWidth=0,Streams=0,Greenfield=0,SGI20=0,SGI40=0,RIFS_TX=0,Coexistence_2040=0,STBC_RX=0,STBC_TX=0,MCS32=0,SigmaSupport=1,OBSS=0,AMPDU_TX=0,AP_Concurrent=0):
+    def __init__(self,DUTType="",DUTCategory="",DUTBand="",TestCaseID="",DUTEAPMethod="",WEP=0,preAuth=0,_11h=0,SupportedChannelWidth=0,Streams=0,Greenfield=0,SGI20=0,SGI40=0,RIFS_TX=0,Coexistence_2040=0,STBC_RX=0,STBC_TX=0,MCS32=0,SigmaSupport=1,OBSS=0,AMPDU_TX=0,AP_Concurrent=0,TDLSDiscReq=0,PUSleepSTA=0):
         self.DUTType=DUTType
         self.DUTCategory=DUTCategory
         self.DUTBand=DUTBand
@@ -175,6 +177,9 @@ class dutInfo:
         self.OBSS=OBSS
         self.AMPDU_TX=AMPDU_TX
         self.AP_Concurrent=AP_Concurrent
+        #TDLS Specific
+        self.TDLSDiscReq=TDLSDiscReq
+        self.PUSleepSTA=PUSleepSTA
 
     def __setattr__(self, attr, value):
         self.__dict__[attr] = value
@@ -356,9 +361,9 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("OBSS",ReadMapFile(DUTFile,"OBSS","!"))
     dutInfoObject.__setattr__("AMPDU_TX",ReadMapFile(DUTFile,"AMPDU_TX","!"))
     dutInfoObject.__setattr__("AP_Concurrent",ReadMapFile(DUTFile,"AP_Concurrent","!"))
-    
-    dutInfoObject.__setattr__("BSS_Trans_Query_Support",ReadMapFile(DUTFile,"BSS_Trans_Query_Support","!"))
-    dutInfoObject.__setattr__("TSM_Support",ReadMapFile(DUTFile,"TSM_Support","!"))
+    #TDLS Specific
+    dutInfoObject.__setattr__("TDLSDiscReq",ReadMapFile(DUTFile,"DiscoveryRequest_Support","!"))
+    dutInfoObject.__setattr__("PUSleepSTA",ReadMapFile(DUTFile,"PUAPSDSleepSTA_Support","!"))
     
     dutInfoObject.__setattr__("TestCaseID",TestCaseID)
     
@@ -384,13 +389,13 @@ def ReadDUTInfo (filename,TestCaseID):
     if "N-5.2" in TestCaseID or "N-ExS" in TestCaseID :
         VarList.setdefault("APUT_state","off")
 	
-    if (ProgName == "P2P" or ProgName == "PMF"):
+    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF":
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
         T.rows.append(R1)
 
-        if (ProgName == "P2P"):    
+        if (ProgName == "P2P" or ProgName == "TDLS"):    
             P2PVarList = ReadAllMapFile(DUTFile,"P2P","!")
             if P2PVarList != -1:
                 P2PVarList=P2PVarList.split('!')
@@ -572,6 +577,9 @@ def GetTestbedDeviceInfo (TestCaseID):
         setattr(testEnvVariables,"TSTA%s"%(iCount),STA)
         VarList.setdefault("STA%s_control_agent" %(iCount),"wfa_control_agent_%s_sta" %(STA.lower()))
         VarList.setdefault("STA%s_wireless_ip"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip"%STA.lower(),"!"))
+        if (ProgName == "TDLS"):
+            VarList.setdefault("STA%s_wireless_ip2"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip2"%STA.lower(),"!"))
+            VarList.setdefault("STA%s_wireless_ip3"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip3"%STA.lower(),"!"))
         VarList.setdefault("STA%s_MACAddress"%iCount,("$%sSTAMACAddress"%STA))
                                    
         iCount=iCount+1
@@ -744,7 +752,26 @@ def GetOtherVariables(TID):
 
     #Check for 11n Optional Test Cases Flag
     FindCheckFlag11n(TID)
-    
+
+    #TDLS specific conditional step
+	# TBD - remove the checks from python file and do it command scripts
+    cond=find_TestcaseInfo_Level1(TID,"ConditionalStep-DiscReq")
+    if (cond != ""):
+        if ( dutInfoObject.TDLSDiscReq=="1"):
+            VarList.setdefault("ConditionalStep-DiscReq",cond)
+        else:
+            VarList.setdefault("ConditionalStep-DiscReq","DoNothing.txt")
+
+
+    cond=find_TestcaseInfo_Level1(TID,"ConditionalStep-PUSleep")
+    if (cond != ""):
+        if ( dutInfoObject.PUSleepSTA=="1"):
+            VarList.setdefault("ConditionalStep-PUSleep",cond)
+        else:
+            VarList.setdefault("ConditionalStep-PUSleep","DoNothing.txt")
+
+            
+
     #Check for conditional step
     cond=find_TestcaseInfo_Level1(TID,"ConditionalStep-Aonly-40")
     if (cond != ""):
@@ -780,6 +807,10 @@ def GetOtherVariables(TID):
     AddVariableInit(TID,"HTFlag","on")
     AddVariableInit(TID,"WMMFlag","off")
     AddVariableInit(TID,"CheckFlag11n","off")
+    #TDLS specific
+    AddVariableInit(TID,"CheckFlag11n","off")
+    AddVariableInit(TID,"Offch","44")
+    AddVariableInit(TID,"Offchwidth","20")
     VarList.setdefault("DUTSupportedCW",dutInfoObject.SupportedChannelWidth)
     find_stream_threshold_values(TID,"WMMStreamThreshold")
 def AddVariableInit (TID,VarName,VarDefault):

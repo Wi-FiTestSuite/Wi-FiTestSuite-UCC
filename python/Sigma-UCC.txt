@@ -1,3 +1,8 @@
+# TDLS
+TDLS_TEST_LIST=Sigma-TDLS
+TDLS_CMD_PATH=..\..\cmds\Sigma-TDLS
+TDLS_TESTBED_AP="TDLS-Testbed-APs.txt"
+
 
 
 # P2P

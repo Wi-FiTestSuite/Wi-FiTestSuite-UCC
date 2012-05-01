@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="6.0.0-RC"
+VERSION="6.0.0-RC-2"
 
 
 conntable = {}
@@ -437,7 +437,7 @@ def process_cmd(line):
                     rhs[iCount]=retValueTable[rhs[iCount]]
                 if(oper[iCount]).lower() == "=":
                     #logging.info("%s == %s" %(lhs[iCount],rhs[iCount]))
-                    if lhs[iCount] == rhs[iCount]:
+                    if lhs[iCount].lower() == rhs[iCount].lower():
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
@@ -462,7 +462,7 @@ def process_cmd(line):
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == "<>":
-                    if lhs[iCount] != rhs[iCount]:
+                    if lhs[iCount].lower() != rhs[iCount].lower():
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
@@ -1186,6 +1186,8 @@ def process_cmdfile(line):
        scanner(file, process_cmd)
        file.close()
        i = i+1
+    XLogger.writeXML()
+    
 def set_test_result(result,data,rdata):
     
         XLogger.setTestResult(result,data,rdata)       

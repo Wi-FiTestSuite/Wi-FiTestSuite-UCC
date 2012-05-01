@@ -81,7 +81,7 @@ U = UCCTestConfig()
 def main():
 
     if (nargs < 3) or (sys.argv[2]=='group' and nargs < 4):
-        print('Incorrect Command line !!! \n\rUSAGE : UCC <Program Name> <Test ID>/\
+        print('Incorrect Command line !!! \n\rUSAGE : wfa_ucc <Program Name> <Test ID>/\
         \n\r    [1]Program Name : VE\
 		\n\r					 PMF\
         \n\r                     P2P\
