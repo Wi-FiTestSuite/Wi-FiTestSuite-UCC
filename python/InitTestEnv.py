@@ -104,10 +104,14 @@ doc = ""
 #Global Object to handle Test ENV Variables
 testEnvVariables = ""
 
+# Qualification changes
+qual=0
+QualAP=""
+QualSTA=""
 
 # Main function
-def InitTestEnv(testID,cmdPath,progName,initFile,TBFile):
-    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName,uccPath,testEnvVariables
+def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""):
+    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName,uccPath,testEnvVariables,QualAP,QualSTA,qual
 
     uccPath=cmdPath
     
@@ -119,6 +123,12 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile):
     TestID = testID
     testEnvVariables = envVariables()
     
+    # For test bed qualification only
+    if q:
+        qual=q
+        QualAP=qualAP
+        QualSTA=qualSTA
+        
     #TestID=TestID.split('_')[0]
     
     InitLog(InitEnvLogFile)
@@ -389,14 +399,14 @@ def ReadDUTInfo (filename,TestCaseID):
     if "N-5.2" in TestCaseID or "N-ExS" in TestCaseID :
         VarList.setdefault("APUT_state","off")
 	
-    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF":
+    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2":
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
         T.rows.append(R1)
 
-        if (ProgName == "P2P" or ProgName == "TDLS"):    
-            P2PVarList = ReadAllMapFile(DUTFile,"P2P","!")
+        if (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "HS2"):    
+            P2PVarList = ReadAllMapFile(DUTFile,ProgName,"!")
             if P2PVarList != -1:
                 P2PVarList=P2PVarList.split('!')
                 LogMsg("P2P Supported Features = %s" % P2PVarList)
@@ -499,14 +509,19 @@ def GetServerSupplicantInfo (TestCaseID):
         tag="Other"
         
     serverName=find_Server(TestCaseID,tag)
-    suppName = find_Supplicant(TestCaseID,"DUT",dutInfoObject.DUTCategory.lower())
-    staSuppName = find_Supplicant(TestCaseID,"STA","c2")
+    
+    if dutInfoObject.DUTCategory != -1:
+        suppName = find_Supplicant(TestCaseID,"DUT",dutInfoObject.DUTCategory.lower())
+        setattr(serverInfo,"Supplicant",suppName)        
+        staSuppName = find_Supplicant(TestCaseID,"STA","c2")
+        setattr(serverInfo,"STASupplicant",staSuppName)
+    
     setattr(serverInfo,"name",serverName)
     setattr(serverInfo,"IP",ReadMapFile(uccPath+RADIUSServer,"%s%s"%(serverName,"IPAddress"),"!"))
     setattr(serverInfo,"Port",ReadMapFile(uccPath+RADIUSServer,"%s%s"%(serverName,"Port"),"!"))
     setattr(serverInfo,"Password",ReadMapFile(uccPath+RADIUSServer,"%s%s"%(serverName,"SharedSecret"),"!"))
-    setattr(serverInfo,"Supplicant",suppName)
-    setattr(serverInfo,"STASupplicant",staSuppName)
+    
+
     LogMsg(serverInfo)    
 
 def GetSnifferInfo(TestCaseID):
@@ -533,7 +548,7 @@ def GetSnifferInfo(TestCaseID):
 #
 
 def GetTestbedDeviceInfo (TestCaseID):
-    global ProgName
+    global ProgName, qual,QualAP,QualSTA
     iCount=1
     LogMsg ("Read Testbed Device Info Function")
     # Searching Band
@@ -541,6 +556,11 @@ def GetTestbedDeviceInfo (TestCaseID):
 
     # Searching APs
     APs = find_TestcaseInfo_Level1(TestCaseID,"AP").split(",")
+
+    if qual:
+        APs=QualAP.split(",")
+        LogMsg("Qualification Mode - APs-[%s]"%APs)
+        
     
     for AP in APs:
         if AP == "":
@@ -573,6 +593,12 @@ def GetTestbedDeviceInfo (TestCaseID):
     iCount=1
     # Searching STAs
     STAs= find_TestcaseInfo_Level1(TestCaseID,"STA").split(",")
+
+    if qual:
+        STAs=QualSTA
+        LogMsg("Qualification Mode - STAs-[%s]"%STAs)
+    
+    
     for STA in STAs:
         setattr(testEnvVariables,"TSTA%s"%(iCount),STA)
         VarList.setdefault("STA%s_control_agent" %(iCount),"wfa_control_agent_%s_sta" %(STA.lower()))

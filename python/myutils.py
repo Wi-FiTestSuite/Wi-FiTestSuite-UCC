@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="6.0.0-RC-2"
+VERSION="6.0.0-RC-3"
 
 
 conntable = {}
@@ -1450,7 +1450,7 @@ def wfa_sys_exit(msg):
 def wfa_sys_exit_0():
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
-    logging.disable("ERROR")
+    #logging.disable("ERROR")
     XLogger.writeXML()
     raise StandardError("Exit")
 

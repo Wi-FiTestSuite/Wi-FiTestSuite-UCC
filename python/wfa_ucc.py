@@ -65,13 +65,16 @@ nargs = len(sys.argv)
 
 class UCCTestConfig:
     
-    def __init_(self,testID,cmdPath,progName,initFile,TBFile):
+    def __init_(self,testID,cmdPath,progName,initFile,TBFile,QualAP="",QualSTA="",DUTName="",qual=0):
         self.cmdPath=cmdPath
         self.progName=progName
         self.initFile=initFile
         self.TBFile=TBFile
         self.testID=testID
-      
+        self.TB_QUAL_AP=QualAP
+        self.TB_QUAL_STA=QualSTA
+        self.DUT_NAME=""
+        self.qual=0
   
     def __str__(self):
         return("\n Test ID = [%s] CmdPath = [%s] Prog Name = [%s] initFile =[%s] TBFile =[%s]" % (self.testID,self.cmdPath,self.progName,self.initFile,self.TBFile))
@@ -79,10 +82,11 @@ class UCCTestConfig:
 U = UCCTestConfig()
 
 def main():
-
+    global U
     if (nargs < 3) or (sys.argv[2]=='group' and nargs < 4):
         print('Incorrect Command line !!! \n\rUSAGE : wfa_ucc <Program Name> <Test ID> OR wfa_ucc <Program Name> group <group file name>\
         \n\r [1] Program Name :   AC-11AG/AC-11B/AC-11N\
+        \n\r                      HS2\
         \n\r                      N\
         \n\r                      P2P\
         \n\r                      PMF\
@@ -111,6 +115,10 @@ def main():
     setattr(U,"cmdPath",cmdPath)
     setattr(U,"progName",sys.argv[1])
     setattr(U,"TBFile",tbAP)
+    setattr(U,"qual",0)
+    setattr(U,"TB_QUAL_AP","")
+    setattr(U,"TB_QUAL_STA","")
+    setattr(U,"DUT_NAME","")
     
     grp = 0
     
@@ -125,7 +133,40 @@ def main():
             setattr(U,"testID",l.strip())
             runTestCase(tests,U.testID,grp)
             grp=1
-    
+            
+    if sys.argv[2] == "qual":
+        qualFile = sys.argv[3]
+        if os.path.exists(qualFile) == 0:
+            print ("Invalid Group File -%s-" % qualFile)
+            return
+        U.qual=1
+        fileP = open(qualFile,'r')
+        for l in (fileP.readlines()):
+            if not l: break
+            if re.search("#",l): continue
+            
+            if re.search("DUT_NAME",l) or re.search("TB_QUAL_AP",l) or re.search("TB_QUAL_STA",l):
+                l1=l.split("=")
+                
+                if len(l1) > 1:
+                    print "[%s][%s]" % (l1[0].strip(),l1[1].strip())
+                    setattr(U,l1[0].strip(),l1[1].strip())
+                
+                
+
+            if re.search("%s-" % sys.argv[1],l):
+                # Run the test case
+        
+                setattr(U,"testID",l.strip())
+                if U.DUT_NAME =="" or (U.TB_QUAL_AP=="" and U.TB_QUAL_STA==""):
+                    print "One or more parameters missing DUT[%s] AP[%s] STA[%s]" % (U.DUT_NAME,U.TB_QUAL_AP,U.TB_QUAL_STA)
+                    exit(1)
+                    
+                runTestCase(tests,U.testID,grp)
+                grp=1
+            
+                        
+        
     else:
         setattr(U,"testID",sys.argv[2])
         runTestCase(tests,U.testID)
@@ -133,6 +174,7 @@ def main():
     return
 
 def runTestCase (testListFile, testID,grp=0):
+    global U
     print "\n*** Running Test - %s *** \n" % testID
     
     initFile = ReadMapFile(testListFile,testID,"!")
@@ -140,6 +182,7 @@ def runTestCase (testListFile, testID,grp=0):
         
     if initFile == -1 or testFile == -1:
         print ("Invalid test case - %s" % testID)
+        exit(1)
         
     setattr(U,"initFile",initFile)
 
@@ -158,9 +201,12 @@ def runTestCase (testListFile, testID,grp=0):
     testFile= uccPath + testFile
     # Run Init Env
     if not re.search("WMM",testID):
-        InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile)
-	
-
+        
+        if U.qual:               
+            InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile,U.qual,U.TB_QUAL_AP,U.TB_QUAL_STA)
+        else:
+            InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile)
+        
 
     # UCC 
     #Run UCC Core
@@ -171,11 +217,37 @@ def runTestCase (testListFile, testID,grp=0):
    
     
     if os.path.exists(testFile) == 0:
-        logging.error ("Invalid file name - %s" % cmd)
+        logging.error ("Invalid file name - %s" % testFile)
         wfa_sys_exit("1")
         
     logging.info("\n %7s Testcase Init File = %s \n" %( "",initFile))
     logging.info("\n %7s Testcase Command File = %s \n" % ("",testFile))
+
+    if U.qual:
+            fileW = open("%s\DUTParam.txt" % (U.cmdPath),'w')
+            print ("- DUT NAME [%s]" %U.DUT_NAME.lower())
+            dut_ca=ReadMapFile(initFile,"wfa_control_agent_%s" % U.DUT_NAME.lower(),"!")
+
+            # Following assumes that $Channel is the first parmater in InitEnv.txt
+            channel=ReadMapFile("%s\InitEnv.txt" % U.cmdPath,"define","!",2)
+            band="24G"
+            if int(channel) > 35:
+                band="5G"
+            
+            #if re.search("_", U.DUT_NAME):
+            #    setattr(U,"DUT_NAME","%s%s" % (U.DUT_NAME.split("_")[0],U.DUT_NAME.split("_")[1]))
+            
+            
+            fileW.write("wfa_control_agent_dut!%s!\n" % dut_ca)
+            fileW.write("define!$DUT_Name!%s!\n" % (U.DUT_NAME))
+                        
+            fileW.write("define!$DutMacAddress!$%sMACAddress_%s!\n"%(U.DUT_NAME,band))
+                        
+            fileW.write("define!$APUT_uname!%sUserName!\n" % (U.DUT_NAME))
+            fileW.write("define!$APUT_pword!%sAPPassword!\n" % (U.DUT_NAME))
+            fileW.write("define!$APUT_hostname!%sHostName!\n" % (U.DUT_NAME))
+            fileW.close()
+        
 
     logging.info ("START: TEST CASE [%s] " % testID)
     try:  

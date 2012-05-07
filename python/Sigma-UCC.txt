@@ -3,6 +3,10 @@ TDLS_TEST_LIST=Sigma-TDLS
 TDLS_CMD_PATH=..\..\cmds\Sigma-TDLS
 TDLS_TESTBED_AP="TDLS-Testbed-APs.txt"
 
+# HS2
+HS2_TEST_LIST=Sigma-HS2
+HS2_CMD_PATH=..\..\cmds\Sigma-HS2
+HS2_TESTBED_AP=\HS2-Testbed-APs.txt
 
 
 # P2P
