@@ -256,6 +256,7 @@ def runTestCase (testListFile, testID,grp=0):
         scanner(file, firstword)
         print "\n-------------------\n"
         process_cmdfile(testFile)
+        XLogger.writeXML()
         
     except StandardError:
         logging.info ("END: TEST CASE [%s] " % testID)

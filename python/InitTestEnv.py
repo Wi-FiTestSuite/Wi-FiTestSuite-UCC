@@ -371,6 +371,12 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("OBSS",ReadMapFile(DUTFile,"OBSS","!"))
     dutInfoObject.__setattr__("AMPDU_TX",ReadMapFile(DUTFile,"AMPDU_TX","!"))
     dutInfoObject.__setattr__("AP_Concurrent",ReadMapFile(DUTFile,"AP_Concurrent","!"))
+
+    #VE Specific
+    dutInfoObject.__setattr__("BSS_Trans_Query_Support",ReadMapFile(DUTFile,"BSS_Trans_Query_Support","!"))
+    dutInfoObject.__setattr__("TSM_Support",ReadMapFile(DUTFile,"TSM_Support","!"))
+
+    
     #TDLS Specific
     dutInfoObject.__setattr__("TDLSDiscReq",ReadMapFile(DUTFile,"DiscoveryRequest_Support","!"))
     dutInfoObject.__setattr__("PUSleepSTA",ReadMapFile(DUTFile,"PUAPSDSleepSTA_Support","!"))
@@ -478,7 +484,7 @@ def GetCAPIFileNames (TestCaseID):
     global ProgName
     setattr (testEnvVariables,"TestbedConfigCAPIFile",find_TestbedFile(TestCaseID))
     
-    if int (dutInfoObject.SigmaSupport) == 0 and  ProgName != "P2P":
+    if int (dutInfoObject.SigmaSupport) == 0 and  ProgName != "P2P" and ProgName != "HS2":
         setattr (testEnvVariables,"DUTConfigCAPIFile","NoSigmaSupportMsg.txt")
         VarList.setdefault("SigmaMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
         VarList.setdefault("DUT_SIGMA_VERSION","NA")

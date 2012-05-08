@@ -1186,7 +1186,7 @@ def process_cmdfile(line):
        scanner(file, process_cmd)
        file.close()
        i = i+1
-    XLogger.writeXML()
+    #XLogger.writeXML()
     
 def set_test_result(result,data,rdata):
     
@@ -1450,9 +1450,9 @@ def wfa_sys_exit(msg):
 def wfa_sys_exit_0():
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
-    #logging.disable("ERROR")
+    logging.disable("ERROR")
     XLogger.writeXML()
-    raise StandardError("Exit")
+    raise StandardError("END-0-")
 
 class XMLLogHandler(logging.FileHandler):
     
@@ -1531,7 +1531,7 @@ def init_logging (_filename,level,loop=0):
         
     logging.info ("###########################################################\n")    
     logging.info ("UCC Version [%s]" % VERSION)    
-    logging.info('Logging started in file - %s' % (fname))
+    logging.info ('Logging started in file - %s' % (fname))
 
 def reset():
     global retValueTable, DisplayNameTable, streamSendResultArray, streamRecvResultArray, streamInfoArray,lhs,rhs,oper,boolOp,runningPhase,testRunning,threadCount,resultPrinted, ifcondBit, ifCondBit, iDNB,iINV,RTPCount
