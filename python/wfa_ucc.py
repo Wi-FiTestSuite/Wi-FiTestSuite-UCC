@@ -81,6 +81,7 @@ class UCCTestConfig:
 
 U = UCCTestConfig()
 
+
 def main():
     global U
     if (nargs < 3) or (sys.argv[2]=='group' and nargs < 4):
@@ -133,7 +134,8 @@ def main():
             setattr(U,"testID",l.strip())
             runTestCase(tests,U.testID,grp)
             grp=1
-            
+        return
+    
     if sys.argv[2] == "qual":
         qualFile = sys.argv[3]
         if os.path.exists(qualFile) == 0:
@@ -262,7 +264,7 @@ def runTestCase (testListFile, testID,grp=0):
         logging.info ("END: TEST CASE [%s] " % testID)
         reset()
         return
-    
+
     
     #delay for last receive_stop response
     time.sleep(5)
@@ -270,6 +272,7 @@ def runTestCase (testListFile, testID,grp=0):
     file.close()
     close_conn()
     time.sleep(2)
+    reset()
 
 def ReadMapFile (filename,index,delim,n=1):
 

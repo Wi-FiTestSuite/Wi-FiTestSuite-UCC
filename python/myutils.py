@@ -1137,9 +1137,8 @@ def process_cmd(line):
             time.sleep(10) 
     except:
         exc_info = sys.exc_info( )
-        logging.error(exc_info[1])
-        wfa_sys_exit ("")
-        
+        raise StandardError(exc_info[1])
+    
 def send_capi_command(toaddr,capi_elem):
 	global iDNB, iINV
         capi_run = ','.join(capi_elem)          
@@ -1442,7 +1441,7 @@ def wfa_sys_exit(msg):
     else:  
         XLogger.setTestResult("ABORTED",msg)
         #setattr(ResInfo,"rdata", msg)
-    logging.info("ABORTED: %s" % msg)
+    logging.info("ABORTED-: %s" % msg)
     XLogger.writeXML()
     raise StandardError("Exit - %s" % msg)
     
@@ -1450,7 +1449,7 @@ def wfa_sys_exit(msg):
 def wfa_sys_exit_0():
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
-    logging.disable("ERROR")
+    #logging.disable("ERROR")
     XLogger.writeXML()
     raise StandardError("END-0-")
 
@@ -1535,8 +1534,8 @@ def init_logging (_filename,level,loop=0):
 
 def reset():
     global retValueTable, DisplayNameTable, streamSendResultArray, streamRecvResultArray, streamInfoArray,lhs,rhs,oper,boolOp,runningPhase,testRunning,threadCount,resultPrinted, ifcondBit, ifCondBit, iDNB,iINV,RTPCount
-    logging.info("Reset After Test End")
-
+    logging.debug("Reset After Test End")
+        
     retValueTable = {}
     DisplayNameTable = {}
     streamSendResultArray = []
