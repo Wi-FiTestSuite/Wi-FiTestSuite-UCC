@@ -111,10 +111,10 @@ QualSTA=""
 
 # Main function
 def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""):
-    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName,uccPath,testEnvVariables,QualAP,QualSTA,qual
+    global MasterTestInfo,DUTInfoFile,doc,InitFile,TestbedAPFile,ProgName,uccPath,testEnvVariables,QualAP,QualSTA,qual,VarList
 
     uccPath=cmdPath
-    
+    VarList={}
         
     doc = xml.dom.minidom.parse(uccPath + MasterTestInfo)
     InitFile="\\" + initFile
@@ -599,7 +599,6 @@ def GetTestbedDeviceInfo (TestCaseID):
     iCount=1
     # Searching STAs
     STAs= find_TestcaseInfo_Level1(TestCaseID,"STA").split(",")
-
     if qual:
         STAs=QualSTA
         LogMsg("Qualification Mode - STAs-[%s]"%STAs)
@@ -609,6 +608,7 @@ def GetTestbedDeviceInfo (TestCaseID):
         setattr(testEnvVariables,"TSTA%s"%(iCount),STA)
         VarList.setdefault("STA%s_control_agent" %(iCount),"wfa_control_agent_%s_sta" %(STA.lower()))
         VarList.setdefault("STA%s_wireless_ip"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip"%STA.lower(),"!"))
+        
         if (ProgName == "TDLS"):
             VarList.setdefault("STA%s_wireless_ip2"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip2"%STA.lower(),"!"))
             VarList.setdefault("STA%s_wireless_ip3"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip3"%STA.lower(),"!"))

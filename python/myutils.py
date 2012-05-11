@@ -523,7 +523,29 @@ def process_cmd(line):
 		retValueTable[command[1]] = (int(retValueTable[command[1]])*int(command[3]))/100
 
 	    return
-
+        if command[0].lower() == "cat":
+            var="" 
+            if len(command) < 5:
+                logging.debug("Invalid CAT command")
+            else:
+                varlist = command[2].split(",")
+                for v in varlist:
+                    if v in retValueTable:
+                        v=retValueTable[v]
+                        if var:
+                            var = ("%s%s%s" % (var,command[3],v))
+                        else:
+                            var = ("%s" % (v))
+                    
+            logging.debug("VAR=[%s]" % var)
+            
+            if command[1] in retValueTable:
+                retValueTable[command[1]]=var
+            else:
+                retValueTable.setdefault(command[1],var)
+            
+            return
+        
 	if command[0].lower() == "extract_p2p_ssid":
             if command[1] in retValueTable:
                 command[1] = retValueTable[command[1]]
@@ -1137,8 +1159,8 @@ def process_cmd(line):
             time.sleep(10) 
     except:
         exc_info = sys.exc_info( )
-        raise StandardError(exc_info[1])
-    
+        wfa_sys_exit(exc_info[1])
+            
 def send_capi_command(toaddr,capi_elem):
 	global iDNB, iINV
         capi_run = ','.join(capi_elem)          
@@ -1433,6 +1455,7 @@ def process_ResultCheck(line):
     except:
         exc_info = sys.exc_info( )
         logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        
 def wfa_sys_exit(msg):
     time.sleep(2)
     set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
