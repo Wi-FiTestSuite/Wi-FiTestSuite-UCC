@@ -1,17 +1,17 @@
 # TDLS
 TDLS_TEST_LIST=Sigma-TDLS
-TDLS_CMD_PATH=..\..\cmds\Sigma-TDLS
-TDLS_TESTBED_AP="TDLS-Testbed-APs.txt"
+TDLS_CMD_PATH=..\cmds\Sigma-TDLS
+TDLS_TESTBED_AP=\TDLS-Testbed-APs.txt
 
 # HS2
 HS2_TEST_LIST=Sigma-HS2
-HS2_CMD_PATH=..\..\cmds\Sigma-HS2
+HS2_CMD_PATH=..\cmds\Sigma-HS2
 HS2_TESTBED_AP=\HS2-Testbed-APs.txt
 
 
 # P2P
 P2P_TEST_LIST=Sigma-P2P
-P2P_CMD_PATH=..\..\cmds\Sigma-P2P
+P2P_CMD_PATH=..\cmds\Sigma-P2P
 P2P_TESTBED_AP=""
 
 # PMF
@@ -31,7 +31,7 @@ N_TESTBED_AP=\802.11n-Testbed-APs.txt
 
 # Voice Enterprise
 VE_TEST_LIST=Sigma-Voice-Ent
-VE_CMD_PATH=..\..\cmds\Sigma-Voice-Ent
+VE_CMD_PATH=..\cmds\Sigma-Voice-Ent
 VE_TESTBED_AP=\Voice-Ent-Testbed-APs.txt
 
 
