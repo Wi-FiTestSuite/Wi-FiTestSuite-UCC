@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="6.0.0-RC-3"
+VERSION="6.0.0"
 
 
 conntable = {}
@@ -198,7 +198,7 @@ def sock_tcp_conn(ipaddr, ipport):
     waitsocks.append(mysock)
     return mysock;
 
-def process_ipadd(line):
+def process_ipadd(line,rc=0):
     global conntable
     i = 0
     addrlist = []
@@ -209,7 +209,7 @@ def process_ipadd(line):
         ipa = ip[0].split('=')[1]    # ip adress
         ipp = ip[1].split('=')[1]    # ip port
         
-        if "%s:%s" %(ipa,ipp) in conntable:
+        if "%s:%s" %(ipa,ipp) in conntable and rc == 0:
             logging.info('Already Connected to - IP Addr = %s Port =%s',ipa,ipp )
             return
         logging.info( 'Connecting to - IP Addr = %s Port =%s',ipa,ipp )
@@ -545,7 +545,16 @@ def process_cmd(line):
                 retValueTable.setdefault(command[1],var)
             
             return
-        
+        if command[0].lower() == "reopen_conn":
+            
+            if command[1] in retValueTable:
+                command[1] = retValueTable[command[1]]
+            if command[2] in retValueTable:
+                command[2] = retValueTable[command[2]]
+
+            process_ipadd("ipaddr=%s,port=%s" % (command[1],command[2]),1)
+            return
+	
 	if command[0].lower() == "extract_p2p_ssid":
             if command[1] in retValueTable:
                 command[1] = retValueTable[command[1]]

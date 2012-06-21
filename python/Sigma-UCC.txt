@@ -21,12 +21,12 @@ PMF_TESTBED_AP=\PMF-Testbed-APs.txt
 
 # WPA2
 WPA2_TEST_LIST=Sigma-WPA2
-WPA2_CMD_PATH=..\cmds\Sigma-WPA2
+WPA2_CMD_PATH=..\..\cmds\Sigma-WPA2
 WPA2_TESTBED_AP=\WPA2-Testbed-APs.txt
 
 # 11n
 N_TEST_LIST=Sigma-11n
-N_CMD_PATH=..\cmds\Sigma-11n
+N_CMD_PATH=..\..\cmds\Sigma-11n
 N_TESTBED_AP=\802.11n-Testbed-APs.txt
 
 # Voice Enterprise
