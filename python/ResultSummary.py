@@ -442,21 +442,27 @@ class ResultSummary:
                             t1.nFail = int(t1.nFail) + 1
                         else:
                             #Check if manual check should be done
-                            mchkInfo=self.getNodeValue(dlogFile,"Log","ManualCheckInfo")
-                            if self.mChk and mchkInfo:
-                                os.startfile(self.logpath + "\\" + f1)
-                                var = raw_input("-Manual Analysis Needed- Test ID -[%s]\n %s \n\n-Enter the result [P or F]: " % (tID, mchkInfo))
-                                t1.result=var
-                                if var=="P":
-                                    t1.nPass = int(t1.nPass) + 1
-                                    t1.result="PASS"
+                            mchkInfo1=self.getNodeValueloop(dlogFile,"Log","ManualCheckInfo")
+                            mchkInfo1 = mchkInfo1.split(",")
+                            var=""
+                            for mchkInfo in mchkInfo1:
+                                if self.mChk and mchkInfo:
+                                    os.startfile(self.logpath + "\\" + f1)
+                                    var = raw_input("-Manual Analysis Needed- Test ID -[%s]\n %s \n\n-Enter the result [P or F]: " % (tID, mchkInfo))
+                                    t1.result=var
+                                    if var!="P":
+                                         t1.nFail = int(t1.nFail) + 1
+                                         t1.result="FAILED (%s)" % mchkInfo
+                                         break
+                                    
                                 else:
-                                     t1.nFail = int(t1.nFail) + 1
-                                     t1.result="FAILED"
+                                    t1.nErr = int(t1.nErr) + 1
+                                    break
                                 
-                            else:
-                                t1.nErr = int(t1.nErr) + 1
-                            
+                            if var=="P":
+                                t1.nPass = int(t1.nPass) + 1
+                                t1.result="PASS"
+
                         t1.totalRun = t1.totalRun + 1
                             
                         t1.logfiles.append(LogFile(lf,sig))
@@ -503,6 +509,17 @@ class ResultSummary:
             for l in node.getElementsByTagName(attr):
                 logging.debug(l)
                 return l.firstChild.data
+    def getNodeValueloop(self,node,tag,attr):
+        val = ""
+        #return the first match
+        for l in node.getElementsByTagName(attr):
+            logging.debug(l)
+            if val:
+                val = "%s,%s" % (val,l.firstChild.data)
+            else:
+                val = "%s" % (l.firstChild.data)
+                
+        return val
             
     def getTBDeviceObject(self,node):
        lList={}
