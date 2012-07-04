@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="6.0.0"
+VERSION="7.0.0-RC1"
 
 
 conntable = {}
@@ -181,10 +181,11 @@ def scanner (fileobject, linehandler):
       
 def sock_tcp_conn(ipaddr, ipport):
     global readsocks ,waitsocks
-    buf = 1024
+    buf = 2048
     addr = (ipaddr, ipport)
 
     mysock = socket(AF_INET, SOCK_STREAM)
+    mysock.settimeout(600)
     try:
         mysock.connect(addr)
     except:
@@ -338,7 +339,7 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
         readables, writeables, exceptions = select(readsocks, writesocks, [],0.1)
         for sockobj in readables:
             if sockobj in waitsocks:
-                resp = sockobj.recv(1024)
+                resp = sockobj.recv(2048)
                 resp_arr = resp.split(',')
                 for socks in conntable:
                     if sockobj == conntable[socks]:
@@ -442,22 +443,26 @@ def process_cmd(line):
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == ">":
-                    if long(lhs[iCount]) > long(rhs[iCount]):
+                    #if long(lhs[iCount]) > long(rhs[iCount]):
+                    if float(lhs[iCount]) > float(rhs[iCount]):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == "<":
-                    if long(lhs[iCount]) < long(rhs[iCount]):
+                    #if long(lhs[iCount]) < long(rhs[iCount]):
+                    if float(lhs[iCount]) < float(rhs[iCount]):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == ">=":
-                    if long(lhs[iCount]) >= long(rhs[iCount]):
+                    #if long(lhs[iCount]) >= long(rhs[iCount]):
+                    if float(lhs[iCount]) >= float(rhs[iCount]):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == "<=":
-                    if long(lhs[iCount]) <= long(rhs[iCount]):
+                    #if long(lhs[iCount]) <= long(rhs[iCount]):
+                    if float(lhs[iCount]) <= float(rhs[iCount]):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
@@ -495,9 +500,11 @@ def process_cmd(line):
 	        if(command[2]).lower() == "-":
 			retValueTable[tmp] = "%s" % (int(command[1]) -  int(command[3]))
 	        if(command[2]).lower() == "*":
-			retValueTable[tmp] = "%s" % (int(command[1]) *  int(command[3]))
+			retValueTable[tmp] = "%s" % (float(command[1]) *  float(command[3]))
 	        if(command[2]).lower() == "/":
-			retValueTable[tmp] = "%s" % (int(command[1]) /  int(command[3]))
+			retValueTable[tmp] = "%s" % (float(command[1]) /  float(command[3]))
+		if(command[2]).lower() == "%":
+			retValueTable[tmp] = "%s" % (int(command[1]) % int(command[3]))
 
 	    else:
    	        logging.error("Invalid parameters to math function")
@@ -814,6 +821,61 @@ def process_cmd(line):
                 #logging.info("DFINE")
                 retValueTable.setdefault(command[1],command[2])
 
+            return
+
+        elif re.search('append',command[0]):
+            cmd = command[2].split(" ")
+            logging.debug("..append %s = %s %s using %s"%(command[1],cmd[0],cmd[1],command[3]))
+            if command[1] in retValueTable :
+                if cmd[0] in retValueTable:
+                    cmd[0]=retValueTable[cmd[0]]
+                if cmd[1] in retValueTable:
+                    cmd[1]=retValueTable[cmd[1]]
+                retValueTable[command[1]] = "%s%s%s" %(cmd[0],command[3],cmd[1])
+            else:
+                if cmd[0] in retValueTable:
+                    cmd[0]=retValueTable[cmd[0]]
+                if cmd[1] in retValueTable:
+                    cmd[1]=retValueTable[cmd[1]]
+                retValueTable.setdefault(command[1],"%s%s%s" %(cmd[0],command[3],cmd[1]))
+                
+            return
+
+        elif command[0].lower() == 'getuserinput':
+
+            set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
+            logging.info("[USER INPUT REQUIRED]")
+            udata=raw_input(command[1])
+            if command[2] in retValueTable:
+                retValueTable[command[2]]=udata
+            else:
+                retValueTable.setdefault(command[2],udata)
+                    
+            set_color(FOREGROUND_INTENSITY)
+            return
+        
+        elif re.search('search',command[0]):
+            #logging.info("In search...")
+            if command[1] in retValueTable:
+                cmd1 = retValueTable[command[1]]
+            else:
+                cmd1 = command[1]
+                
+            if command[2] in retValueTable:
+                cmd2 = retValueTable[command[2]].split(" ")
+            else:
+                cmd2 = command[2].split(" ")
+            
+            retValueTable[command[3]] = "0"
+            i=0
+            for c in cmd2:
+                logging.info("Search \"%s\" in \"%s\"" %(cmd2[i],cmd1))
+                #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
+                if re.search('%s' %cmd2[i],cmd1,re.IGNORECASE):
+                    retValueTable[command[3]] = "1"
+                    #return
+                i+=1
+            
             return
         
         elif command[0].lower() == 'echo':
@@ -1180,7 +1242,9 @@ def send_capi_command(toaddr,capi_elem):
         if toaddr in DisplayNameTable :
             displayaddr = DisplayNameTable[toaddr]
         logging.info("%s (%-15s) ---> %s" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
-        status = asock.recv(1024)
+        
+        status = asock.recv(2048)
+            
         logging.debug( "%s (%s) <--- %s" % (displayaddr,toaddr,status.rstrip('\r\n' )))
       
         # Status,Running
@@ -1190,7 +1254,7 @@ def send_capi_command(toaddr,capi_elem):
             status = status[1]
         else:
 	    if iDNB == 0:
-		status = asock.recv(1024)
+		status = asock.recv(2048)
 	    else:
 		iDNB=0
 

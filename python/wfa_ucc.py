@@ -92,6 +92,7 @@ def main():
         \n\r                      P2P\
         \n\r                      PMF\
         \n\r                      TDLS\
+        \n\r                      WFD\
         \n\r                      WMM-B/WMM-BG/WMM-ABG\
 	\n\r                      WPA2\
 	\n\r\n\r [2] Test ID : Test case ID for that program            OR\

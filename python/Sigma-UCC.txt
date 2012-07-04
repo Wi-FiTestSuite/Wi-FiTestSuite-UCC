@@ -68,4 +68,8 @@ AC-11N_TEST_LIST=Sigma-WMM-AC
 AC-11N_CMD_PATH=..\cmds\Sigma-WMM-AC\11n
 AC-11N_TESTBED_AP=""
 
+# WFD - WFD device
+WFD_TEST_LIST=Sigma-WFD
+WFD_CMD_PATH=..\cmds\Sigma-WFD
+WFD_TESTBED_AP=""
 

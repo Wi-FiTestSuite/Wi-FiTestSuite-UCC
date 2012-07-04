@@ -146,7 +146,7 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
     LogMsg("----Test ID = %s-------" %TestID)
     GetCAPIFileNames (TestID)    
     GetTestbedDeviceInfo(TestID)
-    if ProgName =="P2P":
+    if ProgName =="P2P" or ProgName == "WFD":
         GetP2PVariables(TestID)
         
     if not (ProgName == "P2P" or ProgName == "TDLS"):
@@ -405,7 +405,7 @@ def ReadDUTInfo (filename,TestCaseID):
     if "N-5.2" in TestCaseID or "N-ExS" in TestCaseID :
         VarList.setdefault("APUT_state","off")
 	
-    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2":
+    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2" or ProgName == "WFD":
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
@@ -600,7 +600,7 @@ def GetTestbedDeviceInfo (TestCaseID):
     # Searching STAs
     STAs= find_TestcaseInfo_Level1(TestCaseID,"STA").split(",")
     if qual:
-        STAs=QualSTA
+        STAs=QualSTA.split(",")
         LogMsg("Qualification Mode - STAs-[%s]"%STAs)
     
     
@@ -630,7 +630,7 @@ def GetTestbedDeviceInfo (TestCaseID):
             #setattr(testEnvVariables,"SSID",SSID)
 
     
-    if (ProgName != "P2P"):
+    if (ProgName != "P2P" and ProgName != "WFD"):
         FindBandChannel(TestCaseID)
     #LogMsg("APs = %s  STAs = %s  SSID = %s "% (APs,STAs,SSID))
    
@@ -886,13 +886,17 @@ def AddWPSConfigMethod (TID,VarName,VarValue):
 
 # For P2P Parameters
 def GetP2PVariables(TID):
+    global ProgName
     oper_chn=-1
     list_chn=-1
     intent_val=-1
-    
-    oper_chn=find_TestcaseInfo_Level1(TID,"OperatingChannel")
-    if (oper_chn != ""):
-        VarList.setdefault("OPER_CHN",oper_chn)
+
+    if ProgName =="WFD":
+        FindBandOperChannel(TID)
+    else:
+        oper_chn=find_TestcaseInfo_Level1(TID,"OperatingChannel")
+        if (oper_chn != ""):
+            VarList.setdefault("OPER_CHN",oper_chn)
 
     list_chn=find_TestcaseInfo_Level1(TID,"ListenChannel")
     if (list_chn != ""):
@@ -912,7 +916,76 @@ def GetP2PVariables(TID):
     wps_method=find_TestcaseInfo_Level1(TID,"WPS_Config")
     if (wps_method != ""):
         AddWPSConfigMethod(TID,"DUT_WPS_METHOD",wps_method)
+
+###################################################################################################################################
+#
+# Function: FindBandOperChannel
+# This Function finds the band and Operating channel required for given test case and puts them
+# into testEnvVariables
+#
+#   Arguments  :        Testcase ID
+#   Return     :        pass/fail
+#
+
+def FindBandOperChannel (TestCaseID):
+    global ProgName
+    LoadBandSelection()
+    band=-1
+    operchannel1 = []
+    testOperChannel = []
     
+    Band = find_TestcaseInfo_Level1(TestCaseID,"Band")
+    if (Band == "A/G"):
+        Band = "AG"
+    if (Band == "A/G/N"):
+        Band = "AGN"
+    if (Band == "G/N"):
+        Band = "GN"
+    if (Band == "A/N"):
+        Band = "AN"
+    if (Band == "A/B"):
+        Band = "AB"
+
+
+    
+    try :
+        band =  bandSelectionList["%s:%s"%(Band,dutInfoObject.DUTBand)]            
+    except KeyError:
+        LogMsg("Invalid band information %s" % Band)
+        
+    operChannel1 = find_TestcaseInfo_Level1(TestCaseID,"OperatingChannel").split(",")
+    if operChannel1[0] == "":
+        return 
+
+    for chan in range(0, len(operChannel1)):
+        operchannel1.append(operChannel1[chan].split("/"))
+        LogMsg("Test case Operating Channel %s %s" % (operchannel1[chan][0], operchannel1[chan][1]))
+        
+        if band != "11a" and band != "11na" and band != -1:
+            testOperChannel.append(operchannel1[chan][1])
+        elif band != -1:
+            testOperChannel.append(operchannel1[chan][0])
+        if band == -1 and ProgName != "P2P":
+            VarList.setdefault("TestNA","Invalid Band. DUT Capable Band is [%s] and Test requires [%s]" % (dutInfoObject.DUTBand,Band))
+            
+    LogMsg("Test execution in %s Band and Operating Channel %s" % (band,testOperChannel))
+
+    setattr(testEnvVariables,"Band",band)
+    iCount = 1
+    for chan in testOperChannel:
+        if (len(testOperChannel) > 1):
+            #setattr(testEnvVariables,"OPER_CHN_%s"%(iCount),chan)
+            VarList.setdefault("OPER_CHN_%s"%(iCount),chan)
+            iCount = iCount + 1
+            #setattr(testEnvVariables,"OPER_CHN",testEnvVariables.OPER_CHN_1)
+            VarList.setdefault("OPER_CHN",OPER_CHN_1)
+        else:
+            #setattr(testEnvVariables,"OPER_CHN",chan)
+            VarList.setdefault("OPER_CHN",chan)
+        #LogMsg("%s %s %s" %(testEnvVariables.OPER_CHN_1, testEnvVariables.Channel_2, testEnvVariables.Channel_3))
+
+    return(testOperChannel)
+#####################################################################################################################
     
 #
 # Function: FindBandChannel
