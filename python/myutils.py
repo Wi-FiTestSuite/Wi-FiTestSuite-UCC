@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="7.0.0-RC1"
+VERSION="6.0.0-Miracast"
 
 
 conntable = {}
@@ -494,7 +494,8 @@ def process_cmd(line):
                 command[1]=retValueTable[command[1]]
             if command[3] in retValueTable:
                 command[3]=retValueTable[command[3]]
-	    if (command[1].lstrip('-')).isdigit() and (command[3].lstrip('-')).isdigit():
+	    #if (command[1].lstrip('-')).isdigit() and (command[3].lstrip('-')).isdigit():
+            if ((command[1].lstrip('-')).replace('.','',1)).isdigit() and ((command[3].lstrip('-')).replace('.','',1)).isdigit():   
 	        if(command[2]).lower() == "+":
 			retValueTable[tmp] = "%s" % (int(command[1]) +  int(command[3]))
 	        if(command[2]).lower() == "-":
