@@ -484,7 +484,7 @@ def GetCAPIFileNames (TestCaseID):
     global ProgName
     setattr (testEnvVariables,"TestbedConfigCAPIFile",find_TestbedFile(TestCaseID))
     
-    if int (dutInfoObject.SigmaSupport) == 0 and  ProgName != "P2P" and ProgName != "HS2":
+    if int (dutInfoObject.SigmaSupport) == 0 and  ProgName != "P2P" and ProgName != "HS2" and ProgName != "WFD":
         setattr (testEnvVariables,"DUTConfigCAPIFile","NoSigmaSupportMsg.txt")
         VarList.setdefault("SigmaMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
         VarList.setdefault("DUT_SIGMA_VERSION","NA")
