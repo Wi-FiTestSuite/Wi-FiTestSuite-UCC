@@ -355,7 +355,7 @@ class ResultSummary:
         self.ResultInfo.appendChild(self.doc.createElement("TestplanID",self.testplanID))
         self.ResultInfo.appendChild(self.doc.createElement("SignatureKeyID",self.sigKeyID))
 
-        self.mChk=mChk
+        self.mChk=int (mChk)
         
     def addVersionInfo(self,dlog):
         
@@ -524,10 +524,14 @@ class ResultSummary:
     def getTBDeviceObject(self,node):
        lList={}
        # convert all string to lower case for comparision
+       
+       
        for n in node.getElementsByTagName("*"):
-           lList.setdefault(n.tagName.strip(),n.firstChild.data.strip())
+           if n.firstChild:
+               lList.setdefault(n.tagName.strip(),n.firstChild.data.strip())
            
-       return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],lList["OS"],lList["SigmaControlAgent"]))
+
+       return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],"",lList["SigmaControlAgent"]))
         
     def compareTwoTBNodes(self,left,right):
         logging.debug ("TLeft = %s TRight = %s" % (left,right))
