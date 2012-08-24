@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="7.0.0-RC"
+VERSION="7.0.0"
 
 
 conntable = {}
@@ -340,14 +340,22 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
         for sockobj in readables:
             if sockobj in waitsocks:
                 resp = sockobj.recv(2048)
-                resp_arr = resp.split(',')
+
                 for socks in conntable:
                     if sockobj == conntable[socks]:
                         responseIPAddress=socks                        
                 displayaddr=responseIPAddress
                 if responseIPAddress in DisplayNameTable:
                     displayaddr=DisplayNameTable[responseIPAddress]
-                logging.info( "%-15s <-- %s" % (displayaddr,resp))                           
+                logging.info( "%-15s <--1 [%s]" % (displayaddr,resp))
+                
+                if re.search("RUNNING",resp):
+                    resp = resp.strip()
+                    resp = resp.lstrip('status,RUNNING')
+                    resp = resp.strip()
+                    
+                resp_arr = resp.split(',')
+                logging.debug( "%-15s <--2 [%s]" % (displayaddr,resp))
                 # Check for send stream completion
                 if len(resp_arr) > 2:
                     if resp_arr[3] == '':
@@ -1242,7 +1250,7 @@ def send_capi_command(toaddr,capi_elem):
         displayaddr = toaddr
         if toaddr in DisplayNameTable :
             displayaddr = DisplayNameTable[toaddr]
-        logging.info("%s (%-15s) ---> %s" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
+        logging.info("%s (%-15s) ---> [%s]" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
         
         status = asock.recv(2048)
             
