@@ -411,7 +411,7 @@ def ReadDUTInfo (filename,TestCaseID):
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
         T.rows.append(R1)
 
-        if (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "HS2"):    
+        if (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "HS2" or ProgName == "WFD"):    
             P2PVarList = ReadAllMapFile(DUTFile,ProgName,"!")
             if P2PVarList != -1:
                 P2PVarList=P2PVarList.split('!')
