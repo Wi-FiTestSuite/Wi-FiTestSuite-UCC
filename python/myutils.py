@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="7.0.0"
+VERSION="7.0.0-1"
 
 
 conntable = {}
@@ -393,7 +393,7 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
 
             else:
                 logging.debug('Unwanted data on socket')
-    logging.debug("\n THREAD STOPPED ")
+    #logging.debug("\n THREAD STOPPED ")
    
 def process_cmd(line):
     global conntable,threadCount,waitsocks_par,runningPhase,testRunning,streamInfoArray,resultPrinted
@@ -1300,7 +1300,8 @@ def set_test_result(result,data,rdata):
         elif (re.search("FAIL",result)):
             set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
             logging.info ("\n     TEST RESULT ---> %15s | %s |" % (result,data))
-
+        #XLogger.writeXML()
+        
 def process_passFailWMM_1(line):
     global runningPhase
     try:
@@ -1533,6 +1534,7 @@ def process_ResultCheck(line):
 
         XLogger.setTestResult(result)
         logging.info ("\nTEST RESULT ---> %15s" % result)
+        XLogger.writeXML()
 
     except:
         exc_info = sys.exc_info( )
