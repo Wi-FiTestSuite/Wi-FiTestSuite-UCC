@@ -927,6 +927,11 @@ def process_cmd(line):
             printStreamResults()
             process_passFailWMM_1(command[1])
             return
+        elif command[0].lower() == 'resultwmm_2':
+            time.sleep(5)
+            printStreamResults()
+            process_passFailWMM_2(command[1])
+            return
         elif re.search('CheckThroughput', command[0]):
             time.sleep(5)
             printStreamResults()
@@ -1301,6 +1306,44 @@ def set_test_result(result,data,rdata):
             set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
             logging.info ("\n     TEST RESULT ---> %15s | %s |" % (result,data))
         #XLogger.writeXML()
+
+def process_passFailWMM_2(line):
+    global runningPhase
+    try:
+	cmd=line.split(',')
+	P1=-1
+	P2=-1
+
+        for p in streamRecvResultArray:
+            if p.streamID == retValueTable[cmd[0]] and int (p.phase) == int (runningPhase):
+                P1=p.rxBytes
+            elif p.streamID == retValueTable[cmd[1]] and int (p.phase) == int (runningPhase):
+                P2=p.rxBytes
+        if cmd[2] in retValueTable:
+            cmd[2] = retValueTable[cmd[2]]
+
+        if ( int(P2) <= 0 ) or (int (P1) <= 0):
+            actual = -1
+        else:
+            actual = (float (P2) / float(P1)) * 100
+            
+        if (actual >= long (cmd[2])):
+            set_color(FOREGROUND_GREEN |FOREGROUND_INTENSITY)
+            result = cmd[3]
+        else:
+            set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
+            result = cmd[4]
+        
+        logging.info("\n       ----------------RESULT---------------------------\n")
+        logging.info("Expected  >= %s %s" % (cmd[2],"%"))
+        logging.info("Actual -  %6.6s %s" % (actual,"%"))
+        logging.info("TEST RESULT ---> %s" % result)
+        logging.info("\n       ------------------------------------------------")
+        set_color (FOREGROUND_INTENSITY)
+        set_test_result(result,"%6.6s %s" % (actual,"%"),">= %s %s" % (cmd[2],"%"))
+    except:
+        exc_info = sys.exc_info( )
+        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
         
 def process_passFailWMM_1(line):
     global runningPhase
