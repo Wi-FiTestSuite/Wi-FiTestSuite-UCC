@@ -155,6 +155,8 @@ N-4.2.13-EMT!init_802.11n.txt!N-4.2.13-EMT.txt
 N-4.2.14!init_802.11n.txt!N-4.2.14.txt
 N-4.2.15!init_802.11n.txt!N-4.2.15.txt
 N-4.2.15_PSK!init_802.11n.txt!N-4.2.15.txt
+N-4.2.16_11d!init_802.11n.txt!N-4.2.16d.txt
+N-4.2.16_11h!init_802.11n.txt!N-4.2.16h.txt
 #ExEAP
 N-ExA1!init_802.11n.txt!N-ExA1.txt!
 N-ExA2!init_802.11n.txt!N-ExA2.txt!
