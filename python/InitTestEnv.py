@@ -376,6 +376,16 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("_11d",ReadMapFile(DUTFile,"11d","!"))
     dutInfoObject.__setattr__("STAUT_PM",ReadMapFile(DUTFile,"STAUT_PM","!"))
 
+    #EAP Methods
+    dutInfoObject.__setattr__("TLS",ReadMapFile(DUTFile,"TLS","!"))
+    dutInfoObject.__setattr__("TTLS",ReadMapFile(DUTFile,"TTLS","!"))
+    dutInfoObject.__setattr__("PEAP0",ReadMapFile(DUTFile,"PEAP0","!"))
+    dutInfoObject.__setattr__("PEAP1",ReadMapFile(DUTFile,"PEAP1","!"))
+    dutInfoObject.__setattr__("FAST",ReadMapFile(DUTFile,"FAST","!"))
+    dutInfoObject.__setattr__("SIM",ReadMapFile(DUTFile,"SIM","!"))
+    dutInfoObject.__setattr__("AKA",ReadMapFile(DUTFile,"AKA","!"))
+    dutInfoObject.__setattr__("AKA'",ReadMapFile(DUTFile,"AKA'","!"))
+    
     #VE Specific
     dutInfoObject.__setattr__("BSS_Trans_Query_Support",ReadMapFile(DUTFile,"BSS_Trans_Query_Support","!"))
     dutInfoObject.__setattr__("TSM_Support",ReadMapFile(DUTFile,"TSM_Support","!"))
@@ -787,6 +797,16 @@ def GetOtherVariables(TID):
     VarList.setdefault("BSS_Trans_Query_Support",dutInfoObject.BSS_Trans_Query_Support)
     VarList.setdefault("TSM_Support",dutInfoObject.TSM_Support)
 
+    #EAP Methods
+    #VarList.setdefault("TLS",dutInfoObject.TLS)
+    #VarList.setdefault("TTLS",dutInfoObject.TTLS)
+    #VarList.setdefault("PEAP0",dutInfoObject.PEAP0)
+    #VarList.setdefault("PEAP1",dutInfoObject.PEAP1)
+    #VarList.setdefault("SIM",dutInfoObject.SIM)
+    #VarList.setdefault("FAST",dutInfoObject.FAST)
+    #VarList.setdefault("AKA",dutInfoObject.AKA)
+    #VarList.setdefault("AKA'",dutInfoObject.AKA`)
+    
     #Check for 11n Optional Test Cases Flag
     FindCheckFlag11n(TID)
 
