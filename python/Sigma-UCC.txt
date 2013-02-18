@@ -34,22 +34,11 @@ VE_TEST_LIST=Sigma-Voice-Ent
 VE_CMD_PATH=..\cmds\Sigma-Voice-Ent
 VE_TESTBED_AP=\Voice-Ent-Testbed-APs.txt
 
+# WMM
+WMM_TEST_LIST=Sigma-WMM
+WMM_CMD_PATH=..\cmds\Sigma-WMM\
+WMM_TESTBED_AP=\WMM-Testbed-APs.txt
 
-# WMM B only device
-WMM-B_TEST_LIST=Sigma-WMM
-WMM-B_CMD_PATH=..\cmds\Sigma-WMM\Sigma-WMM-B
-WMM-B_TESTBED_AP=""
-
-
-# WMM ABG device
-WMM-ABG_TEST_LIST=Sigma-WMM
-WMM-ABG_CMD_PATH=..\cmds\Sigma-WMM\Sigma-WMM-ABG
-WMM-ABG_TESTBED_AP=""
-
-# WMM BG device
-WMM-BG_TEST_LIST=Sigma-WMM
-WMM-BG_CMD_PATH=..\cmds\Sigma-WMM\Sigma-WMM-BG
-WMM-BG_TESTBED_AP=""
 
 # WMM AC - 11ag device
 AC-11AG_TEST_LIST=Sigma-WMM-AC
