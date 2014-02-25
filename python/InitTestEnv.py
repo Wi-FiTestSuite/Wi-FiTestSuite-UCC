@@ -164,7 +164,7 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
 # This class holds all the required information about DUT
 #
 class dutInfo:
-    def __init__(self,DUTType="",DUTCategory="",DUTBand="",TestCaseID="",DUTEAPMethod="",WEP=0,preAuth=0,_11h=0,SupportedChannelWidth=0,Streams=0,Greenfield=0,SGI20=0,SGI40=0,RIFS_TX=0,Coexistence_2040=0,STBC_RX=0,STBC_TX=0,MCS32=0,SigmaSupport=1,OBSS=0,AMPDU_TX=0,AP_Concurrent=0,TDLSDiscReq=0,PUSleepSTA=0,_11d=0,STAUT_PM=0):
+    def __init__(self,DUTType="",DUTCategory="",DUTBand="",TestCaseID="",DUTEAPMethod="",WEP=0,preAuth=0,_11h=0,SupportedChannelWidth=0,Streams=0,Greenfield=0,SGI20=0,SGI40=0,RIFS_TX=0,Coexistence_2040=0,STBC_RX=0,STBC_TX=0,MCS32=0,SigmaSupport=1,OBSS=0,AMPDU_TX=0,AP_Concurrent=0,TDLSDiscReq=0,PUSleepSTA=0,_11d=0,STAUT_PM=0,Open_Mode=0):
         self.DUTType=DUTType
         self.DUTCategory=DUTCategory
         self.DUTBand=DUTBand
@@ -189,6 +189,7 @@ class dutInfo:
         self.AP_Concurrent=AP_Concurrent
         self._11d=_11d
         self.STAUT_PM=STAUT_PM
+        self.Open_Mode=Open_Mode
         #TDLS Specific
         self.TDLSDiscReq=TDLSDiscReq
         self.PUSleepSTA=PUSleepSTA
@@ -375,6 +376,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("AP_Concurrent",ReadMapFile(DUTFile,"AP_Concurrent","!"))
     dutInfoObject.__setattr__("_11d",ReadMapFile(DUTFile,"11d","!"))
     dutInfoObject.__setattr__("STAUT_PM",ReadMapFile(DUTFile,"STAUT_PM","!"))
+    dutInfoObject.__setattr__("Open_Mode",ReadMapFile(DUTFile,"Open_Mode","!"))
 
     #EAP Methods
     dutInfoObject.__setattr__("TLS",ReadMapFile(DUTFile,"TLS","!"))
@@ -419,7 +421,7 @@ def ReadDUTInfo (filename,TestCaseID):
     if "N-5.2" in TestCaseID or "N-ExS" in TestCaseID :
         VarList.setdefault("APUT_state","off")
 	
-    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2" or ProgName == "WFD":
+    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2" or ProgName == "WFD" or ProgName == "VHT":
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
@@ -796,6 +798,8 @@ def GetOtherVariables(TID):
     VarList.setdefault("STAUT_PM",dutInfoObject.STAUT_PM)
     VarList.setdefault("BSS_Trans_Query_Support",dutInfoObject.BSS_Trans_Query_Support)
     VarList.setdefault("TSM_Support",dutInfoObject.TSM_Support)
+    VarList.setdefault("Streams","%sSS" % dutInfoObject.Streams)
+    VarList.setdefault("Open_Mode",dutInfoObject.Open_Mode)
 
     #EAP Methods
     #VarList.setdefault("TLS",dutInfoObject.TLS)
@@ -1027,23 +1031,25 @@ def FindBandChannel (TestCaseID):
     band=-1
     channel1 = []
     testChannel = []
-    
+
+    DUTBAND = "%s" % dutInfoObject.DUTBand
     Band = find_TestcaseInfo_Level1(TestCaseID,"Band")
     if (Band == "A/G"):
         Band = "AG"
     if (Band == "A/G/N"):
         Band = "AGN"
+        #LogMsg("It is AGN")
     if (Band == "G/N"):
         Band = "GN"
     if (Band == "A/N"):
         Band = "AN"
     if (Band == "A/B"):
         Band = "AB"
-
-
+    if (Band == "AC"):
+        Band = "AC"
     
     try :
-        band =  bandSelectionList["%s:%s"%(Band,dutInfoObject.DUTBand)]            
+        band =  bandSelectionList["%s:%s"%(Band,dutInfoObject.DUTBand)]
     except KeyError:
         LogMsg("Invalid band information %s" % Band)
         
@@ -1054,8 +1060,8 @@ def FindBandChannel (TestCaseID):
     for chan in range(0, len(Channel1)):
         channel1.append(Channel1[chan].split("/"))
         LogMsg("Test case Channel %s %s" % (channel1[chan][0], channel1[chan][1]))
-        
-        if band != "11a" and band != "11na" and band != -1:
+
+        if band != "11a" and band != "11na" and band != "11ac" and band != -1:
             testChannel.append(channel1[chan][1])
         elif band != -1:
             testChannel.append(channel1[chan][0])
@@ -1070,16 +1076,35 @@ def FindBandChannel (TestCaseID):
         VarList.setdefault("STAPHY","b")
     elif band == "11na" or band == "11ng":
         VarList.setdefault("STAPHY","11n")
-
+    elif band == "11ac":
+        VarList.setdefault("STAPHY","11ac")
+    
     # APUT Band for 11n
     if int(testChannel[0]) > 35:
-        VarList.setdefault("APUT_Band","11na")
-        VarList.setdefault("STAUT_Band","11na")
-        VarList.setdefault("Band_Legacy","11a")
+        if band == "11ac":
+            VarList.setdefault("APUT_Band","11ac")
+            VarList.setdefault("STAUT_Band","11ac")
+            VarList.setdefault("Band_Legacy","11a")
+            VarList.setdefault("Band_LegacyN", "11na")
+        else:
+            if DUTBAND == "AN" or DUTBAND == "ABGN":
+                VarList.setdefault("APUT_Band","11na")
+                VarList.setdefault("STAUT_Band","11na")
+                VarList.setdefault("Band_Legacy","11a")
+            elif DUTBAND == "A" or DUTBAND == "ABG":
+                VarList.setdefault("APUT_Band","11a")
+                VarList.setdefault("STAUT_Band","11a")
+                VarList.setdefault("Band_Legacy","11a")                
     else:
-        VarList.setdefault("APUT_Band","11ng")
-        VarList.setdefault("STAUT_Band","11ng")
-        VarList.setdefault("Band_Legacy","11g")
+        if DUTBAND == "GN" or DUTBAND == "ABGN":
+            VarList.setdefault("APUT_Band","11ng")
+            VarList.setdefault("STAUT_Band","11ng")
+            VarList.setdefault("Band_Legacy","11g")
+        elif DUTBAND == "BG" or DUTBAND == "ABG":
+            VarList.setdefault("APUT_Band","11g")
+            VarList.setdefault("STAUT_Band","11g")
+            VarList.setdefault("Band_Legacy","11g")
+        
     
     setattr(testEnvVariables,"Band",band)
     iCount = 1
@@ -1188,7 +1213,13 @@ def LoadBandSelection():
     bandSelectionList.setdefault("GN:BG","11g")
     bandSelectionList.setdefault("GN:B","11b")
     
-
+    # DUT Mode AC
+    bandSelectionList.setdefault("A:AC", "11a")
+    bandSelectionList.setdefault("AN:AC", "11na")
+    bandSelectionList.setdefault("AC:AC", "11ac")
+    bandSelectionList.setdefault("B:BGNAC", "11b")
+    bandSelectionList.setdefault("BG:BGNAC", "11g")
+    bandSelectionList.setdefault("BGN:BGNAC", "11ng")
 
 
 #
@@ -1430,6 +1461,8 @@ def find_throughput_values(testID,tag):
           tag1="G"
       elif bnd=="11b":
           tag1="B"
+      elif bnd=="11ac":
+          tag1="AC"
 
       LogMsg(" Test Running in band -%s-%s- " % (bnd,tag1))
       for node2 in L:

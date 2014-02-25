@@ -94,7 +94,8 @@ def main():
         \n\r                      TDLS\
         \n\r                      WFD\
         \n\r                      WMM\
-	\n\r                      WPA2\
+        \n\r                      WPA2\
+	\n\r                      VHT\
 	\n\r\n\r [2] Test ID : Test case ID for that program            OR\
 	\n\r\n\r [2] group : group if running group of test cases followed by group file name\
 	\n\r\n\r [3] group file name: Group file name which contains list of test cases\
@@ -203,12 +204,11 @@ def runTestCase (testListFile, testID,grp=0):
     initFile = uccPath + initFile
     testFile= uccPath + testFile
     # Run Init Env
-    #if not re.search("WMM",testID):
-
-    if U.qual:               
-        InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile,U.qual,U.TB_QUAL_AP,U.TB_QUAL_STA)
-    else:
-        InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile)
+    if not re.search("WMM",testID):
+        if U.qual:
+            InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile,U.qual,U.TB_QUAL_AP,U.TB_QUAL_STA)
+        else:
+            InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile)
         
 
     # UCC 

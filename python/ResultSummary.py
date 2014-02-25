@@ -530,8 +530,7 @@ class ResultSummary:
            if n.firstChild:
                lList.setdefault(n.tagName.strip(),n.firstChild.data.strip())
            
-
-       return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],"",lList["SigmaControlAgent"]))
+       return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],lList["OS"],lList["SigmaControlAgent"]))
         
     def compareTwoTBNodes(self,left,right):
         logging.debug ("TLeft = %s TRight = %s" % (left,right))

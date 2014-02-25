@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="7.1.0"
+VERSION="8.0.0"
 
 
 conntable = {}
@@ -185,6 +185,8 @@ def sock_tcp_conn(ipaddr, ipport):
     addr = (ipaddr, ipport)
 
     mysock = socket(AF_INET, SOCK_STREAM)
+    # Temporarily commented. Will be tested on VHT test bed before deletion
+	#mysock.setblocking(1)
     mysock.settimeout(600)
     try:
         mysock.connect(addr)
@@ -324,6 +326,29 @@ def printStreamResults_WMM():
         i=i+1
     set_color(FOREGROUND_INTENSITY)
 
+#Qiumin to resolve a readline problem with multiple messages in one line
+def read1line(s):
+    ret = ''
+
+    while True:
+        try:
+            c = s.recv(1)
+	except OSError, e:
+	    logging.info("Recv error: "+e)
+	    print("Socket error "+ e)
+#	    ret = ''
+#	    break;
+
+	if c == '\n' or c == '':
+            if c == '':
+                logging.info("get a null char")
+	    break;
+        else:
+	    ret += c
+
+#    logging.info("\nReceived One Response back: " + ret)
+    return ret + '\n'
+
 def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
     global waitsocks, readsocks, writesocks,runningPhase,testRunning,streamInfoArray, retValueTable
     if "$MT" in retValueTable :
@@ -336,26 +361,36 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
     
     logging.debug( "responseWaitThreadFunc started %s" % testRunning)
     while testRunning > 0:
+        #Temporarily commented. Will be tested on VHT to confirm removal
+        #time.sleep(1)
         readables, writeables, exceptions = select(readsocks, writesocks, [],0.1)
         for sockobj in readables:
             if sockobj in waitsocks:
-                resp = sockobj.recv(2048)
-
+                #resp = sockobj.recv(2048)
+		        # resolve the issue in reading 1 single line with multiple messages
+                resp = read1line(sockobj)
+                resp_arr = resp.split(',')
                 for socks in conntable:
                     if sockobj == conntable[socks]:
                         responseIPAddress=socks                        
                 displayaddr=responseIPAddress
                 if responseIPAddress in DisplayNameTable:
                     displayaddr=DisplayNameTable[responseIPAddress]
-                logging.info( "%-15s <--1 [%s]" % (displayaddr,resp))
+                logging.info( "%-15s <--1 %s" % (displayaddr,resp))
                 
                 if re.search("RUNNING",resp):
                     resp = resp.strip()
                     resp = resp.lstrip('status,RUNNING')
                     resp = resp.strip()
-                    
-                resp_arr = resp.split(',')
-                logging.debug( "%-15s <--2 [%s]" % (displayaddr,resp))
+                    continue;
+                elif re.search("COMPLETE", resp):
+                    logging.debug("Complete Returned")
+                else:
+                    logging.info("Some Junk Returned, ignoring")
+                    continue;
+                
+                #resp_arr = resp.split(',')
+                logging.debug( "%-15s <--2 %s" % (displayaddr,resp))
                 # Check for send stream completion
                 if len(resp_arr) > 2:
                     if resp_arr[3] == '':
@@ -394,6 +429,7 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
             else:
                 logging.debug('Unwanted data on socket')
     #logging.debug("\n THREAD STOPPED ")
+    return
    
 def process_cmd(line):
     global conntable,threadCount,waitsocks_par,runningPhase,testRunning,streamInfoArray,resultPrinted
@@ -497,26 +533,66 @@ def process_cmd(line):
                 #return
             
         if command[0].lower() == "math":
-	    tmp=command[1]
+            tmp=command[1]
             if command[1] in retValueTable:
                 command[1]=retValueTable[command[1]]
             if command[3] in retValueTable:
                 command[3]=retValueTable[command[3]]
-	    #if (command[1].lstrip('-')).isdigit() and (command[3].lstrip('-')).isdigit():
-            if ((command[1].lstrip('-')).replace('.','',1)).isdigit() and ((command[3].lstrip('-')).replace('.','',1)).isdigit():   
-	        if(command[2]).lower() == "+":
-			retValueTable[tmp] = "%s" % (int(command[1]) +  int(command[3]))
-	        if(command[2]).lower() == "-":
-			retValueTable[tmp] = "%s" % (int(command[1]) -  int(command[3]))
-	        if(command[2]).lower() == "*":
-			retValueTable[tmp] = "%s" % (float(command[1]) *  float(command[3]))
-	        if(command[2]).lower() == "/":
-			retValueTable[tmp] = "%s" % (float(command[1]) /  float(command[3]))
-		if(command[2]).lower() == "%":
-			retValueTable[tmp] = "%s" % (int(command[1]) % int(command[3]))
+            #if (command[1].lstrip('-')).isdigit() and (command[3].lstrip('-')).isdigit():
+            #if (command[1].lstrip('-').replace('.','',1)).isdigit() and (command[3].lstrip('-').replace('.','',1)).isdigit():
+            try:
+                vara=float(command[1])
+            except ValueError:
+                print("You must enter a number")
+            try:
+                varb=float(command[3])
+            except ValueError:
+                print("You must enter a number")
 
-	    else:
-   	        logging.error("Invalid parameters to math function")
+            if(command[2]).lower() == "+":
+                    retValueTable[tmp] = "%s" % (float(command[1]) +  float(command[3]))
+	    if(command[2]).lower() == "-":
+		    retValueTable[tmp] = "%s" % (float(command[1]) -  float(command[3]))
+	    if(command[2]).lower() == "*":
+		    retValueTable[tmp] = "%s" % (float(command[1]) *  float(command[3]))
+	    if(command[2]).lower() == "/":
+		    retValueTable[tmp] = "%s" % (float(command[1]) /  float(command[3]))
+	    if(command[2]).lower() == "%":
+		    retValueTable[tmp] = "%s" % (int(command[1]) % int(command[3]))
+
+	    #else:
+   	    #    logging.error("Invalid parameters to math function")
+
+   	#VHT Specific - Commented because the existing function is already taking care of float value.
+   	#Will be tested for VHT and legacy programs before deleting
+   	        
+        #if command[0].lower() == "math":
+	#    tmp=command[1]
+        #    if command[1] in retValueTable:
+        #        command[1]=retValueTable[command[1]]
+        #        #command[1]=command[1].lstrip('-')
+        #    if command[3] in retValueTable:
+        #        command[3]=retValueTable[command[3]]
+        #			
+        #    try:
+        #        vara=float(command[1])
+        #    except ValueError:
+        #        print("You must enter a number")
+        #    try:
+        #       varb=float(command[3])
+        #    except ValueError:
+        #        print("You must enter a number")
+        #   
+        #    if(command[2]).lower() == "+":
+        #        retValueTable[tmp] = "%s" % int(vara +  varb)
+        #    elif(command[2]).lower() == "-":
+        #        retValueTable[tmp] = "%s" % int(vara -  varb)
+        #    elif(command[2]).lower() == "*":
+        #        retValueTable[tmp] = "%s" % int(vara *  varb)
+        #    elif(command[2]).lower() == "/":
+        #        retValueTable[tmp] = "%s" % int(vara /  varb)
+	#    else:
+   	#        logging.error("Invalid parameters to math function")
 		
 		
         if int( ifCondBit) == 0:
@@ -908,7 +984,10 @@ def process_cmd(line):
                 if p.streamID == retValueTable[cmd[0]] and int (p.phase) == int (cmd[1]):
                     P1=p.rxBytes
                     P1= int(int(P1)/100) * int(cmd[3])
-                    P1= ((float (P1) * 8))/(1000000 * int(retValueTable[cmd[2]]))                    
+                    if cmd[2] in retValueTable:
+                        P1= ((float (P1) * 8))/(1000000 * int(retValueTable[cmd[2]]))
+                    else:
+                        P1= ((float (P1) * 8))/(1000000 * int(cmd[2]))
                     break
             logging.info("Storing %s = %s [Mbps]",command[1],P1)
             if command[1] in retValueTable :
@@ -951,7 +1030,8 @@ def process_cmd(line):
             time.sleep(5)
             printStreamResults()
             process_CheckThroughput(command[1],1)
-            return        
+            return    
+		# Remove R from ResultCheck as some scripts might be case Sensitive	    
         elif re.search('esultCheck', command[0]):
             time.sleep(5)
             #printStreamResults()
@@ -1010,6 +1090,7 @@ def process_cmd(line):
         logging.debug( "%s (%-15s) --> %s " % (displayName,toaddr,capi_elem))
 
         if capi_elem[0] == 'traffic_agent_receive_stop':
+            #logging.debug("To Send Traffic_Agent_Receive_Stop")
             idx = capi_elem.index('streamID')
             # Wait for Send to finish, in case of receive_stop
             sid=capi_elem[2].split(' ')
@@ -1026,8 +1107,7 @@ def process_cmd(line):
                     if p.pairID == retValueTable[i] and p.phase == runningPhase:
                         while p.status != 1:
                             #Minor sleep to avoid 100% CPU Usage by rapid while
-                            time.sleep(0.1)
-                    
+                            time.sleep(0.5)                   
                            
                         if multicast == 1:
         		    capi_elem[idx+1] = val
@@ -1048,7 +1128,7 @@ def process_cmd(line):
 	    asock.send(capi_cmd)
 	    time.sleep(15)
             return
-	 
+        
         elif capi_elem[0] == 'traffic_agent_send':
             idx = capi_elem.index('streamID')
             #logging.debug( "Traffic Agent Send , Stream ID  %s %s" % (idx,capi_elem[2]))
@@ -1082,7 +1162,8 @@ def process_cmd(line):
                 testRunning=1
                 thread.start_new(responseWaitThreadFunc, (threadCount,capi_run,toaddr, recv_id))
                 threadCount=threadCount + 1
-
+				#Temporary Addition for VHT
+                #time.sleep(1)
             capi_cmd = capi_run + ' \r\n'
             asock = conntable.get(toaddr)
             asock.send(capi_cmd)
@@ -1181,6 +1262,8 @@ def process_cmd(line):
                                    
         stitems = ss.split(',')
         if  stitems[1] == "COMPLETE"  and len(stitems) > 3:
+        # QHU - VHT Specific - This is temporarily commented. Will be tested on VHT test bed before deleting
+		#if  (stitems[1] == "COMPLETE" or stitems[1] == "INVALID" ) and len(stitems) > 3:    
             if stitems[2] == 'streamID':
                 
                 if capi_elem[4] == 'send':
@@ -1251,16 +1334,31 @@ def send_capi_command(toaddr,capi_elem):
         capi_run = ','.join(capi_elem)          
         capi_cmd = capi_run + ' \r\n'
         asock = conntable.get(toaddr)
+        for key in conntable.keys():
+            if conntable[key] == asock:
+                ipa = key.split(':')[0]
+                ipp = key.split(':')[1]
         asock.send(capi_cmd)
         displayaddr = toaddr
         if toaddr in DisplayNameTable :
             displayaddr = DisplayNameTable[toaddr]
-        logging.info("%s (%-15s) ---> [%s]" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
+        logging.info("%s (%-15s) ---> %s" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
         
-        status = asock.recv(2048)
-            
-        logging.debug( "%s (%s) <--- %s" % (displayaddr,toaddr,status.rstrip('\r\n' )))
-      
+        try:
+            status = asock.recv(2048)
+        except:
+            exc_info = sys.exc_info( )
+            logging.error('Connection Error, REASON = %s',exc_info[1])
+            #wfa_sys_exit("REASON = %s" %(exc_info[1]))
+            time.sleep(5)
+            process_ipadd("ipaddr=%s,port=%s" % (ipa,ipp),1)
+            asock = conntable.get(toaddr)
+            asock.send(capi_cmd)
+            logging.info("%s (%-15s) ---> %s" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
+            status = asock.recv(2048)
+
+        logging.debug( "%s (%s) <--- [%s]" % (displayaddr,toaddr,status.rstrip('\r\n' )))
+        
         # Status,Running
         # Quick fix for case where AzWTG sends response RUNNING and COMPLETED in one read
         if (len(status) > 25):
@@ -1268,7 +1366,7 @@ def send_capi_command(toaddr,capi_elem):
             status = status[1]
         else:
 	    if iDNB == 0:
-		status = asock.recv(2048)
+                status = asock.recv(2048)
 	    else:
 		iDNB=0
 

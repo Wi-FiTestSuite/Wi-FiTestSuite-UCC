@@ -19,10 +19,9 @@ PMF_TEST_LIST=Sigma-PMF
 PMF_CMD_PATH=..\cmds\Sigma-PMF
 PMF_TESTBED_AP=\PMF-Testbed-APs.txt
 
-# WPA2
-WPA2_TEST_LIST=Sigma-WPA2
-WPA2_CMD_PATH=..\cmds\Sigma-WPA2
-WPA2_TESTBED_AP=\WPA2-Testbed-APs.txt
+WPA2_TEST_LIST=Sigma-11n
+WPA2_CMD_PATH=..\cmds\Sigma-11n
+WPA2_TESTBED_AP=\802.11n-Testbed-APs.txt
 
 # 11n
 N_TEST_LIST=Sigma-11n
@@ -34,10 +33,10 @@ VE_TEST_LIST=Sigma-Voice-Ent
 VE_CMD_PATH=..\cmds\Sigma-Voice-Ent
 VE_TESTBED_AP=\Voice-Ent-Testbed-APs.txt
 
-# WMM
-WMM_TEST_LIST=Sigma-WMM
-WMM_CMD_PATH=..\cmds\Sigma-WMM\
-WMM_TESTBED_AP=\WMM-Testbed-APs.txt
+WMM_TEST_LIST=Sigma-11n
+WMM_CMD_PATH=..\cmds\Sigma-11n
+WMM_TESTBED_AP=\802.11n-Testbed-APs.txt
+
 
 
 # WMM AC - 11ag device
@@ -61,4 +60,10 @@ AC-11N_TESTBED_AP=""
 WFD_TEST_LIST=Sigma-WFD
 WFD_CMD_PATH=..\cmds\Sigma-WFD
 WFD_TESTBED_AP=""
+
+
+# VHT - VHT device
+VHT_TEST_LIST=Sigma-VHT
+VHT_CMD_PATH=..\cmds\Sigma-VHT
+VHT_TESTBED_AP="VHT-Testbed-APs.txt"
 
