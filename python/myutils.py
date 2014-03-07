@@ -1261,9 +1261,7 @@ def process_cmd(line):
             wfa_sys_exit(" Command returned Error. Aborting the test")
                                    
         stitems = ss.split(',')
-        if  stitems[1] == "COMPLETE"  and len(stitems) > 3:
-        # QHU - VHT Specific - This is temporarily commented. Will be tested on VHT test bed before deleting
-		#if  (stitems[1] == "COMPLETE" or stitems[1] == "INVALID" ) and len(stitems) > 3:    
+        if  (len(stitems) > 3):
             if stitems[2] == 'streamID':
                 
                 if capi_elem[4] == 'send':
