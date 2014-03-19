@@ -81,6 +81,10 @@ ifCondBit=1
 iDNB=0
 iINV=0
 RTPCount=1
+socktimeout=0
+#default socket time out in seconds
+deftimeout=600
+
 #default command file path
 uccPath = '..\\..\\cmds'
 DUTFeatureInfoFile="./log/DUTFeatureInfo.html"
@@ -180,14 +184,14 @@ def scanner (fileobject, linehandler):
  
       
 def sock_tcp_conn(ipaddr, ipport):
-    global readsocks ,waitsocks
+    global readsocks ,waitsocks, deftimeout
     buf = 2048
     addr = (ipaddr, ipport)
 
     mysock = socket(AF_INET, SOCK_STREAM)
     # Temporarily commented. Will be tested on VHT test bed before deletion
 	#mysock.setblocking(1)
-    mysock.settimeout(600)
+    mysock.settimeout(deftimeout)
     try:
         mysock.connect(addr)
     except:
@@ -433,7 +437,7 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
    
 def process_cmd(line):
     global conntable,threadCount,waitsocks_par,runningPhase,testRunning,streamInfoArray,resultPrinted
-    global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV, ifCondBit
+    global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV, ifCondBit, socktimeout
     line = line.rstrip()
     str=line.split ('#')
     lhs = []
@@ -449,7 +453,14 @@ def process_cmd(line):
 	    return
 	
 	command=str[0].split('!')
-        
+        if command[0].lower() == "socktimeout":
+            if (int(command[1])>0):
+                logging.info("Setting socket timeout=%d secs" % int(command[1]))
+                socktimeout=int(command[1])
+            else:
+                logging.info("Resetting socket timeout")
+                socktimeout=0
+            return
         if command[0].lower() == "else":
             if(int(ifCondBit)):
                 ifCondBit=0
@@ -1328,7 +1339,7 @@ def process_cmd(line):
         wfa_sys_exit(exc_info[1])
             
 def send_capi_command(toaddr,capi_elem):
-	global iDNB, iINV
+	global iDNB, iINV, socktimeout, deftimeout
         capi_run = ','.join(capi_elem)          
         capi_cmd = capi_run + ' \r\n'
         asock = conntable.get(toaddr)
@@ -1341,6 +1352,10 @@ def send_capi_command(toaddr,capi_elem):
         if toaddr in DisplayNameTable :
             displayaddr = DisplayNameTable[toaddr]
         logging.info("%s (%-15s) ---> %s" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
+        if (socktimeout > 0 ):
+            asock.settimeout(socktimeout)
+        else:
+            asock.settimeout(deftimeout)
         
         try:
             status = asock.recv(2048)
@@ -1353,6 +1368,10 @@ def send_capi_command(toaddr,capi_elem):
             asock = conntable.get(toaddr)
             asock.send(capi_cmd)
             logging.info("%s (%-15s) ---> %s" % (displayaddr,toaddr, capi_cmd.rstrip('\r\n')))
+            if (socktimeout > 0 ):
+                asock.settimeout(socktimeout)
+            else :
+                asock.settimeout(deftimeout)
             status = asock.recv(2048)
 
         logging.debug( "%s (%s) <--- [%s]" % (displayaddr,toaddr,status.rstrip('\r\n' )))
