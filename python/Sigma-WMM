@@ -1,15 +1,22 @@
 #List WMM Testcase files
 #File format - Testcase Name ! Init File Name ! Command File Name
 
-WMM-S1!init_WMM.txt!WMM-S1.txt
-WMM-S2!init_WMM.txt!WMM-S2.txt
-WMM-S3-Open!init_WMM.txt!WMM-S3.txt
-WMM-S3-WEP!init_WMM.txt!WMM-S3.txt
-WMM-S3-WPAPSK!init_WMM.txt!WMM-S3.txt
-WMM-S3-WPA2PSK!init_WMM.txt!WMM-S3.txt
-WMM-S4!init_WMM.txt!WMM-S4.txt
-WMM-S5!init_WMM.txt!WMM-S5.txt
-WMM-S6!init_WMM.txt!WMM-S6.txt
-WMM-S7!init_WMM.txt!WMM-S7.txt
-WMM-S8!init_WMM.txt!WMM-S8.txt
-WMM-S9!init_WMM.txt!WMM-S9.txt
+#APUT
+N-4.2.20!init_802.11n.txt!N-4.2.20.txt
+N-4.2.21!init_802.11n.txt!N-4.2.21.txt
+N-4.2.22!init_802.11n.txt!N-4.2.22.txt
+N-4.2.23!init_802.11n.txt!N-4.2.23.txt
+N-4.2.24!init_802.11n.txt!N-4.2.24.txt
+N-4.2.25!init_802.11n.txt!N-4.2.25.txt
+N-4.2.46!init_802.11n.txt!N-4.2.46.txt
+
+#STAUT
+N-5.2.27!init_802.11n.txt!N-5.2.27.txt
+N-5.2.28!init_802.11n.txt!N-5.2.28.txt
+N-5.2.29!init_802.11n.txt!N-5.2.29.txt
+N-5.2.30!init_802.11n.txt!N-5.2.30.txt
+N-5.2.31!init_802.11n.txt!N-5.2.31.txt
+N-5.2.32!init_802.11n.txt!N-5.2.32.txt
+N-5.2.33!init_802.11n.txt!N-5.2.33.txt
+N-5.2.34!init_802.11n.txt!N-5.2.34.txt
+N-5.2.54!init_802.11n.txt!N-5.2.54.txt
