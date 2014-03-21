@@ -124,6 +124,10 @@ N-5.2.52!init_802.11n.txt!N-5.2.52.txt
 N-5.2.53!init_802.11n.txt!N-5.2.53.txt
 N-5.2.54!init_802.11n.txt!N-5.2.54.txt
 
+# IBSS Cases
+N-5.3.1!init_802.11n.txt!N-5.3.1.txt
+N-5.3.2!init_802.11n.txt!N-5.3.2.txt
+
 #List 802.11n Testcase files
 #File format - Testcase Name ! Init File Name ! Command File Name
 ######### APUT ##############
