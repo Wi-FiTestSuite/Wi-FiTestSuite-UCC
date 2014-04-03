@@ -59,7 +59,7 @@ import ctypes
 import HTML
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
-VERSION="8.0.0"
+VERSION="8.1.0"
 
 
 conntable = {}
