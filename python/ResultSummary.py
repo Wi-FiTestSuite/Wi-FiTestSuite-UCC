@@ -527,8 +527,11 @@ class ResultSummary:
        
        
        for n in node.getElementsByTagName("*"):
-           if n.firstChild:
-               lList.setdefault(n.tagName.strip(),n.firstChild.data.strip())
+			if n.tagName:
+				if hasattr(n.firstChild,'data'):
+					lList.setdefault(n.tagName.strip(),n.firstChild.data.strip()) 
+				else:
+					lList.setdefault(n.tagName.strip(),"")
            
        return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],lList["OS"],lList["SigmaControlAgent"]))
         
@@ -609,7 +612,7 @@ def getNodeHandle(node,tagList,string="",lst=0):
                  return nHandle
              else:
                  return nHandle[0]
-            
+		 return nHandle
       
 def init_logging (_filename):
 
