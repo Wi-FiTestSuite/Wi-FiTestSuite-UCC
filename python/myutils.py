@@ -61,6 +61,7 @@ import HTML
 import threading
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
+from random import randrange
 VERSION="8.1.1"
 
 
@@ -598,14 +599,16 @@ def process_cmd(line):
                 command[3]=retValueTable[command[3]]
             #if (command[1].lstrip('-')).isdigit() and (command[3].lstrip('-')).isdigit():
             #if (command[1].lstrip('-').replace('.','',1)).isdigit() and (command[3].lstrip('-').replace('.','',1)).isdigit():
-            try:
-                vara=float(command[1])
-            except ValueError:
-                print("You must enter a number")
-            try:
-                varb=float(command[3])
-            except ValueError:
-                print("You must enter a number")
+            #Error handling for math operators, excluding rand
+            if command[2].lower() != "rand":
+                try:
+                    vara=float(command[1])
+                except ValueError:
+                    print("You must enter a number")
+                try:
+                    varb=float(command[3])
+                except ValueError:
+                    print("You must enter a number")
 
             if(command[2]).lower() == "+":
                     retValueTable[tmp] = "%s" % (float(command[1]) +  float(command[3]))
@@ -617,6 +620,11 @@ def process_cmd(line):
 		    retValueTable[tmp] = "%s" % (float(command[1]) /  float(command[3]))
 	    if(command[2]).lower() == "%":
 		    retValueTable[tmp] = "%s" % (int(command[1]) % int(command[3]))
+	    if command[2].lower() == "rand":
+                    #List of allowed values
+                    varlist = command[3].split(":")
+                    random_index = randrange(0,len(varlist))
+                    retValueTable[tmp] = "%s" % int(varlist[random_index])
 
 	    #else:
    	    #    logging.error("Invalid parameters to math function")
