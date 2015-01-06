@@ -56,7 +56,9 @@ from select import select
 import logging
 import re
 import ctypes
+import random
 import HTML
+import threading
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
 VERSION="8.1.1"
@@ -72,6 +74,7 @@ lhs = []
 rhs = []
 oper = []
 boolOp = []
+oplist = []
 runningPhase='1'
 testRunning=0
 threadCount=0
@@ -155,13 +158,52 @@ class streamResult:
     def __str__(self):
         return "%-10s RX   %10s  Bytes   |  TX  %10s   | Stream ID = %s" % (' ',self.rxBytes,self.txBytes,self.streamID)
 
+class UCCThread (threading.Thread):
+    def __init__(self, threadID, threadName, threadToAddr, threadCapiElem, command):
+        threading.Thread.__init__(self)
+        self.ID = threadID
+        self.name = threadName
+        self.toaddr = threadToAddr
+        self.capi_elem = threadCapiElem
+        self.command = command
+    def run(self):
+        logging.info("Starting %s" % self.name)
+        # Get lock to synchronize threads
+        #glock = threadLock.acquire(0)
+        logging.debug("To Addr:%s" % self.toaddr)
+        if len(tstate) > 0:
+            tstateStatus = tstateCheck(self.toaddr)
+        tstate.append(self.toaddr)
+        logging.debug("TstateAdd: %s" % tstate)
+        status = send_capi_command(self.toaddr,self.capi_elem)
+        process_resp(self.toaddr,status,self.capi_elem,self.command)
+        # Free lock to release next thread
+        #threadLock.release()
+        tstate.remove(self.toaddr)
+        logging.debug("TstateDel: %s" % tstate)
+        logging.info("Exiting %s" % self.name)
 # socket desc list to be used by select
 waitsocks, readsocks, writesocks = [], [], []
 
+#MTF init variables
+tidx = 0
+threadM = []
+threads = []
+tstate = []
+
 #Multicast test
 multicast = 0
+tmp =0
 
-
+def tstateCheck(toaddr):
+    global tmp
+    while 1:
+        logging.debug("toaddr: %s tstate: %s" % (toaddr, tstate))
+        if not toaddr in tstate:
+            break
+        time.sleep(0.1)
+    return 1
+	
 def set_color(color, handle=std_out_handle):
     """(color) -> BOOL
     
@@ -437,7 +479,7 @@ def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
    
 def process_cmd(line):
     global conntable,threadCount,waitsocks_par,runningPhase,testRunning,streamInfoArray,resultPrinted
-    global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV, ifCondBit, socktimeout
+    global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV, ifCondBit, tidx, socktimeout
     line = line.rstrip()
     str=line.split ('#')
     lhs = []
@@ -453,6 +495,11 @@ def process_cmd(line):
 	    return
 	
 	command=str[0].split('!')
+
+        if "$MTF" in retValueTable and retValueTable["$MTF"] == "0":
+            for t in threads:
+                t.join()
+            
         if command[0].lower() == "socktimeout":
             if (int(command[1])>0):
                 logging.info("Setting socket timeout=%d secs" % int(command[1]))
@@ -951,29 +998,88 @@ def process_cmd(line):
             return
         
         elif re.search('search',command[0]):
-            #logging.info("In search...")
-            if command[1] in retValueTable:
-                cmd1 = retValueTable[command[1]]
-            else:
-                cmd1 = command[1]
+            if re.search('exact',command[4]):
+                if command[1] in retValueTable:
+                    cmd1 = retValueTable[command[1]]
+                else:
+                    cmd1 = command[1]
                 
-            if command[2] in retValueTable:
-                cmd2 = retValueTable[command[2]].split(" ")
-            else:
-                cmd2 = command[2].split(" ")
+                if command[2] in retValueTable:
+                    cmd2 = retValueTable[command[2]]
+                else:
+                    cmd2 = command[2]
             
-            retValueTable[command[3]] = "0"
-            i=0
-            for c in cmd2:
-                logging.info("Search \"%s\" in \"%s\"" %(cmd2[i],cmd1))
-                #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
-                if re.search('%s' %cmd2[i],cmd1,re.IGNORECASE):
+                retValueTable[command[3]] = "0"
+                if (sorted(cmd1) == sorted(cmd2)):
                     retValueTable[command[3]] = "1"
-                    #return
-                i+=1
+
+                return                
+                
+            else:
+	            #logging.info("In search...")
+	            if command[1] in retValueTable:
+	                cmd1 = retValueTable[command[1]]
+	            else:
+	                cmd1 = command[1]
+                
+	            if command[2] in retValueTable:
+	                cmd2 = retValueTable[command[2]].split(" ")
+	            else:
+	                cmd2 = command[2].split(" ")
             
+	            retValueTable[command[3]] = "0"
+	            i=0
+	            for c in cmd2:
+	                logging.info("Search \"%s\" in \"%s\"" %(cmd2[i],cmd1))
+	                #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
+	                if re.search('%s' %cmd2[i],cmd1,re.IGNORECASE):
+	                    retValueTable[command[3]] = "1"
+	                    #return
+	                i+=1
+            
+	            return
+
+        elif re.search('generate_randnum',command[0]):
+            logging.debug("In generate_randnum...")
+            if re.search('null',command[1]):
+                cmd1 = "null"
+            else:
+                if command[1] in retValueTable:
+                    cmd1 = retValueTable[command[1]].split(" ")
+                else:
+                    cmd1 = command[1].split(" ")
+
+            retValueTable[command[2]] = "0"
+            
+            if command[3] in retValueTable:
+                cmd3 = int(retValueTable[command[3]])
+            else:
+                cmd3 = int(command[3])
+
+            i = 0
+            while True:
+                randnum = random.randint(0,65535)
+                for c in cmd1:
+                    if isinstance(c, int):
+                        if(randnum == int(c)):
+                            del randnum
+                            break
+                try:
+                    oplist.append(randnum)
+                    i = i +1
+                except NameError:
+                    logging.debug("Not defined")
+                if (i == cmd3):
+                    break
+
+            retValueTable[command[2]] = ' '.join("%d" % x for x in oplist)
+            logging.debug(" %s" % retValueTable[command[2]])
+            oplist = []
+                        
             return
-        
+
+
+
         elif command[0].lower() == 'echo':
             if command[1] in  retValueTable:
                 logging.info("%s=%s" % (command[1],retValueTable[command[1]]))
@@ -1071,9 +1177,7 @@ def process_cmd(line):
         ret_data_def = command[2]
         ret_data_def_type = ret_data_def.split(',')
         logging.debug("Command Return Type = %s" %( ret_data_def_type[0].lower()))
-        if ret_data_def_type[0] == 'STREAMID' or ret_data_def_type[0] == 'INTERFACEID' or ret_data_def_type[0] == 'PING':
-            ret_data_idx = ret_data_def_type[1]
-        elif ret_data_def_type[0] == 'RECV_ID':
+        if ret_data_def_type[0] == 'RECV_ID':
             recv_value= ret_data_def_type[1].split(' ')
             i=0
             for r in recv_value:
@@ -1092,9 +1196,7 @@ def process_cmd(line):
         else:
             return
         
-        displayName = toaddr
-        if toaddr in DisplayNameTable:
-            displayName= DisplayNameTable[toaddr]
+        displayName = get_display_name(toaddr)
 
         capi_run = command[1].strip( )
         capi_elem = command[1].split(',')
@@ -1232,6 +1334,25 @@ def process_cmd(line):
         
             upload_file_desc.close()
             return
+        
+        elif "$MTF" in retValueTable and iDNB == 0:
+				if retValueTable["$MTF"] == "1" :
+				    # Create new thread
+				    threadM.append(UCCThread(tidx,"Thread-%d" % tidx,toaddr,capi_elem,command))
+				    threads.append(threadM[tidx])
+				    # Start new thread
+				    threadM[tidx].start()
+
+				    tidx = tidx + 1
+				    return
+				else:
+                    # Wait for all threads to complete
+                    #for t in threads:
+                        #logging.info("Inside MTF4")
+                    #    t.join()
+					logging.debug("Main Thread")
+					status = send_capi_command(toaddr,capi_elem)
+                    
         else:
             if capi_elem[0] == 'sta_is_connected':
                 isConnectRetry = 0
@@ -1263,8 +1384,25 @@ def process_cmd(line):
             else :
                 status = send_capi_command(toaddr,capi_elem)
 
+		process_resp(toaddr,status,capi_elem,command)
+		
+    except:
+        exc_info = sys.exc_info( )
+        wfa_sys_exit(exc_info[1])
+
+# For P2P-NFC 
+def process_resp(toaddr,status,capi_elem,command):
+
+        global conntable,threadCount,waitsocks_par,runningPhase,testRunning,streamInfoArray,resultPrinted
+        global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV, ifCondBit, tidx
+
+        ret_data_def = command[2]
+        ret_data_def_type = ret_data_def.split(',')
+        if ret_data_def_type[0] == 'STREAMID' or ret_data_def_type[0] == 'INTERFACEID' or ret_data_def_type[0] == 'PING':
+            ret_data_idx = ret_data_def_type[1]
+        
         ss = status.rstrip('\r\n')
-        logging.info( "%s (%-15s) <-- %s" % (displayName,toaddr,ss ))
+        logging.info( "%s (%-15s) <-- %s" % (get_display_name(toaddr),toaddr,ss ))
         #Exit in case of ERROR
         if (re.search('ERROR', ss) or re.search('INVALID', ss)) and (iDNB == 0 and iINV == 0):
         #if re.search('ERROR', ss):
@@ -1330,14 +1468,12 @@ def process_cmd(line):
                     i = int(i) + 1
                                     
         elif stitems[1] != "COMPLETE" and iINV == 0 and iDNB == 0:
-            logging.info( 'Command %s not completed' % capi_run)
+            logging.info( 'Command %s not completed' % command[1].strip( ))
 
-        if capi_elem[0] == 'sta_associate': 
-            time.sleep(10) 
-    except:
-        exc_info = sys.exc_info( )
-        wfa_sys_exit(exc_info[1])
-            
+        if capi_elem[0] == 'sta_associate':
+		    time.sleep(10)
+
+
 def send_capi_command(toaddr,capi_elem):
 	global iDNB, iINV, socktimeout, deftimeout
         capi_run = ','.join(capi_elem)          
@@ -1888,3 +2024,10 @@ def firstword(line):
         retValueTable.setdefault(command[0],"%s" % frameRate)               
     if len(command) == 2:
         logging.debug("Command = %s" % (command[1]))
+
+def get_display_name(toaddr):
+	displayName = toaddr
+	if toaddr in DisplayNameTable:
+		displayName= DisplayNameTable[toaddr]
+	return displayName
+	
