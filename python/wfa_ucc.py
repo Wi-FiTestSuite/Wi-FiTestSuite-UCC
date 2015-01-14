@@ -95,6 +95,7 @@ def main():
         \n\r                      WFD\
         \n\r                      WMM\
         \n\r                      WPA2\
+        \n\r                      WFDS\
 	\n\r                      VHT\
 	\n\r\n\r [2] Test ID : Test case ID for that program            OR\
 	\n\r\n\r [2] group : group if running group of test cases followed by group file name\

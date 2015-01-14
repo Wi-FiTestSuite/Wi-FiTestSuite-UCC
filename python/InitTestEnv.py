@@ -146,7 +146,7 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
     LogMsg("----Test ID = %s-------" %TestID)
     GetCAPIFileNames (TestID)    
     GetTestbedDeviceInfo(TestID)
-    if ProgName =="P2P" or ProgName == "WFD":
+    if ProgName =="P2P" or ProgName == "WFD" or ProgName == "WFDS":
         GetP2PVariables(TestID)
         
     if not (ProgName == "P2P" or ProgName == "TDLS"):
@@ -421,13 +421,13 @@ def ReadDUTInfo (filename,TestCaseID):
     if "N-5.2" in TestCaseID or "N-ExS" in TestCaseID :
         VarList.setdefault("APUT_state","off")
 	
-    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2" or ProgName == "WFD" or ProgName == "VHT":
+    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2" or ProgName == "WFD" or ProgName == "WFDS" or ProgName == "VHT":
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
         T.rows.append(R1)
 
-        if (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "HS2" or ProgName == "WFD"):    
+        if (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "HS2" or ProgName == "WFD" or ProgName == "WFDS"):    
             P2PVarList = ReadAllMapFile(DUTFile,ProgName,"!")
             if P2PVarList != -1:
                 P2PVarList=P2PVarList.split('!')
@@ -500,7 +500,7 @@ def GetCAPIFileNames (TestCaseID):
     global ProgName
     setattr (testEnvVariables,"TestbedConfigCAPIFile",find_TestbedFile(TestCaseID))
     
-    if int (dutInfoObject.SigmaSupport) == 0 and  ProgName != "P2P" and ProgName != "HS2" and ProgName != "WFD":
+    if int (dutInfoObject.SigmaSupport) == 0 and  ProgName != "P2P" and ProgName != "HS2" and ProgName != "WFD" and ProgName != "WFDS":
         setattr (testEnvVariables,"DUTConfigCAPIFile","NoSigmaSupportMsg.txt")
         VarList.setdefault("SigmaMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
         VarList.setdefault("DUT_SIGMA_VERSION","NA")
@@ -646,7 +646,7 @@ def GetTestbedDeviceInfo (TestCaseID):
             #setattr(testEnvVariables,"SSID",SSID)
 
     
-    if (ProgName != "P2P" and ProgName != "WFD"):
+    if (ProgName != "P2P" and ProgName != "WFD" and ProgName != "WFDS"):
         FindBandChannel(TestCaseID)
     #LogMsg("APs = %s  STAs = %s  SSID = %s "% (APs,STAs,SSID))
    
@@ -919,6 +919,7 @@ def GetP2PVariables(TID):
     oper_chn=-1
     list_chn=-1
     intent_val=-1
+    serv_pref=-1
 
     if ProgName =="WFD":
         FindBandOperChannel(TID)
@@ -926,6 +927,11 @@ def GetP2PVariables(TID):
         oper_chn=find_TestcaseInfo_Level1(TID,"OperatingChannel")
         if (oper_chn != ""):
             VarList.setdefault("OPER_CHN",oper_chn)
+
+    if ProgName =="WFDS":
+        serv_pref=find_TestcaseInfo_Level1(TID,"ServicePref")
+        if (serv_pref != ""):
+            VarList.setdefault("WfdsTestServicePref",serv_pref)
 
     list_chn=find_TestcaseInfo_Level1(TID,"ListenChannel")
     if (list_chn != ""):

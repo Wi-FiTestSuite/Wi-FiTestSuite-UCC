@@ -62,6 +62,10 @@ WFD_TEST_LIST=Sigma-WFD
 WFD_CMD_PATH=..\cmds\Sigma-WFD
 WFD_TESTBED_AP=""
 
+# WFDS - WFDS device
+WFDS_TEST_LIST=Sigma-WFDS
+WFDS_CMD_PATH=..\cmds\Sigma-WFDS
+WFDS_TESTBED_AP=""
 
 # VHT - VHT device
 VHT_TEST_LIST=Sigma-VHT

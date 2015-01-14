@@ -695,6 +695,20 @@ def process_cmd(line):
                 retValueTable.setdefault(command[1],var)
             
             return
+        if command[0].lower() == "htoi":
+            if command[1] in retValueTable:
+                cmd1 = retValueTable[command[1]]
+            else:
+                cmd1 = command[1]
+                
+            if command[2] in retValueTable:
+                cmd2 = retValueTable[command[2]]
+            else:
+                cmd2 = command[2]
+            var = int("%s" % cmd1, 16)
+            retValueTable[command[2]] = "%s" % var
+	    return
+	
         if command[0].lower() == "reopen_conn":
             
             if command[1] in retValueTable:
@@ -1013,31 +1027,55 @@ def process_cmd(line):
                 if (sorted(cmd1) == sorted(cmd2)):
                     retValueTable[command[3]] = "1"
 
-                return                
+                return
+
+            elif re.search('diff',command[4]):
+                if command[1] in retValueTable:
+                    cmd1 = retValueTable[command[1]]
+                else:
+                    cmd1 = command[1]
+                
+                if command[2] in retValueTable:
+                    cmd2 = retValueTable[command[2]]
+                else:
+                    cmd2 = command[2]
+            
+                retValueTable[command[3]] = "0"
+                if (sorted(cmd1) == sorted(cmd2)):
+                    retValueTable[command[3]] = "1"
+                else:
+                    logging.debug("cmd1 %s, cmd2 %s" %(cmd1,cmd2))
+                    cmd1 = set(cmd1.split(' '))
+                    cmd2 = set(cmd2.split(' '))
+                    cmd3 = cmd1.difference(cmd2)
+                    logging.debug("Diff List %s" % cmd3)
+                    retValueTable[command[3]] = "%s" %(' '.join(list(cmd3)))
+
+                return
                 
             else:
-	            #logging.info("In search...")
-	            if command[1] in retValueTable:
-	                cmd1 = retValueTable[command[1]]
-	            else:
-	                cmd1 = command[1]
+                #logging.info("In search...")
+                if command[1] in retValueTable:
+                    cmd1 = retValueTable[command[1]]
+                else:
+                    cmd1 = command[1]
                 
-	            if command[2] in retValueTable:
-	                cmd2 = retValueTable[command[2]].split(" ")
-	            else:
-	                cmd2 = command[2].split(" ")
+                if command[2] in retValueTable:
+                    cmd2 = retValueTable[command[2]].split(" ")
+                else:
+                    cmd2 = command[2].split(" ")
             
-	            retValueTable[command[3]] = "0"
-	            i=0
-	            for c in cmd2:
-	                logging.info("Search \"%s\" in \"%s\"" %(cmd2[i],cmd1))
-	                #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
-	                if re.search('%s' %cmd2[i],cmd1,re.IGNORECASE):
-	                    retValueTable[command[3]] = "1"
-	                    #return
-	                i+=1
+                retValueTable[command[3]] = "0"
+                i=0
+                for c in cmd2:
+                    logging.info("Search \"%s\" in \"%s\"" %(cmd2[i],cmd1))
+                    #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
+                    if re.search('%s' %cmd2[i],cmd1,re.IGNORECASE):
+                        retValueTable[command[3]] = "1"
+                        #return
+                    i+=1
             
-	            return
+                return
 
         elif re.search('generate_randnum',command[0]):
             logging.debug("In generate_randnum...")
@@ -1336,22 +1374,22 @@ def process_cmd(line):
             return
         
         elif "$MTF" in retValueTable and iDNB == 0:
-				if retValueTable["$MTF"] == "1" :
-				    # Create new thread
-				    threadM.append(UCCThread(tidx,"Thread-%d" % tidx,toaddr,capi_elem,command))
-				    threads.append(threadM[tidx])
-				    # Start new thread
-				    threadM[tidx].start()
+                if retValueTable["$MTF"] == "1" :
+                    # Create new thread
+                    threadM.append(UCCThread(tidx,"Thread-%d" % tidx,toaddr,capi_elem,command))
+                    threads.append(threadM[tidx])
+                    # Start new thread
+                    threadM[tidx].start()
 
-				    tidx = tidx + 1
-				    return
-				else:
+                    tidx = tidx + 1
+                    return
+                else:
                     # Wait for all threads to complete
                     #for t in threads:
                         #logging.info("Inside MTF4")
                     #    t.join()
-					logging.debug("Main Thread")
-					status = send_capi_command(toaddr,capi_elem)
+                    logging.debug("Main Thread")
+                    status = send_capi_command(toaddr,capi_elem)
                     
         else:
             if capi_elem[0] == 'sta_is_connected':
@@ -1384,8 +1422,8 @@ def process_cmd(line):
             else :
                 status = send_capi_command(toaddr,capi_elem)
 
-		process_resp(toaddr,status,capi_elem,command)
-		
+        process_resp(toaddr,status,capi_elem,command)
+            
     except:
         exc_info = sys.exc_info( )
         wfa_sys_exit(exc_info[1])
