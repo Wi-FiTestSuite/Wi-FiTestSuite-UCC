@@ -1222,14 +1222,18 @@ def process_CheckThroughput(line,Trans):
         else:
             actual = ((float (P1) * 8))/(1000000 * int(cmd[2]))
 
+        condition = ">="
         if ( float(actual) >= float(cmd[3])) :
             result = cmd[4]
+            if "fail" in result.lower():
+                condition = "<="
         else:
             result = cmd[5]
+            if "pass" in result.lower():
+                condition = "<="
 
-        
         logging.debug(" Received = %s Bytes Duration = %s Seconds Expected = %s Mbps " % (P1,cmd[2],cmd[3]))
-        logging.info("\n Expected >= %s Mbps Actual = %s Mbps" % (cmd[3],actual))
+        logging.info("\n Expected %s %s Mbps Actual = %s Mbps" % (condition,cmd[3],actual))
         set_test_result(result,"%s Mbps" %(actual),"%s Mbps" %(cmd[3]))
 
     except:
