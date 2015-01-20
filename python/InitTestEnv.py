@@ -164,7 +164,7 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
 # This class holds all the required information about DUT
 #
 class dutInfo:
-    def __init__(self,DUTType="",DUTCategory="",DUTBand="",TestCaseID="",DUTEAPMethod="",WEP=0,preAuth=0,_11h=0,SupportedChannelWidth=0,Streams=0,Greenfield=0,SGI20=0,SGI40=0,RIFS_TX=0,Coexistence_2040=0,STBC_RX=0,STBC_TX=0,MCS32=0,SigmaSupport=1,OBSS=0,AMPDU_TX=0,AP_Concurrent=0,TDLSDiscReq=0,PUSleepSTA=0,_11d=0,STAUT_PM=0,Open_Mode=0):
+    def __init__(self,DUTType="",DUTCategory="",DUTBand="",TestCaseID="",DUTEAPMethod="",WEP=0,preAuth=0,_11h=0,SupportedChannelWidth=0,Streams=0,Greenfield=0,SGI20=0,SGI40=0,RIFS_TX=0,Coexistence_2040=0,STBC_RX=0,STBC_TX=0,MCS32=0,SigmaSupport=1,OBSS=0,AMPDU_TX=0,AP_Concurrent=0,TDLSDiscReq=0,PUSleepSTA=0,_11d=0,STAUT_PM=0,Open_Mode=0,PMF_OOB=0):
         self.DUTType=DUTType
         self.DUTCategory=DUTCategory
         self.DUTBand=DUTBand
@@ -190,6 +190,7 @@ class dutInfo:
         self._11d=_11d
         self.STAUT_PM=STAUT_PM
         self.Open_Mode=Open_Mode
+        self.PMF_OOB=PMF_OOB
         #TDLS Specific
         self.TDLSDiscReq=TDLSDiscReq
         self.PUSleepSTA=PUSleepSTA
@@ -377,6 +378,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("_11d",ReadMapFile(DUTFile,"11d","!"))
     dutInfoObject.__setattr__("STAUT_PM",ReadMapFile(DUTFile,"STAUT_PM","!"))
     dutInfoObject.__setattr__("Open_Mode",ReadMapFile(DUTFile,"Open_Mode","!"))
+    dutInfoObject.__setattr__("PMF_OOB",ReadMapFile(DUTFile,"PMF_OOB","!"))
 
     #EAP Methods
     dutInfoObject.__setattr__("TLS",ReadMapFile(DUTFile,"TLS","!"))
@@ -795,11 +797,13 @@ def GetOtherVariables(TID):
     VarList.setdefault("MCS32_Value",dutInfoObject.MCS32)
     VarList.setdefault("STBC_RX_Value",dutInfoObject.STBC_RX)
     VarList.setdefault("STBC_TX_Value",dutInfoObject.STBC_TX)
+	
     VarList.setdefault("STAUT_PM",dutInfoObject.STAUT_PM)
     VarList.setdefault("BSS_Trans_Query_Support",dutInfoObject.BSS_Trans_Query_Support)
     VarList.setdefault("TSM_Support",dutInfoObject.TSM_Support)
     VarList.setdefault("Streams","%sSS" % dutInfoObject.Streams)
     VarList.setdefault("Open_Mode",dutInfoObject.Open_Mode)
+    VarList.setdefault("PMF_OOB",dutInfoObject.PMF_OOB)
 
     #EAP Methods
     #VarList.setdefault("TLS",dutInfoObject.TLS)
@@ -1110,6 +1114,10 @@ def FindBandChannel (TestCaseID):
             VarList.setdefault("APUT_Band","11g")
             VarList.setdefault("STAUT_Band","11g")
             VarList.setdefault("Band_Legacy","11g")
+        elif DUTBAND == "B":
+            VarList.setdefault("APUT_Band","11b")
+            VarList.setdefault("STAUT_Band","11b")
+            VarList.setdefault("Band_Legacy","11b")
         
     
     setattr(testEnvVariables,"Band",band)
