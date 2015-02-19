@@ -591,6 +591,8 @@ def process_cmd(line):
                         ifCondBit = 0
                 #return
             
+        if int( ifCondBit) == 0:
+            return
         if command[0].lower() == "math":
             tmp=command[1]
             if command[1] in retValueTable:
@@ -660,9 +662,6 @@ def process_cmd(line):
 	#    else:
    	#        logging.error("Invalid parameters to math function")
 		
-		
-        if int( ifCondBit) == 0:
-            return
         if command[0].lower() == "_dnb_":
             iDNB=1
             return
