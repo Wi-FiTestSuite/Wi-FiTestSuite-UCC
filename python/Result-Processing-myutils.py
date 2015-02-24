@@ -89,13 +89,19 @@ STD_ERROR_HANDLE = -12
 FOREGROUND_BLUE = 0x01 # text color contains blue.
 FOREGROUND_GREEN= 0x02 # text color contains green.
 FOREGROUND_RED  = 0x04 # text color contains red.
-FOREGROUND_YELLOW = 0x0006
 FOREGROUND_INTENSITY = 0x08 # text color is intensified.
+
+#Define extra colours
+FOREGROUND_WHITE	=	    FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN
+FOREGROUND_YELLOW   =       FOREGROUND_RED | FOREGROUND_GREEN
+FOREGROUND_CYAN		=       FOREGROUND_BLUE | FOREGROUND_GREEN
+FOREGROUND_MAGENTA  =       FOREGROUND_RED | FOREGROUND_BLUE
+
+
 BACKGROUND_BLUE = 0x10 # background color contains blue.
 BACKGROUND_GREEN= 0x20 # background color contains green.
 BACKGROUND_RED  = 0x40 # background color contains red.
 BACKGROUND_INTENSITY = 0x80 # background color is intensified.
-FOREGROUND_WHITE = FOREGROUND_GREEN | FOREGROUND_RED
 
 
 std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
@@ -586,11 +592,11 @@ def process_cmd(line):
                 return
         
         if command[0].lower() == 'exit':
-            set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
+            set_color(FOREGROUND_CYAN |FOREGROUND_INTENSITY)
             wfa_sys_exit("Exiting - %s" % command[1])
         
         if command[0].lower() == 'pause':
-            set_color(FOREGROUND_GREEN |FOREGROUND_INTENSITY)
+            set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
             logging.info("Exeuction Paused - %s \n Press any key to continue..." % command[1])
             sys.stdin.read(1)
             set_color(FOREGROUND_INTENSITY)
@@ -629,7 +635,7 @@ def process_cmd(line):
         if command[0].lower() == 'ifnosigma':
             
             if retValueTable["$Sigma_ControlAgent_Support"] == "0":
-                set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
+                set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
                 if len(command)>3 and command[2] in retValueTable:                      
                     s="- %s" % retValueTable[command[2]]
                 else:
@@ -672,7 +678,7 @@ def process_cmd(line):
 
         
         if command[0].lower() == 'info':
-            set_color(FOREGROUND_GREEN |FOREGROUND_INTENSITY)
+            set_color(FOREGROUND_CYAN |FOREGROUND_INTENSITY)
             if command[1] in retValueTable:
                 command[1]=retValueTable[command[1]]
             logging.info( "\n %7s ~~~~~ %s ~~~~~ \n" %("",command[1]))
@@ -1344,7 +1350,7 @@ def wfa_sys_exit(msg):
 
 def wfa_sys_exit_0():
     time.sleep(2)
-    set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
+    set_color(FOREGROUND_CYAN | FOREGROUND_INTENSITY)
     logging.disable("ERROR")
     XLogger.writeXML()
     sys.exit(0)
