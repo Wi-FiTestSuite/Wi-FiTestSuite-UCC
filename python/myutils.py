@@ -238,7 +238,7 @@ def scanner (fileobject, linehandler):
       
 def sock_tcp_conn(ipaddr, ipport):
     global readsocks ,waitsocks, deftimeout
-    buf = 8192
+    buf = 2048
     addr = (ipaddr, ipport)
 
     mysock = socket(AF_INET, SOCK_STREAM)
@@ -985,7 +985,8 @@ def process_cmd(line):
                 rdata=command[2]
             resultPrinted=1
             set_test_result(command[1],rdata,"-")
-            XLogger.setTestResult(command[1],rdata)
+            #JIRA SIG-868
+       	    #XLogger.setTestResult(command[1],rdata)
             wfa_sys_exit_0()
             return
 
@@ -1255,7 +1256,9 @@ def process_cmd(line):
         ret_data_def = command[2]
         ret_data_def_type = ret_data_def.split(',')
         logging.debug("Command Return Type = %s" %( ret_data_def_type[0].lower()))
-        if ret_data_def_type[0] == 'RECV_ID':
+        if ret_data_def_type[0] == 'STREAMID' or ret_data_def_type[0] == 'INTERFACEID' or ret_data_def_type[0] == 'PING':
+            ret_data_idx = ret_data_def_type[1]
+        elif ret_data_def_type[0] == 'RECV_ID':
             recv_value= ret_data_def_type[1].split(' ')
             i=0
             for r in recv_value:
@@ -1574,7 +1577,7 @@ def send_capi_command(toaddr,capi_elem):
             asock.settimeout(deftimeout)
         
         try:
-            status = asock.recv(8192)
+            status = asock.recv(2048)
         except:
             exc_info = sys.exc_info( )
             logging.error('Connection Error, REASON = %s',exc_info[1])
@@ -1588,7 +1591,7 @@ def send_capi_command(toaddr,capi_elem):
                 asock.settimeout(socktimeout)
             else :
                 asock.settimeout(deftimeout)
-            status = asock.recv(8192)
+            status = asock.recv(2048)
 
         logging.debug( "%s (%s) <--- [%s]" % (displayaddr,toaddr,status.rstrip('\r\n' )))
         
@@ -1599,7 +1602,7 @@ def send_capi_command(toaddr,capi_elem):
             status = status[1]
         else:
 	    	if iDNB == 0:
-				status = asock.recv(8192)
+				status = asock.recv(2048)
 	    	else:
 				iDNB=0
 
@@ -1912,6 +1915,24 @@ def process_ResultCheck(line):
         exc_info = sys.exc_info( )
         logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
         
+#JIRA SIG-868
+def wfa_print_result(expt_flag, msg=""):
+    time.sleep(2)
+    if expt_flag == 0 and XLogger.result == "NOT COMPLETED":
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)    
+        XLogger.setTestResult("ABORTED")
+        logging.info("ABORTED-: %s" % msg)
+    if expt_flag == 1 and XLogger.resultChangeCount > 1:
+        if "PASS" in XLogger.multiStepResultDict or "COMPLETE" in XLogger.multiStepResultDict:
+            if XLogger.multiStepResultDict["PASS"] == XLogger.resultChangeCount:
+                set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
+                logging.info ("\nTEST RESULT ---> %15s" % "PASS")
+        else:
+            set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+            logging.info ("\nTEST RESULT ---> %15s" % "FAIL")
+    XLogger.writeXML()
+####################################################################
+
 def wfa_sys_exit(msg):
     time.sleep(2)
     set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)

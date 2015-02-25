@@ -53,10 +53,13 @@ from myutils import process_cmdfile
 from myutils import firstword
 from myutils import init_logging
 from myutils import printStreamResults 
-from myutils import close_conn
+#from myutils import close_conn
 from myutils import wfa_sys_exit
 from myutils import setUCCPath
 from myutils import reset
+#JIRA SIG-868
+from myutils import wfa_print_result
+##############
 from InitTestEnv import InitTestEnv
 import logging
 import time
@@ -213,18 +216,22 @@ def runTestCase (testListFile, testID,grp=0):
         else:
             InitTestEnv(U.testID,U.cmdPath,U.progName,U.initFile,U.TBFile)
         
-
     # UCC 
     #Run UCC Core
     
     if os.path.exists(initFile) == 0:
         logging.error ("Invalid file name - %s" % initFile)
-        wfa_sys_exit("1")
+        #JIRA SIG-868
+        #commented the following line, there is no catch block for the exception raised in wfa_sys_exit
+        #wfa_sys_exit("1")
+        wfa_print_result("1")
    
     
     if os.path.exists(testFile) == 0:
         logging.error ("Invalid file name - %s" % testFile)
-        wfa_sys_exit("1")
+        #JIRA SIG-868
+        #wfa_sys_exit("1")
+        wfa_print_result("1")
         
     logging.info("\n %7s Testcase Init File = %s \n" %( "",initFile))
     logging.info("\n %7s Testcase Command File = %s \n" % ("",testFile))
@@ -256,27 +263,37 @@ def runTestCase (testListFile, testID,grp=0):
         
 
     logging.info ("START: TEST CASE [%s] " % testID)
-    try:  
-        file = open(initFile)
+    try:
+        #JIRA SIG-868
+        expt_msg = ""
+        ##############
+        fileInit = open(initFile)
         print "\n-------------------\n"
         scanner(file, firstword)
         print "\n-------------------\n"
         process_cmdfile(testFile)
         
-        
-    except StandardError:
+    #JIRA SIG-868    
+    #except StandardError:    
+    except Exception:
+        expt_msg = sys.exc_info()[1]        
+        #logging.info ("END: TEST CASE [%s] " % testID)        
+        #reset()
+        #return
+    finally:
+        #delay for last receive_stop response
+        #time.sleep(5)
+        #printStreamResults()        
+        if expt_msg != "":
+            wfa_print_result(0, expt_msg)
+        else:
+            wfa_print_result(1)
+
         logging.info ("END: TEST CASE [%s] " % testID)
-        
+        fileInit.close()
+        #close_conn()
+        #time.sleep(2)
         reset()
-        return
-    
-    #delay for last receive_stop response
-    time.sleep(5)
-    printStreamResults()
-    file.close()
-    close_conn()
-    time.sleep(2)
-    reset()
 
 def ReadMapFile (filename,index,delim,n=1):
 

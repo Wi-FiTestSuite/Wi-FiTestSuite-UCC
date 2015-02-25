@@ -65,6 +65,9 @@ class XMLLogger:
         self.fileName=fileName
         self.doc = XMLDoc()
         self.result="NOT COMPLETED"
+        #JIRA SIG-868
+        self.resultChangeCount = 0
+        self.multiStepResultDict = {}
         # Stylesheet
         self.doc.appendChild(self.doc.createProcessingInstruction("xml-stylesheet",
 		"type=\"text/xsl\" href=\"%s\"" % stylesheet))
@@ -101,6 +104,12 @@ class XMLLogger:
        
     def setTestResult(self,result,r1="",r2=""):
         self.result=result
+        #JIRA SIG-868
+        self.resultChangeCount += 1
+        if result in self.multiStepResultDict:
+            self.multiStepResultDict[result] += 1
+        else:
+            self.multiStepResultDict[result] = 1
         #print("*----> Setting results [%s] [%s] [%s] [%s]" % (result, self.LogItemCounter,r1,r2))
 
     def setManualCheckInfo(self,mChk):
