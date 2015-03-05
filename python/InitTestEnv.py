@@ -151,6 +151,9 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
         
     if not (ProgName == "P2P" or ProgName == "TDLS"):
         GetServerSupplicantInfo(TestID)
+
+    if ProgName == "HS2-R2":
+        GetSubscriptionServerInfo(TestID)
         
     GetSnifferInfo(TestID)
     LogMsg (dutInfoObject)
@@ -164,7 +167,35 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
 # This class holds all the required information about DUT
 #
 class dutInfo:
-    def __init__(self,DUTType="",DUTCategory="",DUTBand="",TestCaseID="",DUTEAPMethod="",WEP=0,preAuth=0,_11h=0,SupportedChannelWidth=0,Streams=0,Greenfield=0,SGI20=0,SGI40=0,RIFS_TX=0,Coexistence_2040=0,STBC_RX=0,STBC_TX=0,MCS32=0,SigmaSupport=1,OBSS=0,AMPDU_TX=0,AP_Concurrent=0,TDLSDiscReq=0,PUSleepSTA=0,_11d=0,STAUT_PM=0,Open_Mode=0,PMF_OOB=0):
+    def __init__(self,
+	             DUTType="",
+				 DUTCategory="",
+				 DUTBand="",
+				 TestCaseID="",
+				 DUTEAPMethod="",
+				 WEP=0,
+				 preAuth=0,
+				 _11h=0,
+				 SupportedChannelWidth=0,
+				 Streams=0,
+				 Greenfield=0,
+				 SGI20=0,
+				 SGI40=0,
+				 RIFS_TX=0,
+				 Coexistence_2040=0,
+				 STBC_RX=0,
+				 STBC_TX=0,
+				 MCS32=0,
+				 SigmaSupport=1,
+				 OBSS=0,
+				 AMPDU_TX=0,
+				 AP_Concurrent=0,
+				 TDLSDiscReq=0,
+				 PUSleepSTA=0,
+				 _11d=0,
+				 STAUT_PM=0,
+				 Open_Mode=0,
+				 PMF_OOB=0):
         self.DUTType=DUTType
         self.DUTCategory=DUTCategory
         self.DUTBand=DUTBand
@@ -199,7 +230,28 @@ class dutInfo:
         self.__dict__[attr] = value
         
     def __str__(self):
-        return ("Type = %s    Category = %s    Band = %s   EAP = %s TestCase = %s WEP =%s PreAuth = %s 11h = %s Sigma Support =%s 11d = %s STAUT_PM = %s" % (self.DUTType,self.DUTCategory,self.DUTBand,self.DUTEAPMethod,self.TestCaseID,self.WEP,self.PreAuth,self._11h,self.SigmaSupport,self._11d,self.STAUT_PM))
+        return ("""Type = %s    
+		         Category = %s   
+				 Band = %s   
+				 EAP = %s 
+				 TestCase = %s 
+				 WEP =%s 
+				 PreAuth = %s 
+				 11h = %s 
+				 Sigma Support =%s 
+				 11d = %s 
+				 STAUT_PM = %s""" % 
+				 (self.DUTType,
+				  self.DUTCategory,
+				  self.DUTBand,
+				  self.DUTEAPMethod,
+				  self.TestCaseID,
+				  self.WEP,
+				  self.PreAuth,
+				  self._11h,
+				  self.SigmaSupport,
+				  self._11d,
+				  self.STAUT_PM))
 
 
 #Global Object to handle DUT Information
@@ -245,7 +297,25 @@ serverInfo = server()
 #
 class envVariables:
     global ProgName, uccPath
-    def __init__(self,Channel="",Channel_1="",Channel_2="",Channel_3="",Band="",SSID="",SSID_1="",SSID_2="",SSID_3="",TSTA1="",TSTA2="",TSTA3="",TSTA4="",TSTA5="",TestbedConfigCAPIFile="",DUTConfigCAPIFile="",STAConfigCAPIFile="",WLANTestCAPIFile=""):
+    def __init__(self,
+	             Channel="",
+				 Channel_1="",
+				 Channel_2="",
+				 Channel_3="",
+				 Band="",
+				 SSID="",
+				 SSID_1="",
+				 SSID_2="",
+				 SSID_3="",
+				 TSTA1="",
+				 TSTA2="",
+				 TSTA3="",
+				 TSTA4="",
+				 TSTA5="",
+				 TestbedConfigCAPIFile="",
+				 DUTConfigCAPIFile="",
+				 STAConfigCAPIFile="",
+				 WLANTestCAPIFile=""):
         self.Channel=Channel
         self.Channel_1=Channel_1
         self.Channel_2=Channel_2
@@ -281,9 +351,71 @@ class envVariables:
         self.__dict__[attr] = value
 
     def formatNameUCC(self):
-        return ("define!$Channel!%s!\ndefine!$Channel_1!%s!\ndefine!$Channel_2!%s!\ndefine!$Channel_3!%s!\ndefine!$Band!%s!\ndefine!$SSID!%s!\ndefine!$SSID_1!%s!\ndefine!$SSID_2!%s!\ndefine!$SSID_3!%s!\ndefine!$STA1!%s!\ndefine!$STA2!%s!\ndefine!$STA3!%s!\ndefine!$TestbedConfigCAPIFile!%s!\ndefine!$DUTConfigCAPIFile!%s!\ndefine!$STAConfigCAPIFile!%s!\ndefine!$WLANTestCAPIFile!%s!\n" %(self.Channel,self.Channel_1,self.Channel_2,self.Channel_3,self.Band,self.SSID,self.SSID_1,self.SSID_2,self.SSID_3,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
+        return ("""define!$Channel!%s!\n
+				 define!$Channel_1!%s!\n
+				 define!$Channel_2!%s!\n
+				 define!$Channel_3!%s!\n
+				 define!$Band!%s!\n
+				 define!$SSID!%s!\n
+				 define!$SSID_1!%s!\n
+				 define!$SSID_2!%s!\n
+				 define!$SSID_3!%s!\n
+				 define!$STA1!%s!\n
+				 define!$STA2!%s!\n
+				 define!$STA3!%s!\n
+				 define!$TestbedConfigCAPIFile!%s!\n
+				 define!$DUTConfigCAPIFile!%s!\n
+				 define!$STAConfigCAPIFile!%s!\n
+				 define!$WLANTestCAPIFile!%s!\n""" %
+				 (self.Channel,
+				  self.Channel_1,
+				  self.Channel_2,
+				  self.Channel_3,
+				  self.Band,
+				  self.SSID,
+				  self.SSID_1,
+				  self.SSID_2,
+				  self.SSID_3,
+				  self.TSTA1,
+				  self.TSTA2,
+				  self.TSTA3,
+				  self.TestbedConfigCAPIFile,
+				  self.DUTConfigCAPIFile,
+				  self.STAConfigCAPIFile,
+				  self.WLANTestCAPIFile))
     def __str__(self):
-        return ("Channel = %s  Channel_1 = %s  Channel_2 = %s  Channel_3 = %s | Band = %s | SSID = %s  SSID_1 = %s  SSID_2 = %s  SSID_3 = %s  | STA1 - %s   STA2 - %s   STA3 - %s Testbed File - %s DUTConfig File - %s STAConfig File - %s WLANTest File - %s" %(self.Channel,self.Channel_1,self.Channel_2,self.Channel_3,self.Band,self.SSID,self.SSID_1,self.SSID_2,self.SSID_3,self.TSTA1,self.TSTA2,self.TSTA3,self.TestbedConfigCAPIFile,self.DUTConfigCAPIFile,self.STAConfigCAPIFile,self.WLANTestCAPIFile))
+        return ("""Channel = %s  
+		         Channel_1 = %s
+				 Channel_2 = %s
+				 Channel_3 = %s |
+				 Band = %s | 
+				 SSID = %s  
+				 SSID_1 = %s  
+				 SSID_2 = %s  
+				 SSID_3 = %s  | 
+				 STA1 - %s   
+				 STA2 - %s   
+				 STA3 - %s 
+				 Testbed File - %s 
+				 DUTConfig File - %s 
+				 STAConfig File - %s 
+				 WLANTest File - %s""" %
+				 (self.Channel,
+				  self.Channel_1,
+				  self.Channel_2,
+				  self.Channel_3,
+				  self.Band,
+				  self.SSID,
+				  self.SSID_1,
+				  self.SSID_2,
+				  self.SSID_3,
+				  self.TSTA1,
+				  self.TSTA2,
+				  self.TSTA3,
+				  self.TestbedConfigCAPIFile,
+				  self.DUTConfigCAPIFile,
+				  self.STAConfigCAPIFile,
+				  self.WLANTestCAPIFile))
 
 
 
@@ -423,13 +555,25 @@ def ReadDUTInfo (filename,TestCaseID):
     if "N-5.2" in TestCaseID or "N-ExS" in TestCaseID :
         VarList.setdefault("APUT_state","off")
 	
-    if ProgName == "P2P" or ProgName == "TDLS" or ProgName == "PMF" or ProgName == "HS2" or ProgName == "WFD" or ProgName == "WFDS" or ProgName == "VHT":
+    if (ProgName == "P2P" or
+	    ProgName == "TDLS" or 
+		ProgName == "PMF" or 
+		ProgName == "HS2" or 
+		ProgName == "WFD" or 
+		ProgName == "WFDS" or 
+		ProgName == "VHT" or 
+		ProgName == "HS2-R2"):
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
         T.rows.append(R1)
 
-        if (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "HS2" or ProgName == "WFD" or ProgName == "WFDS"):    
+        if (ProgName == "P2P" or 
+		    ProgName == "TDLS" or 
+			ProgName == "HS2" or 
+			ProgName == "WFD" or 
+			ProgName == "WFDS" or 
+			ProgName == "HS2-R2"):    
             P2PVarList = ReadAllMapFile(DUTFile,ProgName,"!")
             if P2PVarList != -1:
                 P2PVarList=P2PVarList.split('!')
@@ -502,7 +646,12 @@ def GetCAPIFileNames (TestCaseID):
     global ProgName
     setattr (testEnvVariables,"TestbedConfigCAPIFile",find_TestbedFile(TestCaseID))
     
-    if int (dutInfoObject.SigmaSupport) == 0 and  ProgName != "P2P" and ProgName != "HS2" and ProgName != "WFD" and ProgName != "WFDS":
+    if (int (dutInfoObject.SigmaSupport) == 0 and
+	    ProgName != "P2P" and 
+		ProgName != "HS2" and 
+		ProgName != "WFD" and 
+		ProgName != "WFDS" and 
+		ProgName != "HS2-R2"):
         setattr (testEnvVariables,"DUTConfigCAPIFile","NoSigmaSupportMsg.txt")
         VarList.setdefault("SigmaMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
         VarList.setdefault("DUT_SIGMA_VERSION","NA")
@@ -630,6 +779,8 @@ def GetTestbedDeviceInfo (TestCaseID):
         if (ProgName == "TDLS"):
             VarList.setdefault("STA%s_wireless_ip2"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip2"%STA.lower(),"!"))
             VarList.setdefault("STA%s_wireless_ip3"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ip3"%STA.lower(),"!"))
+        if (ProgName == "HS2-R2"):
+            VarList.setdefault("STA%s_wireless_ipv6"%iCount,ReadMapFile(uccPath+InitFile,"%s_sta_wireless_ipv6"%STA.lower(),"!"))
         VarList.setdefault("STA%s_MACAddress"%iCount,("$%sSTAMACAddress"%STA))
                                    
         iCount=iCount+1
@@ -654,6 +805,33 @@ def GetTestbedDeviceInfo (TestCaseID):
    
     #testEnvVariables.__setattr__("TAP1",ReadMapFile(uccPath+filename,TestCaseID))
     
+    return 1
+
+#
+# Function: GetSubscriptionServerInfo
+# This Function reads the TestbedDevice Info(Name of TestbedAPs,STAs) for given testcaseID and
+# load them into the class object of testEnvVariables
+#
+#   Arguments  :        filename, Testcase ID
+#   Return     :        Pass(1)/Fail(-1)
+#
+
+def GetSubscriptionServerInfo (TestCaseID):
+    global ProgName
+    iCount=1
+    LogMsg ("Read Testbed Subscription Server Info Function")
+
+    if dutInfoObject.DUTEAPMethod=="TLS":
+        tag="TLS"
+    else:
+        tag="Other"
+        
+    subsServerName=find_SubsServer(TestCaseID,tag)
+
+    setattr(testEnvVariables,"SS%s"%(iCount),subsServerName)
+    VarList.setdefault("SS%s_control_agent" %(iCount),"wfa_control_agent_%s_osu" %(subsServerName.lower()))
+    VarList.setdefault("SS%s" %(iCount),"%s" %(subsServerName.lower()))
+
     return 1
 
 #
@@ -1377,6 +1555,25 @@ def find_Server(testID,tag):
                        
                        
     LogMsg ("\n|\n|\n| Found server File -%s-" % (result))
+    return result
+
+def find_SubsServer(testID,tag):
+    result=""
+    LogMsg ("\n|\n|\n| Searching Subscription Server for TestID %s" % (testID))
+    for node in doc.getElementsByTagName(testID):
+      LogMsg ("Node1 = %s" %node.nodeName)
+      L = node.getElementsByTagName("SubscriptionServer")
+      
+      for node2 in L:
+          LogMsg ("----Node2 = %s" %node2.nodeName)
+          for node3 in node2.childNodes:
+              if node3.nodeName == tag:
+                 LogMsg ("------------Node4 = %s" %node3.firstChild.nodeValue)
+                 result = node3.firstChild.nodeValue
+                 break;
+                       
+                       
+    LogMsg ("\n|\n|\n| Found Subscription server File -%s-" % (result))
     return result
 
 #PMF specific

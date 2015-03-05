@@ -782,7 +782,18 @@ def process_cmd(line):
 			h = hex(ord(s)).split("0x")[1]
 			hexSSID = hexSSID + h 			
 		logging.debug ("hexSSID = %s hexLength %s" % (hexSSID, SSIDLength))
-		FrameData = "%s%s%s%s%s%s%s%s%s%s%s%s" % (f[0],retValueTable[command[2]],retValueTable[command[4]],retValueTable[command[2]],f[3],SSIDLen1,f[4],retValueTable[command[5]],f[5],SSIDLen2,retValueTable[command[2]],hexSSID)
+		FrameData = "%s%s%s%s%s%s%s%s%s%s%s%s" % (f[0],
+		                                          retValueTable[command[2]],
+												  retValueTable[command[4]],
+												  retValueTable[command[2]],
+												  f[3],
+												  SSIDLen1,
+												  f[4],
+												  retValueTable[command[5]],
+												  f[5],
+												  SSIDLen2,
+												  retValueTable[command[2]],
+												  hexSSID)
 		logging.debug (FrameData)
 	        retValueTable.setdefault("$INJECT_FRAME_DATA",FrameData)               
 		
@@ -861,7 +872,7 @@ def process_cmd(line):
             logging.debug(vInfo)
             return        
 
-        if re.search("STA",command[0]) or ( re.search("AP",command[0]) and not re.search("TestbedAPConfigServer",command[0])):
+        if re.search("STA",command[0]) or ( re.search("AP",command[0]) and not re.search("TestbedAPConfigServer",command[0])) or re.search("SS",command[0]):
             if command[0] in retValueTable:
                 command[0]=retValueTable[command[0]]
             else:
@@ -943,7 +954,18 @@ def process_cmd(line):
             retValueTable.setdefault("$hours",t[0])
             retValueTable.setdefault("$minutes",t[1])
             retValueTable.setdefault("$seconds",t[2])
-            logging.debug( "\n UCC System Time- Month:%s: Date:%s: Year:%s: Hours:%s: Minutes :%s: Seconds:%s:" %(retValueTable["$month"],retValueTable["$date"],retValueTable["$year"],retValueTable["$hours"],retValueTable["$minutes"],retValueTable["$seconds"]))    
+            logging.debug( """\n UCC System Time- Month:%s: 
+												Date:%s: 
+												Year:%s: 
+												Hours:%s: 
+												Minutes:%s: 
+												Seconds:%s:""" %
+												(retValueTable["$month"],
+												 retValueTable["$date"],
+												 retValueTable["$year"],
+												 retValueTable["$hours"],
+												 retValueTable["$minutes"],
+												 retValueTable["$seconds"]))    
             return
         
         if command[0].lower() == 'r_info':
@@ -1133,6 +1155,7 @@ def process_cmd(line):
                 logging.info("Unknown variable %s" %command[1])
             return
         elif command[0].lower() == 'echo_ifnosigma' and retValueTable["$Sigma_ControlAgent_Support"] == "0":
+            set_color(FOREGROUND_BLUE |FOREGROUND_INTENSITY)
             if command[1] in  retValueTable:
                 logging.info("-%s=%s-" % (command[1],retValueTable[command[1]]))
             else:
@@ -1444,7 +1467,9 @@ def process_resp(toaddr,status,capi_elem,command):
 
         ret_data_def = command[2]
         ret_data_def_type = ret_data_def.split(',')
-        if ret_data_def_type[0] == 'STREAMID' or ret_data_def_type[0] == 'INTERFACEID' or ret_data_def_type[0] == 'PING':
+        if (ret_data_def_type[0] == 'STREAMID' or
+		    ret_data_def_type[0] == 'INTERFACEID' or 
+			ret_data_def_type[0] == 'PING'):
             ret_data_idx = ret_data_def_type[1]
         
         ss = status.rstrip('\r\n')
@@ -1966,7 +1991,12 @@ def init_logging (_filename,level,loop=0):
         
     
     # Add XML Log Handler
-    XLogger = XMLLogger("%s/%s_%s.xml" % (directory,tFileName.rstrip(".txt"),time.strftime("%Y-%m-%dT%H_%M_%SZ", time.localtime())),"%s" % (tFileName.rstrip(".txt")))
+    XLogger = XMLLogger("%s/%s_%s.xml" %
+	                    (directory,
+						 tFileName.rstrip(".txt"),
+						 time.strftime("%Y-%m-%dT%H_%M_%SZ",
+						 time.localtime())),
+						 "%s" % (tFileName.rstrip(".txt")))
     hXML = XMLLogHandler('t')
     XMLformatter = logging.Formatter('%(message)s')
     hXML.setFormatter(XMLformatter)
@@ -2015,7 +2045,7 @@ def firstword(line):
             retValueTable.setdefault(command[0],"%s:%s" % ((command[1].split(',')[0]).split('=')[1],(command[1].split(',')[1]).split('=')[1]))
     
     elif  command[0] == 'wfa_console_ctrl' or command[0] == 'wfa_wfaemt_control_agent' or command[0] == 'wfa_adept_control_agent' or re.search('control_agent_testbed_sta', command[0]) or re.search('control_agent', command[0]) or re.search('TestbedAPConfigServer',command[0]) or re.search('wfa_sniffer',command[0]) or re.search('ethernet',command[0]):
-	process_ipadd(command[1])
+        process_ipadd(command[1])
 	retValueTable.setdefault(command[0],"%s:%s" % ((command[1].split(',')[0]).split('=')[1],(command[1].split(',')[1]).split('=')[1]))
 	
         

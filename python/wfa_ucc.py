@@ -88,6 +88,7 @@ def main():
         print('Incorrect Command line !!! \n\rUSAGE : wfa_ucc <Program Name> <Test ID> OR wfa_ucc <Program Name> group <group file name>\
         \n\r [1] Program Name :   AC-11AG/AC-11B/AC-11N\
         \n\r                      HS2\
+		\n\r                      HS2-R2\
         \n\r                      N\
         \n\r                      P2P\
         \n\r                      PMF\
@@ -96,11 +97,11 @@ def main():
         \n\r                      WMM\
         \n\r                      WPA2\
         \n\r                      WFDS\
-	\n\r                      VHT\
-	\n\r\n\r [2] Test ID : Test case ID for that program            OR\
-	\n\r\n\r [2] group : group if running group of test cases followed by group file name\
-	\n\r\n\r [3] group file name: Group file name which contains list of test cases\
-        \n\r\n\r\
+	    \n\r                      VHT\
+		\n\r\n\r [2] Test ID : Test case ID for that program            OR\
+		\n\r\n\r [2] group : group if running group of test cases followed by group file name\
+		\n\r\n\r [3] group file name: Group file name which contains list of test cases\
+	    \n\r\n\r\
         \n\r        For example, To run test P2P-4.1.1 of P2P(Wi-Fi Direct) program,\
         \n\r\n\r    wfa_ucc P2P P2P-4.1.1        OR\
         \n\r        For example, To run group of P2P test cases listed in file L1.txt\

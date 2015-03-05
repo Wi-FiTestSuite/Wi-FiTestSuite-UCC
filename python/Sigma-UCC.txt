@@ -8,6 +8,10 @@ HS2_TEST_LIST=Sigma-HS2
 HS2_CMD_PATH=..\cmds\Sigma-HS2
 HS2_TESTBED_AP=\HS2-Testbed-APs.txt
 
+# HS2-R2
+HS2-R2_TEST_LIST=Sigma-HS2-R2
+HS2-R2_CMD_PATH=..\cmds\Sigma-HS2-R2
+HS2-R2_TESTBED_AP=\HS2-R2-Testbed-APs.txt
 
 # P2P
 P2P_TEST_LIST=Sigma-P2P
