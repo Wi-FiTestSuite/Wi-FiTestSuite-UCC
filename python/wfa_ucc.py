@@ -269,7 +269,7 @@ def runTestCase (testListFile, testID,grp=0):
         ##############
         fileInit = open(initFile)
         print "\n-------------------\n"
-        scanner(file, firstword)
+        scanner(fileInit, firstword)
         print "\n-------------------\n"
         process_cmdfile(testFile)
         
