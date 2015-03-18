@@ -67,7 +67,7 @@ class XMLLogger:
         self.result="NOT COMPLETED"
         # Stylesheet
         self.doc.appendChild(self.doc.createProcessingInstruction("xml-stylesheet",
-	"type=\"text/xsl\" href=\"%s\"" % stylesheet))
+		"type=\"text/xsl\" href=\"%s\"" % stylesheet))
         
         self.LogItemCounter=1
         self.resultLogged=0

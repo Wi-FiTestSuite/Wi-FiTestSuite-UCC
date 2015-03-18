@@ -562,7 +562,8 @@ def ReadDUTInfo (filename,TestCaseID):
 		ProgName == "WFD" or 
 		ProgName == "WFDS" or 
 		ProgName == "VHT" or 
-		ProgName == "HS2-R2"):
+		ProgName == "HS2-R2" or
+		ProgName == "WMMPS"):
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
@@ -651,7 +652,8 @@ def GetCAPIFileNames (TestCaseID):
 		ProgName != "HS2" and 
 		ProgName != "WFD" and 
 		ProgName != "WFDS" and 
-		ProgName != "HS2-R2"):
+		ProgName != "HS2-R2" and
+		ProgName != "WMMPS"):
         setattr (testEnvVariables,"DUTConfigCAPIFile","NoSigmaSupportMsg.txt")
         VarList.setdefault("SigmaMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
         VarList.setdefault("DUT_SIGMA_VERSION","NA")
@@ -661,7 +663,7 @@ def GetCAPIFileNames (TestCaseID):
         VarList.setdefault("SigmaMsg","")
     setattr (testEnvVariables,"STAConfigCAPIFile",find_STAFile(TestCaseID,"STAFile"))
     if ProgName=="PMF":
-	setattr (testEnvVariables,"WLANTestCAPIFile",find_WLANTestFile(TestCaseID,"WLanTestFile"))
+		setattr (testEnvVariables,"WLANTestCAPIFile",find_WLANTestFile(TestCaseID,"WLanTestFile"))
 	
     return 1
 
@@ -947,25 +949,25 @@ def GetOtherVariables(TID):
       
     if ProgName=="PMF":
         #Security get parameters
-	findSecurity(TID,"Security")
-	#PMF Capability get parameters
-	findPMFCap(TID,"PMFCapability")
-	if "PMF-4" in TID:
+        findSecurity(TID,"Security")
+		#PMF Capability get parameters
+        findPMFCap(TID,"PMFCapability")
+        if "PMF-4" in TID:
             VarList.setdefault("sender","sta")
 	
         if "PMF-5" in TID:
             VarList.setdefault("sender","ap")
-	#WLAN Tester for frame injection-sniffing
-	cond=find_TestcaseInfo_Level1(TID,"WFA_Tester")
-	VarList.setdefault("WFA_Tester",cond)
-	VarList.setdefault("TBAPConfigServer","TestbedAPConfigServer")
-	VarList.setdefault("WFA_Sniffer","wfa_sniffer")
-	VarList.setdefault("WFA_TEST_control_agent","wfa_test_control_agent")
+		#WLAN Tester for frame injection-sniffing
+        cond=find_TestcaseInfo_Level1(TID,"WFA_Tester")
+        VarList.setdefault("WFA_Tester",cond)
+        VarList.setdefault("TBAPConfigServer","TestbedAPConfigServer")
+        VarList.setdefault("WFA_Sniffer","wfa_sniffer")
+        VarList.setdefault("WFA_TEST_control_agent","wfa_test_control_agent")
     
     combo=find_TestcaseInfo_Level1(TID,"QualCombinationInfo")
     LogMsg("Combination Info = %s"%combo)
     if (combo != ""):
-      VarList.setdefault("QualCombinationInfo",combo)
+		VarList.setdefault("QualCombinationInfo",combo)
     # MIMO Related Checks
     VarList.setdefault("ChannelWidth_Value",dutInfoObject.SupportedChannelWidth)
     VarList.setdefault("GreenField_Value",dutInfoObject.Greenfield)
@@ -1485,30 +1487,29 @@ def find_TestbedFile(testID):
     result=""
     LogMsg ("\n|\n|\n| Searching Testbed File for TestID %s" % (testID))
     for node in doc.getElementsByTagName(testID):
-      L = node.getElementsByTagName("TestbedFile")
-      LogMsg ("Node1 = %s" %node.nodeName)
-      for node2 in L:
-          LogMsg ("----Node2 = %s" %node2.nodeName)
-          for node3 in node2.childNodes:
+        L = node.getElementsByTagName("TestbedFile")
+        LogMsg ("Node1 = %s" %node.nodeName)
+        for node2 in L:
+            LogMsg ("----Node2 = %s" %node2.nodeName)
+            for node3 in node2.childNodes:
+                if node3.nodeName == "_Value":
+                    LogMsg ('--------Found %s' % node3.firstChild.nodeValue)
+                    result = node3.firstChild.nodeValue
+                    break;
          
-	      if node3.nodeName == "_Value":
-                  LogMsg ('--------Found %s' % node3.firstChild.nodeValue)
-                  result = node3.firstChild.nodeValue
-                  break;
-         
-              if node3.nodeType == Node.TEXT_NODE and node3.nodeValue.isalnum() == True:
-                  LogMsg ('--------Found -%s-' % node3.nodeValue)    
-                  if node3.nodeValue == '0':                  
-                      continue
-                  else:
-                      result = node3.nodeValue
-                      break;
-              else:
-                   LogMsg ("--------Node3 = %s" %node3.nodeName)
-                   if node3.nodeName == dutInfoObject.DUTType:
-                       LogMsg ("------------Node4 = %s" %node3.firstChild.nodeValue)
-                       result = node3.firstChild.nodeValue
-                       break;
+                if node3.nodeType == Node.TEXT_NODE and node3.nodeValue.isalnum() == True:
+                    LogMsg ('--------Found -%s-' % node3.nodeValue)    
+                    if node3.nodeValue == '0':                  
+                        continue
+                    else:
+                        result = node3.nodeValue
+                        break;
+                else:
+                    LogMsg ("--------Node3 = %s" %node3.nodeName)
+                    if node3.nodeName == dutInfoObject.DUTType:
+                        LogMsg ("------------Node4 = %s" %node3.firstChild.nodeValue)
+                        result = node3.firstChild.nodeValue
+                        break;
                        
     if result == "NA":
         LogMsg("\n The test %s is not applicable for DUT Type %s" % (testID,dutInfoObject.DUTType))
@@ -1600,33 +1601,33 @@ def findSecurity(testID,tag):
     result=""
     LogMsg ("\n|\n|\n| Searching Security Info for TestID %s" % (testID))
     for node in doc.getElementsByTagName(testID):
-      LogMsg ("Node1 = %s" %node.nodeName)
-      L = node.getElementsByTagName(tag)
+        LogMsg ("Node1 = %s" %node.nodeName)
+        L = node.getElementsByTagName(tag)
       
-      for node2 in L:
-          LogMsg ("----Node2 = %s" %node2.nodeName)
-          for node3 in node2.childNodes:
-              if node3.nodeName == "KeyMgmt":
-                  LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
-                  result = node3.firstChild.nodeValue
-                  if result == "WPA2-Ent":
-                      if dutInfoObject.DUTType == "WPA2-Enterprise":
-                          VarList.setdefault("Keymgnt",node3.firstChild.nodeValue)
-                          VarList.setdefault("keymgmttpye","%s" %("WPA2"))
-                      else:
-                          VarList.setdefault("Keymgnt","%s" %("WPA2-PSK"))
-                          VarList.setdefault("keymgmttpye","%s" %("WPA2"))
-                  else:
-                      VarList.setdefault("Keymgnt","%s-%s" % (node3.firstChild.nodeValue,"PSK"))
-                      VarList.setdefault("keymgmttpye",node3.firstChild.nodeValue)
-              elif node3.nodeName == "Encryption":
-                  LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
-                  result = node3.firstChild.nodeValue
-		  VarList.setdefault("encpType",node3.firstChild.nodeValue)
-              elif node3.nodeName == "Passphrase":
-                  LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
-                  result = node3.firstChild.nodeValue
-		  VarList.setdefault("passphrase",node3.firstChild.nodeValue)
+        for node2 in L:
+            LogMsg ("----Node2 = %s" %node2.nodeName)
+            for node3 in node2.childNodes:
+                if node3.nodeName == "KeyMgmt":
+                    LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
+                    result = node3.firstChild.nodeValue
+                    if result == "WPA2-Ent":
+                        if dutInfoObject.DUTType == "WPA2-Enterprise":
+                            VarList.setdefault("Keymgnt",node3.firstChild.nodeValue)
+                            VarList.setdefault("keymgmttpye","%s" %("WPA2"))
+                        else:
+                            VarList.setdefault("Keymgnt","%s" %("WPA2-PSK"))
+                            VarList.setdefault("keymgmttpye","%s" %("WPA2"))
+                    else:
+                        VarList.setdefault("Keymgnt","%s-%s" % (node3.firstChild.nodeValue,"PSK"))
+                        VarList.setdefault("keymgmttpye",node3.firstChild.nodeValue)
+                elif node3.nodeName == "Encryption":
+                    LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
+                    result = node3.firstChild.nodeValue
+                    VarList.setdefault("encpType",node3.firstChild.nodeValue)
+                elif node3.nodeName == "Passphrase":
+                    LogMsg ("------------Security Info= %s" %node3.firstChild.nodeValue)
+                    result = node3.firstChild.nodeValue
+                    VarList.setdefault("passphrase",node3.firstChild.nodeValue)
 				       
     LogMsg ("\n|\n|\n| Found Security Info -%s-" % (result))
 	

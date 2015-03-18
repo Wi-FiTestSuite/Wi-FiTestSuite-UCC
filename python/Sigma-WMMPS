@@ -1,0 +1,34 @@
+#WMMPS group test list file
+#FORMAT::
+#TestCaseID ::     related init :: map to test script file name
+#in MasterTestInfo.xml
+# STA test on Sigma-WMMPS for APUT
+WMMPS-4.1!init_wmmps.txt!4.1
+WMMPS-B.Z!init_wmmps.txt!B.Z
+WMMPS-B.H!init_wmmps.txt!B.H
+WMMPS-B.D!init_wmmps.txt!B.D
+WMMPS-A.J!init_wmmps.txt!A.J
+WMMPS-B.M!init_wmmps.txt!B.M
+WMMPS-L.1APUT!init_wmmps.txt!L.1APUT
+WMMPS-L.1APUTwpa2!init_wmmps.txt!L.1APUTwpa2
+WMMPS-L.1APUTwpa!init_wmmps.txt!L.1APUTwpa
+WMMPS-A.Y!init_wmmps.txt!A.Y
+WMMPS-M.Y!init_wmmps.txt!M.Y
+WMMPS-M.V!init_wmmps.txt!M.V
+WMMPS-M.U!init_wmmps.txt!M.U
+WMMPS-A.U!init_wmmps.txt!A.U
+
+# AP test on Sigma-WMMPS  for STAUT
+WMMPS-B.B!init_wmmps.txt!B.B
+WMMPS-B.K!init_wmmps.txt!B.K
+WMMPS-B.W!init_wmmps.txt!B.W
+WMMPS-5.6!init_wmmps.txt!5.6
+WMMPS-L.1!init_wmmps.txt!L.1
+WMMPS-L.1wpa2!init_wmmps.txt!L.1wpa2
+WMMPS-L.1wpa!init_wmmps.txt!L.1wpa
+WMMPS-M.B!init_wmmps.txt!M.B
+WMMPS-M.D!init_wmmps.txt!M.D
+WMMPS-M.K!init_wmmps.txt!M.K
+WMMPS-M.L!init_wmmps.txt!M.L
+WMMPS-M.W!init_wmmps.txt!M.W
+

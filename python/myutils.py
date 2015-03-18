@@ -228,7 +228,7 @@ def scanner (fileobject, linehandler):
       
 def sock_tcp_conn(ipaddr, ipport):
     global readsocks ,waitsocks, deftimeout
-    buf = 2048
+    buf = 8192
     addr = (ipaddr, ipport)
 
     mysock = socket(AF_INET, SOCK_STREAM)
@@ -375,36 +375,36 @@ def printStreamResults_WMM():
 
 #Qiumin to resolve a readline problem with multiple messages in one line
 def read1line(s):
-    ret = ''
+	ret = ''
 
-    while True:
-        try:
-            c = s.recv(1)
-	except OSError, e:
-	    logging.info("Recv error: "+e)
-	    print("Socket error "+ e)
+	while True:
+		try:
+			c = s.recv(1)
+		except OSError, e:
+			logging.info("Recv error: "+e)
+			print("Socket error "+ e)
 #	    ret = ''
 #	    break;
 
-	if c == '\n' or c == '':
-            if c == '':
-                logging.info("get a null char")
-	    break;
-        else:
-	    ret += c
+		if c == '\n' or c == '':
+			if c == '':
+				logging.info("get a null char")
+				break
+			else:
+				ret += c
 
 #    logging.info("\nReceived One Response back: " + ret)
-    return ret + '\n'
+	return ret + '\n'
 
 def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
     global waitsocks, readsocks, writesocks,runningPhase,testRunning,streamInfoArray, retValueTable
     if "$MT" in retValueTable :
-	logging.info("MT START")
-	while 1:
-	  if retValueTable["$MT"] == "0" :
-		break
-	  time.sleep(0.1)
-	logging.info("MT STOP")
+		logging.info("MT START")
+		while 1:
+	  		if retValueTable["$MT"] == "0" :
+				break
+	  		time.sleep(0.1)
+		logging.info("MT STOP")
     
     logging.debug( "responseWaitThreadFunc started %s" % testRunning)
     while testRunning > 0:
@@ -495,7 +495,7 @@ def process_cmd(line):
         if str[0] == '' : 
 	    return
 	
-	command=str[0].split('!')
+	    command=str[0].split('!')
 
         if "$MTF" in retValueTable and retValueTable["$MTF"] == "0":
             for t in threads:
@@ -609,22 +609,22 @@ def process_cmd(line):
                     varb=float(command[3])
                 except ValueError:
                     print("You must enter a number")
-
+				
             if(command[2]).lower() == "+":
-                    retValueTable[tmp] = "%s" % (float(command[1]) +  float(command[3]))
-	    if(command[2]).lower() == "-":
-		    retValueTable[tmp] = "%s" % (float(command[1]) -  float(command[3]))
-	    if(command[2]).lower() == "*":
-		    retValueTable[tmp] = "%s" % (float(command[1]) *  float(command[3]))
-	    if(command[2]).lower() == "/":
-		    retValueTable[tmp] = "%s" % (float(command[1]) /  float(command[3]))
-	    if(command[2]).lower() == "%":
-		    retValueTable[tmp] = "%s" % (int(command[1]) % int(command[3]))
-	    if command[2].lower() == "rand":
-                    #List of allowed values
-                    varlist = command[3].split(":")
-                    random_index = randrange(0,len(varlist))
-                    retValueTable[tmp] = "%s" % int(varlist[random_index])
+			    retValueTable[tmp] = "%s" % (float(command[1]) +  float(command[3]))
+            if(command[2]).lower() == "-":
+			    retValueTable[tmp] = "%s" % (float(command[1]) -  float(command[3]))
+            if(command[2]).lower() == "*":
+			    retValueTable[tmp] = "%s" % (float(command[1]) *  float(command[3]))
+            if(command[2]).lower() == "/":
+			    retValueTable[tmp] = "%s" % (float(command[1]) /  float(command[3]))
+            if(command[2]).lower() == "%":
+			    retValueTable[tmp] = "%s" % (int(command[1]) % int(command[3]))
+            if command[2].lower() == "rand":
+			    #List of allowed values
+			    varlist = command[3].split(":")
+			    random_index = randrange(0,len(varlist))
+			    retValueTable[tmp] = "%s" % int(varlist[random_index])
 
 	    #else:
    	    #    logging.error("Invalid parameters to math function")
@@ -665,22 +665,22 @@ def process_cmd(line):
             return
         if command[0].lower() == "_dnb_":
             iDNB=1
-	    return
-	if command[0].lower() == "_inv":
+            return
+        if command[0].lower() == "_inv":
             iINV=1
-	    return
-	if command[0].lower() == "inv_":
+            return
+        if command[0].lower() == "inv_":
             iINV=0
-	    return
-	if command[0].lower() == "mexpr":
+            return
+        if command[0].lower() == "mexpr":
             if command[1] not in retValueTable:
-		return
+                return
             if command[3] in retValueTable:
                 command[3]=retValueTable[command[3]]
-	    if command[2] == "%":
-		retValueTable[command[1]] = (int(retValueTable[command[1]])*int(command[3]))/100
+	        if command[2] == "%":
+			    retValueTable[command[1]] = (int(retValueTable[command[1]])*int(command[3]))/100
 
-	    return
+	        return
         if command[0].lower() == "cat":
             var="" 
             if len(command) < 5:
@@ -727,7 +727,7 @@ def process_cmd(line):
             process_ipadd("ipaddr=%s,port=%s" % (command[1],command[2]),1)
             return
 	
-	if command[0].lower() == "extract_p2p_ssid":
+        if command[0].lower() == "extract_p2p_ssid":
             if command[1] in retValueTable:
                 command[1] = retValueTable[command[1]]
             p2p_ssid=command[1].split(' ')
@@ -736,66 +736,66 @@ def process_cmd(line):
             else:
                 logging.ERROR("Invalid P2P Group ID")
             return
-	if command[0].lower() == "calculate_ext_listen_values":
-		if command[1] not in retValueTable or command[2] not in retValueTable:
-			wfa_sys_exit("%s or %s not available" % (command[1],command[2]))
-		command[1]=retValueTable[command[1]]
-		command[2]=retValueTable[command[2]]	
-		retValueTable.setdefault("$PROBE_REQ_INTERVAL","%s"% (int(command[2])/2))
-		retValueTable.setdefault("$PROBE_REQ_COUNT","%s"% (int(command[1])/(int(command[2])/2)))
-		return
-	if command[0].lower() == "get_rnd_ip_address":
-		if command[1] in retValueTable: 
-        		command[1]=retValueTable[command[1]]
-   		if command[2] in retValueTable: 
-        		command[2]=retValueTable[command[2]]
-                ip1 = command[1].split(".")
-                ip2 = command[2].split(".")
-                if (int(ip2[3]) + 1) != int(ip1[3]):
-                    rnd_ip = ("%s.%s.%s.%s" % (ip2[0],ip2[1],ip2[2],int(ip2[3]) + 1))
-                else:
-                    rnd_ip = ("%s.%s.%s.%s" % (ip2[0],ip2[1],ip2[2],int(ip2[3]) + 2))
+        if command[0].lower() == "calculate_ext_listen_values":
+			if command[1] not in retValueTable or command[2] not in retValueTable:
+				wfa_sys_exit("%s or %s not available" % (command[1],command[2]))
+			command[1]=retValueTable[command[1]]
+			command[2]=retValueTable[command[2]]	
+			retValueTable.setdefault("$PROBE_REQ_INTERVAL","%s"% (int(command[2])/2))
+			retValueTable.setdefault("$PROBE_REQ_COUNT","%s"% (int(command[1])/(int(command[2])/2)))
+			return
+        if command[0].lower() == "get_rnd_ip_address":
+			if command[1] in retValueTable: 
+				command[1]=retValueTable[command[1]]
+			if command[2] in retValueTable: 
+				command[2]=retValueTable[command[2]]
+			ip1 = command[1].split(".")
+			ip2 = command[2].split(".")
+			if (int(ip2[3]) + 1) != int(ip1[3]):
+				rnd_ip = ("%s.%s.%s.%s" % (ip2[0],ip2[1],ip2[2],int(ip2[3]) + 1))
+			else:
+				rnd_ip = ("%s.%s.%s.%s" % (ip2[0],ip2[1],ip2[2],int(ip2[3]) + 2))
                     
-        	retValueTable.setdefault(command[3],"%s"% rnd_ip)
-		return
+			retValueTable.setdefault(command[3],"%s"% rnd_ip)
+			return
 	
         if command[0].lower() == 'ucc_form_device_discovery_frame':
-		iCn=0
-		for c in command:
-			if iCn > 1 and c in command:
-				wfa_sys_exit("Invalid UCC command")
-		#command[1] Frame command[2] GOUT Device Address command[3] group ID command[4] Injector source Address command[5] Testbed Client address
+			iCn=0
+			for c in command:
+				if iCn > 1 and c in command:
+					wfa_sys_exit("Invalid UCC command")
+			#command[1] Frame command[2] GOUT Device Address command[3] group ID command[4] Injector source Address command[5] Testbed Client address
 
-		f = command[1].split('*')
-		iCn=0
+			f = command[1].split('*')
+			iCn=0
 
-		#Hex SSID
-		#SSID = command[3].split(" ")[1]
-		SSID = retValueTable[command[3]].split(" ")[1]
-		SSIDLength = len(SSID)
-		SSIDLen1= hex (int (SSIDLength) + 22).split("0x")[1]
-		SSIDLen2= "%s 00" % hex (int(SSIDLength + 6)).split("0x")[1]
-		if int(len(SSIDLen2)) < 5:
-                    SSIDLen2 ="0%s" % SSIDLen2
-		hexSSID=""
-		for s in SSID:
-			h = hex(ord(s)).split("0x")[1]
-			hexSSID = hexSSID + h 			
-		logging.debug ("hexSSID = %s hexLength %s" % (hexSSID, SSIDLength))
-		FrameData = "%s%s%s%s%s%s%s%s%s%s%s%s" % (f[0],
-		                                          retValueTable[command[2]],
-												  retValueTable[command[4]],
-												  retValueTable[command[2]],
-												  f[3],
-												  SSIDLen1,
-												  f[4],
-												  retValueTable[command[5]],
-												  f[5],
-												  SSIDLen2,
-												  retValueTable[command[2]],
-												  hexSSID)
-		logging.debug (FrameData)
-	        retValueTable.setdefault("$INJECT_FRAME_DATA",FrameData)               
+			#Hex SSID
+			#SSID = command[3].split(" ")[1]
+			SSID = retValueTable[command[3]].split(" ")[1]
+			SSIDLength = len(SSID)
+			SSIDLen1= hex (int (SSIDLength) + 22).split("0x")[1]
+			SSIDLen2= "%s 00" % hex (int(SSIDLength + 6)).split("0x")[1]
+			if int(len(SSIDLen2)) < 5:
+				SSIDLen2 ="0%s" % SSIDLen2
+			hexSSID=""
+			for s in SSID:
+				h = hex(ord(s)).split("0x")[1]
+				hexSSID = hexSSID + h 			
+			logging.debug ("hexSSID = %s hexLength %s" % (hexSSID, SSIDLength))
+			FrameData = "%s%s%s%s%s%s%s%s%s%s%s%s" % (f[0],
+			                                          retValueTable[command[2]],
+													  retValueTable[command[4]],
+													  retValueTable[command[2]],
+													  f[3],
+													  SSIDLen1,
+													  f[4],
+													  retValueTable[command[5]],
+													  f[5],
+													  SSIDLen2,
+													  retValueTable[command[2]],
+													  hexSSID)
+			logging.debug (FrameData)
+			retValueTable.setdefault("$INJECT_FRAME_DATA",FrameData)               
 		
 		
 
@@ -814,9 +814,9 @@ def process_cmd(line):
                 return
 
             if retValueTable[vInfo[0]] not in conntable:
-		 if retValueTable[retValueTable[vInfo[0]]] not in conntable:
-	                 logging.debug("Unknown Component[3] %s",vInfo[0])
-		         return
+				if retValueTable[retValueTable[vInfo[0]]] not in conntable:
+					logging.debug("Unknown Component[3] %s",vInfo[0])
+				return
 
             #print vInfo
             print len(retValueTable)
@@ -976,8 +976,8 @@ def process_cmd(line):
                 rdata=command[2]
             resultPrinted=1
             set_test_result(command[1],rdata,"-")
-       	    XLogger.setTestResult(command[1],rdata)
-	    wfa_sys_exit_0()
+            XLogger.setTestResult(command[1],rdata)
+            wfa_sys_exit_0()
             return
 
         
@@ -1225,11 +1225,11 @@ def process_cmd(line):
             return
         
         logging.debug("COMMAND - to %s" % command[0])
-	if command[0] == 'wfa_test_commands' :
+        if command[0] == 'wfa_test_commands' :
                 if command[1] in retValueTable:
                     command[1]= retValueTable[command[1]]
-		process_cmdfile ("%s%s"%(uccPath,command[1]))
-		return
+                process_cmdfile ("%s%s"%(uccPath,command[1]))
+                return
         if command[0] == 'Phase':
             RTPCount=1
             time.sleep(3)
@@ -1292,9 +1292,9 @@ def process_cmd(line):
                             time.sleep(0.5)                   
                            
                         if multicast == 1:
-        		    capi_elem[idx+1] = val
-        		    break
-        		else:
+        		    		capi_elem[idx+1] = val
+        		    		break
+                        else:
                             capi_elem[idx+1] += val
                             capi_elem[idx+1] += ' '
                             break
@@ -1305,10 +1305,10 @@ def process_cmd(line):
             #logging.info("@@@@@@@@@@@@@@@ CAPI Final -%s-"% capi_elem[idx+1])
             capi_run = ','.join(capi_elem)
             capi_cmd = capi_run + ' \r\n'
-	    logging.info("%s (%-10s) --> %s" % (displayName,toaddr,capi_cmd))
-	    asock = conntable.get(toaddr)
-	    asock.send(capi_cmd)
-	    time.sleep(15)
+            logging.info("%s (%-10s) --> %s" % (displayName,toaddr,capi_cmd))
+            asock = conntable.get(toaddr)
+            asock.send(capi_cmd)
+            time.sleep(15)
             return
         
         elif capi_elem[0] == 'traffic_agent_send':
@@ -1350,10 +1350,10 @@ def process_cmd(line):
             asock = conntable.get(toaddr)
             asock.send(capi_cmd)
             return
-	elif capi_elem[0] == 'sniffer_inject_frame':
+        elif capi_elem[0] == 'sniffer_inject_frame':
                 elementCounter=0
                 newframe=""
-	        for capiElem in capi_elem:                 
+                for capiElem in capi_elem:                 
                     if capiElem.lower()=="framedata":
                         frame=capi_elem[elementCounter+1].split(" ")
                         for fdata in frame:
@@ -1363,7 +1363,7 @@ def process_cmd(line):
                             newframe=newframe+ ' ' + fdata
                		logging.debug("Inject Frame Data %s" % newframe)
                		capi_elem[elementCounter+1] = newframe
-			break
+                    break
 			
                     elementCounter+=1 
 
@@ -1504,10 +1504,10 @@ def process_resp(toaddr,status,capi_elem,command):
                     retValueTable.setdefault(ret_data_idx, stitems[5])
             elif stitems[2].lower() == 'interfaceid':
                 #TBD - AP interface selection
-		if ret_data_idx in retValueTable:
-			retValueTable[ret_data_idx]= stitems[3].split('_')[0]
-		else:
-	                retValueTable.setdefault(ret_data_idx, stitems[3].split('_')[0])
+				if ret_data_idx in retValueTable:
+					retValueTable[ret_data_idx]= stitems[3].split('_')[0]
+				else:
+					retValueTable.setdefault(ret_data_idx, stitems[3].split('_')[0])
             elif capi_elem[0] == 'traffic_stop_ping':
                 retValueTable["%s;%s"%(capi_elem[2],toaddr)]= stitems[5]
                 logging.debug("%s = %s" %  (capi_elem[2],retValueTable["%s;%s"%(capi_elem[2],toaddr)]))
@@ -1527,14 +1527,14 @@ def process_resp(toaddr,status,capi_elem,command):
                 for s in stitems:
                     #logging.info("ITEM = %s"% ret_data_def_type)
                     if(int(i)%2 == 0) and len(stitems) > i+1 and len(ret_data_def_type) > int(i/2):
-                        logging.debug("--------> Adding %s = %s"%(ret_data_def_type[i/2],stitems[i+1]))
-			stitems[i+1] = stitems[i+1].rstrip(' ')
-			stitems[i+1] = stitems[i+1].rstrip('\n')
-			stitems[i+1] = stitems[i+1].rstrip('\r')
-                        if ret_data_def_type[i/2] in retValueTable:
-                            retValueTable[ret_data_def_type[i/2]]=stitems[i+1]
-                        else:
-                            retValueTable.setdefault(ret_data_def_type[i/2],stitems[i+1]) 
+						logging.debug("--------> Adding %s = %s"%(ret_data_def_type[i/2],stitems[i+1]))
+						stitems[i+1] = stitems[i+1].rstrip(' ')
+						stitems[i+1] = stitems[i+1].rstrip('\n')
+						stitems[i+1] = stitems[i+1].rstrip('\r')
+						if ret_data_def_type[i/2] in retValueTable:
+							retValueTable[ret_data_def_type[i/2]]=stitems[i+1]
+						else:
+							retValueTable.setdefault(ret_data_def_type[i/2],stitems[i+1]) 
                        
                     i = int(i) + 1
                                     
@@ -1546,7 +1546,7 @@ def process_resp(toaddr,status,capi_elem,command):
 
 
 def send_capi_command(toaddr,capi_elem):
-	global iDNB, iINV, socktimeout, deftimeout
+        global iDNB, iINV, socktimeout, deftimeout
         capi_run = ','.join(capi_elem)          
         capi_cmd = capi_run + ' \r\n'
         asock = conntable.get(toaddr)
@@ -1565,7 +1565,7 @@ def send_capi_command(toaddr,capi_elem):
             asock.settimeout(deftimeout)
         
         try:
-            status = asock.recv(2048)
+            status = asock.recv(8192)
         except:
             exc_info = sys.exc_info( )
             logging.error('Connection Error, REASON = %s',exc_info[1])
@@ -1579,7 +1579,7 @@ def send_capi_command(toaddr,capi_elem):
                 asock.settimeout(socktimeout)
             else :
                 asock.settimeout(deftimeout)
-            status = asock.recv(2048)
+            status = asock.recv(8192)
 
         logging.debug( "%s (%s) <--- [%s]" % (displayaddr,toaddr,status.rstrip('\r\n' )))
         
@@ -1589,19 +1589,19 @@ def send_capi_command(toaddr,capi_elem):
             status = status.split('\n')
             status = status[1]
         else:
-	    if iDNB == 0:
-                status = asock.recv(2048)
-	    else:
-		iDNB=0
+	    	if iDNB == 0:
+				status = asock.recv(8192)
+	    	else:
+				iDNB=0
 
         if(displayaddr == cSLog.name):
             cSLog.log("%s ---> %s" % (displayaddr,capi_cmd.rstrip('\r\n')))
             cSLog.log("%s <--- %s\n" % (displayaddr,status.rstrip('\r\n')))
 
-	if re.search("FAIL",status) and re.search("SNIFFER",displayaddr) and iINV==0:
-		logging.info("%s <--- %s\n" % (displayaddr,status.rstrip('\r\n')))
-		wfa_sys_exit ("Command returned FAIL")
-	return status
+        if re.search("FAIL",status) and re.search("SNIFFER",displayaddr) and iINV==0:
+            logging.info("%s <--- %s\n" % (displayaddr,status.rstrip('\r\n')))
+            wfa_sys_exit ("Command returned FAIL")
+        return status
 
 	 
 def process_cmdfile(line):
@@ -1670,9 +1670,9 @@ def process_passFailWMM_2(line):
 def process_passFailWMM_1(line):
     global runningPhase
     try:
-	cmd=line.split(',')
-	P1=-1
-	P2=-1
+        cmd=line.split(',')
+        P1=-1
+        P2=-1
 
         for p in streamRecvResultArray:
             if p.streamID == retValueTable[cmd[0]] and int (p.phase) == int (runningPhase):
@@ -1774,16 +1774,16 @@ def process_passFailIBSS(line):
 def process_CheckThroughput(line,Trans):
     try:
         
-	cmd=line.split(',')
+        cmd=line.split(',')
 	
-	if (cmd[2] in retValueTable):
+        if (cmd[2] in retValueTable):
             cmd[2]=retValueTable[cmd[2]]
       	if (cmd[3] in retValueTable):
             cmd[3]=retValueTable[cmd[3]]
 
-	P1=-1
-	logging.debug("Processing Throughput Check...")
-	if (Trans):
+        P1=-1
+        logging.debug("Processing Throughput Check...")
+        if (Trans):
             for p in streamSendResultArray :
                 if p.streamID == retValueTable[cmd[0]] and int (p.phase) == int (cmd[1]):
                     P1=p.rxBytes
@@ -1816,15 +1816,15 @@ def process_CheckThroughput(line,Trans):
 def process_CheckMCSThroughput(line):
     try:
         
-	cmd=line.split(',')
+        cmd=line.split(',')
         logging.debug("process_CheckMCSThroughput")
-	logging.debug("-%s-%s-%s-%s-%s"%(cmd[0],cmd[1],cmd[2],cmd[3],cmd[4]))
+        logging.debug("-%s-%s-%s-%s-%s"%(cmd[0],cmd[1],cmd[2],cmd[3],cmd[4]))
 	
         TX=-1
-	RX1=-1
-	RX2=-1
-	logging.debug("Processing Throughput Check...")
-	for p in streamSendResultArray :
+        RX1=-1
+        RX2=-1
+        logging.debug("Processing Throughput Check...")
+        for p in streamSendResultArray :
             if p.streamID == retValueTable[cmd[1]] and int (p.phase) == int (cmd[0]):
                 TX=long(p.txBytes)
                 break
@@ -1859,13 +1859,12 @@ def process_CheckMCSThroughput(line):
 
 def process_CheckDT4(line):
     try:
-        
-	cmd=line.split(',')
+        cmd=line.split(',')
         logging.debug("process_Check DT4 Results")
-	logging.debug("-%s-%s-%s-%s-%s-%s"%(cmd[0],cmd[1],retValueTable[cmd[1]],cmd[2],cmd[3],cmd[4]))
-	
-        RX=-1	
-	for p in streamSendResultArray:
+        logging.debug("-%s-%s-%s-%s-%s-%s"%(cmd[0],cmd[1],retValueTable[cmd[1]],cmd[2],cmd[3],cmd[4]))
+        RX=-1
+			
+        for p in streamSendResultArray:
             if p.streamID == retValueTable[cmd[1]] and int (p.phase) == int (cmd[0]):
                 RX=long(p.rxFrames)
                 
@@ -1888,10 +1887,9 @@ def process_CheckDT4(line):
         logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
 
 def process_ResultCheck(line):
-    try:
-        
-	cmd=line.split(',')
-	logging.debug("%s-%s-%s-%s-%s-%s" % (retValueTable[cmd[0]],int(retValueTable["%s"%retValueTable[cmd[0]]]),cmd[0],cmd[1],cmd[2],cmd[3]))
+    try:    
+        cmd=line.split(',')
+        logging.debug("%s-%s-%s-%s-%s-%s" % (retValueTable[cmd[0]],int(retValueTable["%s"%retValueTable[cmd[0]]]),cmd[0],cmd[1],cmd[2],cmd[3]))
         if ( int(retValueTable["%s"%retValueTable[cmd[0]]]) >= int(cmd[1])) :
             result = cmd[2]
         else:
@@ -2057,15 +2055,15 @@ def firstword(line):
         logging.info( "\n %7s ~~~~~ %s ~~~~~ \n" %("",command[1]))
     elif command[0] == 'wfa_test_commands':
         logging.debug( 'Processing wfa_test_commands')
-	process_cmdfile("%s%s" % (uccPath,command[1]))
+        process_cmdfile("%s%s" % (uccPath,command[1]))
     elif command[0] == 'wfa_test_commands_init':
         logging.debug( 'Processing init wfa_test_commands')
         logging.debug( "UCC Path = %s" % uccPath)
-	s1=command[1]
-	scanner(open(uccPath+s1), firstword)
+        s1=command[1]
+        scanner(open(uccPath+s1), firstword)
     if "$TestNA" in retValueTable:
-            logging.error("%s"% retValueTable["%s"%"$TestNA"])
-            wfa_sys_exit("%s"% retValueTable["%s"%"$TestNA"])
+        logging.error("%s"% retValueTable["%s"%"$TestNA"])
+        wfa_sys_exit("%s"% retValueTable["%s"%"$TestNA"])
     elif command[0] == 'dut_wireless_ip' or command[0]=='dut_default_gateway' or command[0] == 'wfa_console_tg' or re.search('wireless_ip', command[0]) or re.search('wmmps_console',command[0]) or re.search('tg_wireless',command[0]):
         retValueTable.setdefault(command[0],command[1])
     elif re.search('define',command[0]):

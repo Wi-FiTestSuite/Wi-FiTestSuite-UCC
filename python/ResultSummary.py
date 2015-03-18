@@ -332,7 +332,7 @@ class ResultSummary:
         
         # Stylesheet
         self.doc.appendChild(self.doc.createProcessingInstruction("xml-stylesheet",
-	"type=\"text/xsl\" href=\"%s\"" % stylesheet))
+		"type=\"text/xsl\" href=\"%s\"" % stylesheet))
 
         
         # Results->Result->Info
@@ -658,56 +658,56 @@ def ReadMapFile (filename,index,delim,n=1):
 
 ACC=""
 def main():
-    try:
-        global ACC
+	try:
+		global ACC
         
-	if nargs < 2 :
-		print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - Sigma-ResultSummary.conf")
-		return
+		if nargs < 2 :
+			print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - Sigma-ResultSummary.conf")
+			return
 
 
-	f = ReadMapFile(sys.argv[1],"OUTPUT_FILE","=")
-	if not f.endswith(".xml"):
-		f= "%s.xml" % f
+		f = ReadMapFile(sys.argv[1],"OUTPUT_FILE","=")
+		if not f.endswith(".xml"):
+			f= "%s.xml" % f
 
-	sm = ReadMapFile (sys.argv[1],"M_CHECK",'=')
-	log_path = ReadMapFile (sys.argv[1],"LOG_PATH",'=')
+		sm = ReadMapFile (sys.argv[1],"M_CHECK",'=')
+		log_path = ReadMapFile (sys.argv[1],"LOG_PATH",'=')
 
-	if not log_path.endswith("/"):
-		log_path= "%s/" % log_path
+		if not log_path.endswith("/"):
+			log_path= "%s/" % log_path
 	
-	prog_name = ReadMapFile (sys.argv[1],"PROG_NAME",'=')
-	UID = ReadMapFile (sys.argv[1],"UID",'=')
-	test_criteria=ReadMapFile (sys.argv[1],"TEST_CRITERIA_FILE",'=')
-	format_style=ReadMapFile (sys.argv[1],"FORMAT_STYLE",'=')
+		prog_name = ReadMapFile (sys.argv[1],"PROG_NAME",'=')
+		UID = ReadMapFile (sys.argv[1],"UID",'=')
+		test_criteria=ReadMapFile (sys.argv[1],"TEST_CRITERIA_FILE",'=')
+		format_style=ReadMapFile (sys.argv[1],"FORMAT_STYLE",'=')
 
-	init_logging("debug-log-result-summary.txt")
-	logging.info ("LOG_PATH [%s] PROG_NAME [%s] UID [%s] OUTPUT_FILE [%s] TEST_CRITERIA_FILE [%s] FORMAT_STYLE [%s]"  % (log_path,prog_name,UID,f,test_criteria,format_style))
+		init_logging("debug-log-result-summary.txt")
+		logging.info ("LOG_PATH [%s] PROG_NAME [%s] UID [%s] OUTPUT_FILE [%s] TEST_CRITERIA_FILE [%s] FORMAT_STYLE [%s]"  % (log_path,prog_name,UID,f,test_criteria,format_style))
 
-	rSummary = ResultSummary(f,test_criteria,prog_name,UID,log_path,sm,format_style)
+		rSummary = ResultSummary(f,test_criteria,prog_name,UID,log_path,sm,format_style)
 
-	signVerification=ReadMapFile (sys.argv[1],"SIGN_VERIFICATION",'=')
+		signVerification=ReadMapFile (sys.argv[1],"SIGN_VERIFICATION",'=')
 
-	# Enable Signature verification - by default it is disabled
-	if signVerification == "1":            
-            setattr(rSummary,"SignVerification",1)
-            acc_ip=ReadMapFile (sys.argv[1],"ACC_IP_ADDR",'=')
-            acc_port=ReadMapFile (sys.argv[1],"ACC_IP_PORT",'=')
-            ACC = ACCClient(acc_ip,acc_port)
+		# Enable Signature verification - by default it is disabled
+		if signVerification == "1":            
+			setattr(rSummary,"SignVerification",1)
+			acc_ip=ReadMapFile (sys.argv[1],"ACC_IP_ADDR",'=')
+			acc_port=ReadMapFile (sys.argv[1],"ACC_IP_PORT",'=')
+			ACC = ACCClient(acc_ip,acc_port)
             #unit test with hard coded file name
             #ACC.verifySign("HS2-5.1_2012-03-20T10_00_12Z.xml")
 
             
-	rSummary.generateSummary()
-	rSummary.writeXML()
+		rSummary.generateSummary()
+		rSummary.writeXML()
 
-	# valid results C:\MyDocs\Self-Cert\Self-Cert_Result-Files\TestCriteria\TestCriteria.xml
-	#validator = ResultValidation(rSummary.fileName,"C:\\MyDocs\\Self-Cert\\Self-Cert_Result-Files\\TestCriteria\\TestCriteria.xml",rSummary.ProgramName)
-	#validator.validate()
-	#logging.info("%s" % validator)
-    except StandardError:
-        err=sys.exc_info( )
-        logging.error("End %s" % err[1])
+		# valid results C:\MyDocs\Self-Cert\Self-Cert_Result-Files\TestCriteria\TestCriteria.xml
+		#validator = ResultValidation(rSummary.fileName,"C:\\MyDocs\\Self-Cert\\Self-Cert_Result-Files\\TestCriteria\\TestCriteria.xml",rSummary.ProgramName)
+		#validator.validate()
+		#logging.info("%s" % validator)
+	except StandardError:
+		err=sys.exc_info( )
+		logging.error("End %s" % err[1])
             
 
 ## Main
