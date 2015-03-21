@@ -1107,6 +1107,9 @@ def process_cmd(line):
             
                 retValueTable[command[3]] = "0"
                 i=0
+
+            #Check for NULL before comparison
+            if retValueTable[command[2]] != "":
                 for c in cmd2:
                     logging.info("Search \"%s\" in \"%s\"" %(cmd2[i],cmd1))
                     #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
