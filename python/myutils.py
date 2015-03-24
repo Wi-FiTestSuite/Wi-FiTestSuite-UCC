@@ -1925,14 +1925,17 @@ def wfa_print_result(expt_flag, msg=""):
         set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)    
         XLogger.setTestResult("ABORTED")
         logging.info("ABORTED-: %s" % msg)
+
     if expt_flag == 1 and XLogger.resultChangeCount > 1:
-        if "PASS" in XLogger.multiStepResultDict or "COMPLETE" in XLogger.multiStepResultDict:
-            if XLogger.multiStepResultDict["PASS"] == XLogger.resultChangeCount:
-                set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
-                logging.info ("\nTEST RESULT ---> %15s" % "PASS")
-        else:
+        if XLogger.multiStepResultDict["FAIL"] > 0 :
             set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
             logging.info ("\nTEST RESULT ---> %15s" % "FAIL")
+                
+        else:
+            set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
+            logging.info ("\nTEST RESULT  ---> %15s" % "PASS")
+    
+
     XLogger.writeXML()
 ####################################################################
 
