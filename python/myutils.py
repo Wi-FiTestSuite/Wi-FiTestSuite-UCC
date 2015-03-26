@@ -62,7 +62,7 @@ import threading
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
 from random import randrange
-VERSION="8.1.1"
+VERSION="8.2.0_RC06"
 
 
 conntable = {}
