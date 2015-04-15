@@ -47,6 +47,8 @@
 
 #!/usr/bin/evn python
 import os, sys
+from myutils import tmsPrint
+from myutils import tmsPacket
 from myutils import scanner
 from myutils import process_ipadd
 from myutils import process_cmdfile
@@ -198,6 +200,8 @@ def runTestCase (testListFile, testID,grp=0):
 
     #init Logging
     init_logging(U.testID,1,grp)
+
+    tmsPacket.ProgramName = U.progName
 
     logging.info("\n Test Info %s" % U)
 

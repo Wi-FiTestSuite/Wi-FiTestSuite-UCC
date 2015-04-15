@@ -58,6 +58,7 @@ import re
 import ctypes
 import random
 import HTML
+import json, io, re
 import threading
 from xml.dom.minidom import Document
 from XMLLogger import XMLLogger
@@ -121,6 +122,180 @@ BACKGROUND_CYAN		=       BACKGROUND_BLUE | BACKGROUND_GREEN
 BACKGROUND_MAGENTA	=       BACKGROUND_RED | BACKGROUND_BLUE
 
 std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+
+#TMS response packet
+class TMSResponse:
+
+    #Init variables
+    def __init__(self, TestResult="N/A", Mode="Sigma", DutParticipantName="Jeff", PrimaryTestbedParticipantName="Mark", is60GHz="False" ):
+        self.TmsEventId =""
+        self.ProgramName = ""
+        self.TestCaseId = ""
+        self.UCCversion = ""
+        self.Dut = []
+        self.PrimaryTestbed = []
+        self.SupplementalTestbeds = []
+        self.LogFileName = ""
+        self.TimeStamp = ""
+        self.TestResult = ""
+        self.snifferLogFileName = ""
+        self.Mode = ""
+        self.DutParticipantName = ""
+        self.PrimaryTestbedParticipantName = ""
+        self.is60GHz = ""
+        #need to get some infos(Mode, DutParticipantName, PrimaryTestbedParticipantName from TMS client
+
+        #To DO :
+        #need to add AP get_device_inof -> do we need new Capi for AP device info?? 
+        #need logic to get info from TMS client(some txt file or init file, etc..) 
+
+    def __str__(self):
+        return("\n Test Event ID = [%s] Prog Name = [%s] Test Case = [%s] Dut Name =[%s] Model Number =[%s] Test Result =[%s]" % (self.TmsEventId,self.ProgramName,self.TestCaseId,self.dutName,self.dutModeNumber, self.testResult))
+    
+    #func to get class to dict
+    def asDict(self):
+        return self.__dict__
+
+    #func to write JSON for TMS -> grep log file and look for Version Info
+    def writeTMSJson(self, logLoc):
+
+        flag = 0
+        counter = 0
+
+        with open(self.LogFileName, "r") as f:
+            for line in f:
+                #this is to search for 60GHz string and figure out this is 60GHz supported program or not.. This may need to be changed later once naming policy is set.
+                if re.search(r"60GHz", line) :
+                    self.is60GHz = "True"
+
+                if re.search(r"device_get_info", line) :
+                     flag = 1
+                     continue
+
+                if flag == 1 :
+                    if re.search(r"~~~~~", line) :
+                        flag = 0
+                        continue 
+
+                    if re.search(r"--->", line) :
+                        continue
+
+                    if re.search(r"<--", line) and re.search(r"status,COMPLETE,vendor", line):
+                        pos = line.index('     ') + 5
+                        str = line[pos:]
+                        
+                        #DUT case
+                        if str.startswith('DUT') :
+                            posVendor = line.index('vendor,') + 7
+                            
+                            str = line[posVendor:]
+                            posSym = str.index(',')
+                            dutName = str[:posSym]
+                            str = str[len(self.dutName) + 7:]
+                            posSym = str.index(',')
+                            dutModel = str[:posSym]
+                            str = str[len(self.dutModel) + 9:]
+                            str = str.lstrip()
+                            dutVersion = str.rstrip('\n')
+
+                            self.Dut.append({'company':dutName, 'model':dutModel, 'firmware':dutVersion, 'Category' : 'N/A', 'VendorDeviceId' : dutName + dutModel})
+
+                        #TESTBED case
+                        else :
+                            posVendor = line.index('vendor,') + 7
+                            str = line[posVendor:]
+                            posSym = str.index(',')
+                            str = str.lstrip()
+                            companyTestBed = str[:posSym]
+                            
+                            str = str[len(companyTestBed) + 7:]
+                            posSym = str.index(',')
+                            modelTestBed = str[:posSym]
+                           
+                            str = str[len(modelTestBed) + 9:]
+                            str = str.lstrip()
+                            firmwareTestBed = str.rstrip('\n')
+                            
+                            if counter == 0 :
+                                self.PrimaryTestbed.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
+                            else :
+                                self.SupplementalTestbeds.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
+                            
+                            counter = counter + 1
+
+        jsonFname="%s/tms_%s.json" %( logLoc , self.TestCaseId)
+        self.TimeStamp = time.strftime("%Y-%m-%dT%H:%M:%S.%Z", time.localtime()) #time.strftime("%b-%d-%Y__%H-%M-%S", time.localtime())
+        self.Mode = "Sigma"
+        self.DutParticipantName = "Jeff"
+        self.PrimaryTestbedParticipantName = "Mark"
+
+        tmsFile = open(jsonFname,"w")
+        #tmsFile.write("#################################################################################\n")
+        #tmsFile.write("                                TMS RESPONSE JSON\n") 
+        #tmsFile.write("#################################################################################\n")   
+        json.dump(self.asDict(), tmsFile, indent=4)
+
+        tmsFile.close()
+
+
+    #func to get device_get_info capi resonse
+    def getDeviceInfo(self, displayname, response):
+
+        flag = 0
+
+        if re.search(r"status,COMPLETE,vendor", response):
+                     
+            #DUT case
+            if  displayname.startswith('DUT') :
+                posVendor = line.index('vendor,') + 7
+                            
+                str = line[posVendor:]
+                posSym = str.index(',')
+                dutName = str[:posSym]
+                str = str[len(self.dutName) + 7:]
+                posSym = str.index(',')
+                dutModel = str[:posSym]
+                str = str[len(self.dutModel) + 9:]
+                str = str.lstrip()
+                dutVersion = str.rstrip('\n')
+
+                self.Dut.append({'company':dutName, 'model':dutModel, 'firmware':dutVersion, 'Category' : 'N/A', 'VendorDeviceId' : dutName + dutModel})
+
+
+            #TESTBED case
+            else :
+                posVendor = response.index('vendor,') + 7
+                str = response[posVendor:]
+                posSym = str.index(',')
+                str = str.lstrip()
+                companyTestBed = str[:posSym]
+                            
+                str = str[len(companyTestBed) + 7:]
+                posSym = str.index(',')
+                modelTestBed = str[:posSym]
+                           
+                str = str[len(modelTestBed) + 9:]
+                str = str.lstrip()
+                firmwareTestBed = str.rstrip('\n')
+
+                if counter == 0 :              
+                    self.PrimaryTestbed.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
+                else :
+                    self.SupplementalTestbeds.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
+                            
+                counter = counter + 1
+
+    def getTestID(self, pkgName):    
+        
+        taskID = pkgName    
+        #removed first 6 digits of pkgName which is version of Sigma  ex) 8.1.0-NAN_Plugfest5
+        self.TmsEventId = taskID[6:]
+        self.UCCversion = "UCC Version " + pkgName
+
+#global to save tms values
+tmsPacket = TMSResponse()
+tmsLogLocation = ""
+
 
 # Global Handler for classified Logs
 cSLog = ""
@@ -1596,6 +1771,10 @@ def send_capi_command(toaddr,capi_elem):
                 asock.settimeout(deftimeout)
             status = asock.recv(2048)
 
+            if re.search(r"device_get_info", capi_cmd.rstrip):
+                tmsPacket.getDeviceInfo(displayaddr, status.rstrip('\r\n' ))
+            
+
         logging.debug( "%s (%s) <--- [%s]" % (displayaddr,toaddr,status.rstrip('\r\n' )))
         
         # Status,Running
@@ -1639,9 +1818,13 @@ def set_test_result(result,data,rdata):
         if (re.search("PASS",result)) :
             set_color(FOREGROUND_GREEN |FOREGROUND_INTENSITY)
             logging.info ("\n     TEST RESULT ---> %15s" % result)
+            tmsPacket.TestResult = "PASS"
+            tmsPrint()
         elif (re.search("FAIL",result)):
             set_color(FOREGROUND_RED |FOREGROUND_INTENSITY)
             logging.info ("\n     TEST RESULT ---> %15s | %s |" % (result,data))
+            tmsPacket.TestResult = "FAIL"
+            tmsPrint()
         #XLogger.writeXML()
 
 def process_passFailWMM_2(line):
@@ -1925,16 +2108,27 @@ def wfa_print_result(expt_flag, msg=""):
         set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)    
         XLogger.setTestResult("ABORTED")
         logging.info("ABORTED-: %s" % msg)
+        tmsPacket.TestResult = "ABORTED"
+        tmsPrint()
 
-    if expt_flag == 1 and XLogger.resultChangeCount > 1:
+    elif expt_flag == 1 and XLogger.resultChangeCount > 1:
         if XLogger.multiStepResultDict["FAIL"] > 0 :
             set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
             logging.info ("\nTEST RESULT ---> %15s" % "FAIL")
-                
+            tmsPacket.TestResult = "FAIL"
+            tmsPrint()
         else:
             set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
             logging.info ("\nTEST RESULT  ---> %15s" % "PASS")
+            tmsPacket.TestResult = "PASS"
+            tmsPrint()
     
+    else:
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)    
+        XLogger.setTestResult("ERROR")
+        logging.info("ERROR-Result N/A: %s" % msg)
+        tmsPacket.TestResult = "ERROR"
+        tmsPrint()
 
     XLogger.writeXML()
 ####################################################################
@@ -1948,6 +2142,8 @@ def wfa_sys_exit(msg):
         XLogger.setTestResult("ABORTED",msg)
         #setattr(ResInfo,"rdata", msg)
     logging.info("ABORTED-: %s" % msg)
+    tmsPacket.TestResult = "ABORTED"
+    tmsPrint()
     XLogger.writeXML()
     raise StandardError("Exit - %s" % msg)
     
@@ -1971,13 +2167,15 @@ class XMLLogHandler(logging.FileHandler):
 XLogger=""
 
 def init_logging (_filename,level,loop=0):
-    global cSLog, XLogger
+    global cSLog, XLogger, tmsPacket, tmsLogLocation
     p=_filename.split('\\')
     resultCollectionFile = open("TestResults","a")
     for s in p:
         tFileName=s
 
     directory= "./log/%s_%s" %(tFileName.rstrip(".txt"),time.strftime("%b-%d-%Y__%H-%M-%S", time.localtime()))
+    tmsLogLocation = directory
+
     os.mkdir(directory)
     retValueTable["$logDir"]= directory.lstrip("./log")
     
@@ -1988,6 +2186,10 @@ def init_logging (_filename,level,loop=0):
     fname_sniffer="%s/sniffer_log_%s.log" % ( directory , tFileName.rstrip(".txt"))
     
     logStream = open(fname,"w")
+    
+    tmsPacket.TestCaseId = tFileName.rstrip(".txt")
+    tmsPacket.LogFileName = fname
+    tmsPacket.snifferLogFileName = fname_sniffer
     
     logging.basicConfig(level=logging.INFO,
         format='%(asctime)s %(levelname)-8s %(message)s',
@@ -2037,11 +2239,15 @@ def init_logging (_filename,level,loop=0):
     if not loop:
         logging.getLogger('').addHandler(hXML)
     
+    tmsPacket.getTestID(VERSION)
     
-        
+    #set_color(FOREGROUND_WHITE)    
     logging.info ("###########################################################\n")    
     logging.info ("UCC Version [%s]" % VERSION)    
     logging.info ('Logging started in file - %s' % (fname))
+
+
+ 
 
 def reset():
     global retValueTable, DisplayNameTable, streamSendResultArray, streamRecvResultArray, streamInfoArray,lhs,rhs,oper,boolOp,runningPhase,testRunning,threadCount,resultPrinted, ifcondBit, ifCondBit, iDNB,iINV,RTPCount
@@ -2134,6 +2340,12 @@ def firstword(line):
         retValueTable.setdefault(command[0],"%s" % frameRate)               
     if len(command) == 2:
         logging.debug("Command = %s" % (command[1]))
+
+
+#func to run writeTMSJson()
+def tmsPrint():
+    global tmsPacket,tmsLogLocation
+    tmsPacket.writeTMSJson(tmsLogLocation)
 
 def get_display_name(toaddr):
 	displayName = toaddr
