@@ -1664,6 +1664,11 @@ def process_resp(toaddr,status,capi_elem,command):
         
         ss = status.rstrip('\r\n')
         logging.info( "%s (%-15s) <-- %s" % (get_display_name(toaddr),toaddr,ss ))
+        if not ss:
+            set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+            logging.info('Please check the following:')
+            logging.info('	- Sigma CA is returning empty string, please make sure CA is working properly')
+            set_color(FOREGROUND_INTENSITY)
         #Exit in case of ERROR
         if (re.search('ERROR', ss) or re.search('INVALID', ss)) and (iDNB == 0 and iINV == 0):
         #if re.search('ERROR', ss):
@@ -2150,6 +2155,16 @@ def wfa_sys_exit(msg):
     logging.info("ABORTED-: %s" % msg)
     tmsPacket.TestResult = "ABORTED"
     tmsPrint()
+    if (msg.find("10060") != -1): 
+        logging.info('Please check the following:')
+        logging.info('	- Make sure destination IP Address is set correctly')
+        logging.info('	- Make sure remote device has firewall turned off')
+        logging.info('	- Make sure control network cable is connected')
+    elif (msg.find("10061") != -1):
+        logging.info('Please check the following:')
+        logging.info('	- Make sure Sigma CA is started')
+        logging.info('	- Make sure destination port number is set correctly')
+
     XLogger.writeXML()
     raise StandardError("Exit - %s" % msg)
     
