@@ -1285,7 +1285,7 @@ def process_cmd(line):
                 i = 0
 
             #Check for NULL before comparison
-            if retValueTable[command[2]] != "":
+            if cmd2 != "":
                 for c in cmd2:
                     logging.info("Search \"%s\" in \"%s\"" %(cmd2[i], cmd1))
                     #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
@@ -2157,7 +2157,7 @@ def wfa_print_result(expt_flag, msg=""):
     if expt_flag == 0 and XLogger.result == "NOT COMPLETED":
         set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
         XLogger.setTestResult("ABORTED")
-        logging.info("ABORTED-: %s" % msg)
+        #logging.info("ABORTED-: %s" % msg)
         tmsPacket.TestResult = "ABORTED"
         tmsPrint()
 
