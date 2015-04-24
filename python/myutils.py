@@ -1785,14 +1785,16 @@ def send_capi_command(toaddr,capi_elem):
         # Status,Running
         # Quick fix for case where AzWTG sends response RUNNING and COMPLETED in one read
         if (len(status) > 25):
-			if ((status.find("status,RUNNING\n",beg=0,end=len(status)) != -1): 
+			if (status.find("status,RUNNING\n") != -1): 
 				status = status.split('\n')
 				status = status[1]
-			else if (status.find("status,RUNNING\r\n",beg=0,end=len(status)) != -1)):
+			elif (status.find("status,RUNNING\r\n") != -1):
 				status = status.replace('status,RUNNING\r\n','')
-			else if (status.find("status,RUNNING",beg=0,end=len(status)) != -1)):
-				status = status.replace('status,RUNNING','')
+			elif (status.find("status,RUNNING\n\r") != -1):
+				status = status.replace('status,RUNNING\n\r','')
+			elif (status.find("status,RUNNING") != -1):
 				logging.info("Missing new line after status,RUNNING")
+				status = status.replace('status,RUNNING','')
         else:
 	    	if iDNB == 0:
 				status = asock.recv(2048)
