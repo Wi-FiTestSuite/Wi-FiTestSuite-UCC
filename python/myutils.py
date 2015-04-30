@@ -495,7 +495,7 @@ def process_cmd(line):
         if str[0] == '' : 
 	    return
 	
-	    command=str[0].split('!')
+	command=str[0].split('!')
 
         if "$MTF" in retValueTable and retValueTable["$MTF"] == "0":
             for t in threads:
