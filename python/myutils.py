@@ -375,26 +375,26 @@ def printStreamResults_WMM():
 
 #Qiumin to resolve a readline problem with multiple messages in one line
 def read1line(s):
-	ret = ''
+    ret = ''
 
-	while True:
-		try:
-			c = s.recv(1)
-		except OSError, e:
-			logging.info("Recv error: "+e)
-			print("Socket error "+ e)
+    while True:
+        try:
+            c = s.recv(1)
+	except OSError, e:
+	    logging.info("Recv error: "+e)
+	    print("Socket error "+ e)
 #	    ret = ''
 #	    break;
 
-		if c == '\n' or c == '':
-			if c == '':
-				logging.info("get a null char")
-				break
-			else:
-				ret += c
+	if c == '\n' or c == '':
+            if c == '':
+                logging.info("get a null char")
+	    break;
+        else:
+	    ret += c
 
 #    logging.info("\nReceived One Response back: " + ret)
-	return ret + '\n'
+    return ret + '\n'
 
 def responseWaitThreadFunc(_threadID,command,addr,receiverStream):
     global waitsocks, readsocks, writesocks,runningPhase,testRunning,streamInfoArray, retValueTable
