@@ -1477,9 +1477,11 @@ def process_cmd(line):
                     #logging.info("@@@@@@@@@@@@@@@ p.Id-%s- p.pairID %s-I=%s-retValI=%s-"%(p.streamID,p.pairID,i,retValueTable[i]))
                     #logging.info("@@@@@@@@@@@@@@@ CAPI -%s-"% capi_elem[idx+1])
                     if p.pairID == retValueTable[i] and p.phase == runningPhase:
-                        while p.status != 1:
+                        count = 0 #Wait 10 seconds and avoid infinite loop
+                        while (p.status != 1) and (count < 10):
                             #Minor sleep to avoid 100% CPU Usage by rapid while
-                            time.sleep(0.5)                   
+                            time.sleep(1)
+                            count += 1
                            
                         if multicast == 1:
         		    		capi_elem[idx+1] = val
