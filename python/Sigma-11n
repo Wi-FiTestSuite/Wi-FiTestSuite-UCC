@@ -122,7 +122,6 @@ N-5.2.50_GN!init_802.11n.txt!N-5.2.50.txt
 N-5.2.51!init_802.11n.txt!N-5.2.51.txt
 N-5.2.52!init_802.11n.txt!N-5.2.52.txt
 N-5.2.53!init_802.11n.txt!N-5.2.53.txt
-N-5.2.54!init_802.11n.txt!N-5.2.54.txt
 N-5.2.55!init_802.11n.txt!N-5.2.55.txt
 
 # IBSS Cases
@@ -234,7 +233,6 @@ N-4.2.43_AN!init_802.11n.txt!N-4.2.43.txt
 N-4.2.43_GN!init_802.11n.txt!N-4.2.43.txt
 N-4.2.44-PSKMixed!init_802.11n.txt!N-4.2.44-PSKMixed.txt
 N-4.2.45!init_802.11n.txt!N-4.2.45.txt
-N-4.2.46!init_802.11n.txt!N-4.2.46.txt
 N-4.2.47!init_802.11n.txt!N-4.2.47.txt
 
 #Info Files for Invalid Testcase ID
