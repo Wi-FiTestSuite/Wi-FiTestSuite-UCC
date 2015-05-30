@@ -47,7 +47,8 @@ N-ExS20!init_802.11n.txt!N-ExS20.txt!
 N-ExS21!init_802.11n.txt!N-ExS21.txt!
 N-ExS22!init_802.11n.txt!N-ExS22.txt!
 N-ExS23!init_802.11n.txt!N-ExS23.txt!
-N-ExS24!init_802.11n.txt!N-ExS24.txt!
+N-ExS24!init_802.11n.txt!N-ExS24.txt
+N-ExS25!init_802.11n.txt!N-ExS25.txt!
 N-5.2.26!init_802.11n.txt!N-5.2.26.txt
 N-5.2.26_S!init_802.11n.txt!N-5.2.26_S.txt
 
@@ -161,6 +162,7 @@ N-ExA17!init_802.11n.txt!N-ExA17.txt!
 N-ExA24!init_802.11n.txt!N-ExA24.txt!
 N-ExA25!init_802.11n.txt!N-ExA25.txt!
 N-ExA26!init_802.11n.txt!N-ExA26.txt!
+N-ExA27!init_802.11n.txt!N-ExA27.txt!
 
 N-4.2.19!init_802.11n.txt!N-4.2.19.txt
 

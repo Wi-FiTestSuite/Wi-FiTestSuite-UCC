@@ -521,6 +521,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("SIM",ReadMapFile(DUTFile,"SIM","!"))
     dutInfoObject.__setattr__("AKA",ReadMapFile(DUTFile,"AKA","!"))
     dutInfoObject.__setattr__("AKA'",ReadMapFile(DUTFile,"AKA'","!"))
+    dutInfoObject.__setattr__("PWD",ReadMapFile(DUTFile,"PWD","!"))
     
     #VE Specific
     dutInfoObject.__setattr__("BSS_Trans_Query_Support",ReadMapFile(DUTFile,"BSS_Trans_Query_Support","!"))
