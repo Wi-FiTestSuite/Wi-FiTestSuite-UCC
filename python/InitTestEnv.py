@@ -90,7 +90,7 @@ DUTFeatureInfoFile="./log/DUTFeatureInfo.html"
 VarList={}
 
 # List of EAPMethods
-EAPList = ["TLS","TTLS","PEAP0","FAST","PEAP1","SIM","AKA"]
+EAPList = ["TLS","TTLS","PEAP0","FAST","PEAP1","SIM","AKA","AKA\'","PWD"]
 
 # List of WPS Config Methods
 WPSConfigList = ["WPS_Keypad" ,"WPS_Display","WPS_PushButton","WPS_Label"]
@@ -1084,6 +1084,11 @@ def FindCheckFlag11n (TestCaseID):
         VarList.setdefault("TestNA","%s not supported by DUT; Skipping the Test. Re-Check the file \"DUTInfo.txt\"" % chkFlag)
     else:
         LogMsg ("%s is supported by DUT; Make sure [%s] is enabled" % (chkFlag,chkFlag))
+        for EAP in EAPList:
+            if (EAP == chkFlag):
+                VarList.setdefault("DUTEAPMethod",dutInfoObject.DUTEAPMethod)
+                LogMsg("%s EAP method is supported by DUT" % chkFlag)
+                break
 
 
 def AddWPSConfigMethod (TID,VarName,VarValue):
