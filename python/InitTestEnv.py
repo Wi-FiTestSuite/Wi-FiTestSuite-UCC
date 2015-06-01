@@ -685,6 +685,8 @@ def GetServerSupplicantInfo (TestCaseID):
         tag="Other"
         
     serverName=find_Server(TestCaseID,tag)
+
+    VarList.setdefault("RadiusServerName", serverName)
     
     if dutInfoObject.DUTCategory != -1:
         suppName = find_Supplicant(TestCaseID,"DUT",dutInfoObject.DUTCategory.lower())
