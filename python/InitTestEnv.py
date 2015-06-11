@@ -146,10 +146,10 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
     LogMsg("----Test ID = %s-------" %TestID)
     GetCAPIFileNames (TestID)    
     GetTestbedDeviceInfo(TestID)
-    if ProgName =="P2P" or ProgName == "WFD" or ProgName == "WFDS":
+    if ProgName =="P2P" or ProgName == "WFD" or ProgName == "WFDS" or ProgName == "NAN":
         GetP2PVariables(TestID)
         
-    if not (ProgName == "P2P" or ProgName == "TDLS"):
+    if not (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "NAN"):
         GetServerSupplicantInfo(TestID)
 
     if ProgName == "HS2-R2":
@@ -459,6 +459,7 @@ def createUCCInitEnvFile (filename):
     uccInitFile = open(uccPath+filename,'w')
     uccInitFile.write("# This is an auto generated file  - %s \n# For test case - %s\n#DO NOT modify this file manually \n\n" %(time.strftime("%b-%d-%y_%H:%M:%S", time.localtime()),dutInfoObject.TestCaseID))
 
+    uccInitFile.write("\ndefine!$tcID!%s!\n"%(dutInfoObject.TestCaseID))
     uccInitFile.write(testEnvVariables.formatNameUCC())
     for p in testEnvVariables.APs:
         uccInitFile.write(testEnvVariables.APs[p].formatAPUCC())
@@ -564,7 +565,8 @@ def ReadDUTInfo (filename,TestCaseID):
 		ProgName == "WFDS" or 
 		ProgName == "VHT" or 
 		ProgName == "HS2-R2" or
-		ProgName == "WMMPS"):
+		ProgName == "WMMPS" or 
+		ProgName == "NAN"):
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
@@ -575,7 +577,8 @@ def ReadDUTInfo (filename,TestCaseID):
 			ProgName == "HS2" or 
 			ProgName == "WFD" or 
 			ProgName == "WFDS" or 
-			ProgName == "HS2-R2"):    
+			ProgName == "HS2-R2" or 
+			ProgName == "NAN"):    
             P2PVarList = ReadAllMapFile(DUTFile,ProgName,"!")
             if P2PVarList != -1:
                 P2PVarList=P2PVarList.split('!')
@@ -654,7 +657,8 @@ def GetCAPIFileNames (TestCaseID):
 		ProgName != "WFD" and 
 		ProgName != "WFDS" and 
 		ProgName != "HS2-R2" and
-		ProgName != "WMMPS"):
+		ProgName != "WMMPS" and 
+		ProgName != "NAN"):
         setattr (testEnvVariables,"DUTConfigCAPIFile","NoSigmaSupportMsg.txt")
         VarList.setdefault("SigmaMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
         VarList.setdefault("DUT_SIGMA_VERSION","NA")
@@ -804,7 +808,7 @@ def GetTestbedDeviceInfo (TestCaseID):
             #setattr(testEnvVariables,"SSID",SSID)
 
     
-    if (ProgName != "P2P" and ProgName != "WFD" and ProgName != "WFDS"):
+    if (ProgName != "P2P" and ProgName != "WFD" and ProgName != "WFDS" and ProgName != "NAN"):
         FindBandChannel(TestCaseID)
     #LogMsg("APs = %s  STAs = %s  SSID = %s "% (APs,STAs,SSID))
    
