@@ -1104,6 +1104,7 @@ def FindCheckFlag11n (TestCaseID):
         LogMsg ("%s is supported by DUT; Make sure [%s] is enabled" % (chkFlag,chkFlag))
         for EAP in EAPList:
             if (EAP == chkFlag):
+                dutInfoObject.__setattr__("DUTEAPMethod",EAP)
                 VarList.setdefault("DUTEAPMethod",dutInfoObject.DUTEAPMethod)
                 LogMsg("%s EAP method is supported by DUT" % chkFlag)
                 break
