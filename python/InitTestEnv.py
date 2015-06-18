@@ -63,6 +63,7 @@ import pprint
 import xml.dom.minidom
 from xml.dom.minidom import Node
 import HTML
+from decimal import Decimal
 
 
 
@@ -168,34 +169,35 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
 #
 class dutInfo:
     def __init__(self,
-	             DUTType="",
-				 DUTCategory="",
-				 DUTBand="",
-				 TestCaseID="",
-				 DUTEAPMethod="",
-				 WEP=0,
-				 preAuth=0,
-				 _11h=0,
-				 SupportedChannelWidth=0,
-				 Streams=0,
-				 Greenfield=0,
-				 SGI20=0,
-				 SGI40=0,
-				 RIFS_TX=0,
-				 Coexistence_2040=0,
-				 STBC_RX=0,
-				 STBC_TX=0,
-				 MCS32=0,
-				 SigmaSupport=1,
-				 OBSS=0,
-				 AMPDU_TX=0,
-				 AP_Concurrent=0,
-				 TDLSDiscReq=0,
-				 PUSleepSTA=0,
-				 _11d=0,
-				 STAUT_PM=0,
-				 Open_Mode=0,
-				 PMF_OOB=0):
+                 DUTType="",
+                 DUTCategory="",
+                 DUTBand="",
+                 TestCaseID="",
+                 DUTEAPMethod="",
+                 WEP=0,
+                 preAuth=0,
+                 _11h=0,
+                 SupportedChannelWidth=0,
+                 Streams=0,
+                 Greenfield=0,
+                 SGI20=0,
+                 SGI40=0,
+                 RIFS_TX=0,
+                 Coexistence_2040=0,
+                 STBC_RX=0,
+                 STBC_TX=0,
+                 MCS32=0,
+                 SigmaSupport=1,
+                 OBSS=0,
+                 AMPDU_TX=0,
+                 AP_Concurrent=0,
+                 TDLSDiscReq=0,
+                 PUSleepSTA=0,
+                 _11d=0,
+                 STAUT_PM=0,
+                 Open_Mode=0,
+                 PMF_OOB=0,
+                 ASD=0):
         self.DUTType=DUTType
         self.DUTCategory=DUTCategory
         self.DUTBand=DUTBand
@@ -225,6 +227,8 @@ class dutInfo:
         #TDLS Specific
         self.TDLSDiscReq=TDLSDiscReq
         self.PUSleepSTA=PUSleepSTA
+        #ASD Device
+        self.ASD=ASD
 
     def __setattr__(self, attr, value):
         self.__dict__[attr] = value
@@ -537,6 +541,9 @@ def ReadDUTInfo (filename,TestCaseID):
     
     #Default method is TTLS
     dutInfoObject.__setattr__("DUTEAPMethod","TTLS")
+    
+    #ASD device testing
+    dutInfoObject.__setattr__("ASD",ReadMapFile(DUTFile,"ASD","!"))
     
     for EAP in EAPList:
         Ret = ReadMapFile(DUTFile,EAP,"!")
@@ -948,6 +955,9 @@ def AddTestCaseAP (APName,pos):
 
 def GetOtherVariables(TID):
     global dutInfoObject
+    if (getattr(dutInfoObject,"ASD")!="0"):
+        find_ASD_threshold_values(TID,"Throughputs_ASD")
+    else:
     find_throughput_values(TID,"Throughputs")  
     cw=find_TestcaseInfo_Level1(TID,"APChannelWidth")
     LogMsg("Channel Width = %s"%cw)
@@ -991,6 +1001,7 @@ def GetOtherVariables(TID):
     VarList.setdefault("Streams","%sSS" % dutInfoObject.Streams)
     VarList.setdefault("Open_Mode",dutInfoObject.Open_Mode)
     VarList.setdefault("PMF_OOB",dutInfoObject.PMF_OOB)
+    VarList.setdefault("ASD",dutInfoObject.ASD)
 
     #EAP Methods
     #VarList.setdefault("TLS",dutInfoObject.TLS)
@@ -1669,8 +1680,49 @@ def findPMFCap(testID,tag):
              #   for iCount in range(1,3):
               #      LogMsg ("------------Testbed PMF Cap%s= %s" %(iCount,node3.firstChild.nodeValue))
                #     VarList.setdefault("PMFCap%s" %(iCount),node3.firstChild.nodeValue)
+def get_ASD_framerate(ASDvalue):
+    # The expected traffic is about 30% more than the expected throughput value 
+    offset = 0.3
+    # need to use function to replace the payloadvalue = 1000
+    ASDframerate = ((float(ASDvalue) * (1+offset) * 100000) / (1000 * 8)) 
+    ASDframerate = "{:.2f}".format(ASDframerate)
+    return ASDframerate
 	
+def find_ASD_threshold_values(testID,tag):
+    result="" # will detemine what this value for
+    tag1=""
+    LogMsg ("\n|\n|\n| Searching ASD Throughput values for TestID %s" % (testID))
+    for node in doc.getElementsByTagName(testID):
+        LogMsg ("Node1 = %s" %node.nodeName)
+        L = node.getElementsByTagName(tag)
+        asd_type=getattr(dutInfoObject,"ASD")
+        if asd_type=="1":
+            tag1="Handsets"
+        elif asd_type=="2":
+            tag1="TV"
+        elif asd_type=="3":
+            tag1="Printer"
+        elif asd_type=="4":
+            tag1="SetTopBox"
+        elif asd_type=="5":
+            tag1="MobileAP"
+        LogMsg(" Test Running ASD -%s-%s- " % (asd_type,tag1))
+        for node2 in L:
+            for node3 in node2.childNodes:
+                if node3.nodeName == tag1:
+                    for node4 in node3.childNodes:
+                        if(node4.nodeName != "#text"):
+                            LogMsg ("------------Node4. = %s %s" % (node4.nodeName,node4.firstChild.nodeValue))
+                            VarList.setdefault(node4.nodeName,node4.firstChild.nodeValue)
+                            #Add new key value in the Varlist dictionary to store coresponding framerate for ASD project
+                            ASDkey = "FrameRate_" + node4.nodeName
+                            ASDframerate = get_ASD_framerate(node4.firstChild.nodeValue)
+                            VarList.update({ASDkey:ASDframerate})
+                            result = 1
 
+                       
+    LogMsg ("\n|\n|\n| Found ASD Throughput values -%s-" % (result))
+    return result
 def find_throughput_values(testID,tag):
     result=""
     tag1=""
