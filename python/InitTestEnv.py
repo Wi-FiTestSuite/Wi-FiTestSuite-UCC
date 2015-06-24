@@ -1683,13 +1683,13 @@ def findPMFCap(testID,tag):
 def get_ASD_framerate(ASDvalue):
     # The expected traffic is about 30% more than the expected throughput value 
     offset = 0.3
-    # need to use function to replace the payloadvalue = 1000
-    ASDframerate = ((float(ASDvalue) * (1+offset) * 100000) / (1000 * 8)) 
+    # payload value is 1000, which is hard-coded in the script
+    ASDframerate = ((float(ASDvalue) * (1+offset) * 1000000) / (1000 * 8)) 
     ASDframerate = "{:.2f}".format(ASDframerate)
     return ASDframerate
 	
 def find_ASD_threshold_values(testID,tag):
-    result="" # will detemine what this value for
+    result="" 
     tag1=""
     LogMsg ("\n|\n|\n| Searching ASD Throughput values for TestID %s" % (testID))
     for node in doc.getElementsByTagName(testID):
