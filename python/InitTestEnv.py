@@ -196,6 +196,7 @@ class dutInfo:
                  _11d=0,
                  STAUT_PM=0,
                  Open_Mode=0,
+                 Mixedmode_WPA2WPA=0,
                  PMF_OOB=0,
                  ASD=0):
         self.DUTType=DUTType
@@ -223,6 +224,7 @@ class dutInfo:
         self._11d=_11d
         self.STAUT_PM=STAUT_PM
         self.Open_Mode=Open_Mode
+        self.Mixedmode_WPA2WPA=Mixedmode_WPA2WPA
         self.PMF_OOB=PMF_OOB
         #TDLS Specific
         self.TDLSDiscReq=TDLSDiscReq
@@ -515,6 +517,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("_11d",ReadMapFile(DUTFile,"11d","!"))
     dutInfoObject.__setattr__("STAUT_PM",ReadMapFile(DUTFile,"STAUT_PM","!"))
     dutInfoObject.__setattr__("Open_Mode",ReadMapFile(DUTFile,"Open_Mode","!"))
+    dutInfoObject.__setattr__("Mixedmode_WPA2WPA",ReadMapFile(DUTFile,"Mixedmode_WPA2WPA","!"))
     dutInfoObject.__setattr__("PMF_OOB",ReadMapFile(DUTFile,"PMF_OOB","!"))
 
     #EAP Methods
@@ -1000,6 +1003,7 @@ def GetOtherVariables(TID):
     VarList.setdefault("TSM_Support",dutInfoObject.TSM_Support)
     VarList.setdefault("Streams","%sSS" % dutInfoObject.Streams)
     VarList.setdefault("Open_Mode",dutInfoObject.Open_Mode)
+    VarList.setdefault("Mixedmode_WPA2WPA",dutInfoObject.Mixedmode_WPA2WPA)
     VarList.setdefault("PMF_OOB",dutInfoObject.PMF_OOB)
     VarList.setdefault("ASD",dutInfoObject.ASD)
 
