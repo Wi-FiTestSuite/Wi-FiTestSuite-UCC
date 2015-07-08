@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ConfigSets Version="1.0" Date="2012-08-16T18:26:46Z" Info="This file holds valid configuration values of test bed, Sigma components and test plan for each program.&#xD;&#xA;" LastChange="First draft">
+<ConfigSets Version="1.0" Date="2012-08-16T18:26:46Z" Info="This file holds valid configuration values of test bed, Wi-Fi Test Suite components and test plan for each program.&#xD;&#xA;" LastChange="First draft">
   <P2P>
     <ConfigSet>
       <Testbed>
@@ -8,54 +8,54 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>5</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC11.156</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.101.67</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -64,42 +64,42 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC16.0</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>5</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Atheros X</DeviceModel><Wireshark>1.4.0rc1-WFA-1.0</Wireshark></Sniffer>
         <APControlAgent>WINv04.00.00-D1</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -343,47 +343,47 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -392,35 +392,35 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Ralink 3800PD2</DeviceModel><Wireshark>1.2.1</Wireshark></Sniffer>
         <APControlAgent>WINv05.00.00</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -684,47 +684,47 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>6300/633AN.HMWG/633AN.HMWWB</Model>
           <Driver>13.5.0.6</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -733,35 +733,35 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>6300/633AN.HMWG/633AN.HMWWB</Model>
           <Driver>13.5.0.6</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Ralink 3800PD2</DeviceModel><Wireshark>1.2.1</Wireshark></Sniffer>
         <APControlAgent>WINv05.00.00</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -1668,47 +1668,47 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -1717,35 +1717,35 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Ralink 3800PD2</DeviceModel><Wireshark>1.2.1</Wireshark></Sniffer>
         <APControlAgent>WINv05.00.00</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -1958,47 +1958,47 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -2007,35 +2007,35 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Ralink 3800PD2</DeviceModel><Wireshark>1.2.1</Wireshark></Sniffer>
         <APControlAgent>WINv05.00.00</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -2248,47 +2248,47 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -2297,35 +2297,35 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7.7.0.448</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.1.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>1.4.11.1006</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Ralink 3800PD2</DeviceModel><Wireshark>1.2.1</Wireshark></Sniffer>
         <APControlAgent>WINv05.00.00</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -2538,54 +2538,54 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>5</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC11.156</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.101.67</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -2594,42 +2594,42 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC16.0</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>5</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Atheros X</DeviceModel><Wireshark>1.4.0rc1-WFA-1.0</Wireshark></Sniffer>
         <APControlAgent>WINv04.00.00-D1</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -2948,54 +2948,54 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>5</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC11.156</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.101.67</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -3004,42 +3004,42 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC16.0</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>5</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Atheros X</DeviceModel><Wireshark>1.4.0rc1-WFA-1.0</Wireshark></Sniffer>
         <APControlAgent>WINv04.00.00-D1</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -3156,52 +3156,52 @@
           <Model>3200XM-US/AP-105</Model>
           <Driver>6.2.0.0 Build 32513</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Atheros</Vendor>
           <Model>AR5KAP-0096VEA</Model>
           <Driver>2.6.15jk1221</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Cisco</Vendor>
           <Model>WAIR-LAP1262N-A-K9/WAIR-WLC2106-K9</Model>
           <Driver>7.0.94.210</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Meru</Vendor>
           <Model>AP301WF/MC1500WF</Model>
           <Driver>4.0.0.23</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>6.0.0</Version>
           <Others></Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>6.0.0</Version>
           <Others>Qualcomm AR5BXB-0092DA, 1.6.5-WFA-v1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>6.0.0</Version>
           <Others>-</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>PC Endpoint</Name>
           <Version>6.0.0</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -3210,35 +3210,35 @@
           <Model>BCM943224HMS</Model>
           <Driver>4353-V1</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
         <Device>
           <Vendor>DSPG</Vendor>
           <Model>ExpeditorTB</Model>
           <Driver>1.10</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Marvell</Vendor>
           <Model>RD-88W-PLUG-8787</Model>
           <Driver>1.1.1.p1</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Rim</Vendor>
           <Model>BlackBerry Bold 9000</Model>
           <Driver>02.41</Driver>
           <OS></OS>
-          <SigmaControlAgent></SigmaControlAgent>
+          <WTSControlAgent></WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Atheros X</DeviceModel><Wireshark>1.4.0rc1-WFA-1.0</Wireshark></Sniffer>
         <APControlAgent>WINv04.00.00-D1</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -3343,54 +3343,54 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>5</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC11.156</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>14.0.101.67</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -3399,42 +3399,42 @@
           <Model>AR5BXB-0092DA</Model>
           <Driver>7</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>RC16.0</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>02.04.09</SigmaControlAgent>
+          <WTSControlAgent>02.04.09</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>622ANHMW</Model>
           <Driver>5</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT3592</Model>
           <Driver>3.1.9.6023</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>RTL8192CE</Model>
           <Driver>1006.0.914.2010</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv04.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv04.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Atheros X</DeviceModel><Wireshark>1.4.0rc1-WFA-1.0</Wireshark></Sniffer>
         <APControlAgent>WINv04.00.00-D1</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
       <TestCase>
@@ -3531,82 +3531,82 @@
           <Model>BCM94360MC5_3</Model>
           <Driver>6.30.190.10</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>1.38</SigmaControlAgent>
+          <WTSControlAgent>1.38</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Qualcomm</Vendor>
           <Model>QCAKCUS223VHTA</Model>
           <Driver>QCA-VHT5G-01</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Marvell</Vendor>
           <Model>RD-88W-8897-WIFI-R0</Model>
           <Driver>15.57.1.p17</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>M-Qual-11</SigmaControlAgent>
+          <WTSControlAgent>M-Qual-11</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT8559XSTA</Model>
           <Driver>3.2.12.4944</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv08.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv08.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>HM812A00</Model>
           <Driver>2008.1.510.2013</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv08.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv08.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel</Vendor>
           <Model>7260.HMWG</Model>
           <Driver>16.0.1.22</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv08.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv08.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Atheros-11n</Vendor>
           <Model>AR5BXB-0092DA</Model>
           <Driver>9.2.0.499</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv08.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv08.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Broadcom-11n</Vendor>
           <Model>BCM943224HMS</Model>
           <Driver>5.10.112.3</Driver>
           <OS>WinXP</OS>
-          <SigmaControlAgent>WINv08.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv08.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Intel-11n</Vendor>
           <Model>6300</Model>
           <Driver>13.5.0.6</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv08.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv08.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>6.30 RC447.10552</Version>
           <Others>Broadcom</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
     <ConfigSet>
       <Testbed>
@@ -3615,56 +3615,56 @@
           <Model>BCM94706NRH4360AC</Model>
           <Driver>7</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>1.38</SigmaControlAgent>
+          <WTSControlAgent>1.38</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Marvell</Vendor>
           <Model>RD-88W-8897-WIFI-R0</Model>
           <Driver>15.57.1.p18</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Qualcomm</Vendor>
           <Model>QCAKAP135VHTA</Model>
           <Driver>2.6.31.—LSDK-10.1_PF6.2</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>1.0.9</SigmaControlAgent>
+          <WTSControlAgent>1.0.9</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink</Vendor>
           <Model>RT8559XAP</Model>
           <Driver>4.0.1.0</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Realtek</Vendor>
           <Model>AP97D22AC</Model>
           <Driver>vht5g-05(05 23)</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Marvell (11n)</Vendor>
           <Model>CD-88W-AP95-A0</Model>
           <Driver>5.0.6.2C</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Ralink (11n)</Vendor>
           <Model>RT3800PDAP2</Model>
           <Driver>2.4.0.1</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>8.0.0</UCC>
         <Sniffer>4.0.1<DeviceModel>Broadcom</DeviceModel><Wireshark>BCM94360MC5_3</Wireshark></Sniffer>
         <APControlAgent>6.30 RC447.10552</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
     <TestCases>
 	  <TestCase>
@@ -3969,47 +3969,47 @@
           <Model>BCM94718NR</Model>
           <Driver>5.10.128.2</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Marvell</Vendor>
           <Model>CD-88W-AP95-A0</Model>
           <Driver>5.3.0.9</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
 		<Device>
           <Vendor>Qualcomm</Vendor>
           <Model>AR5KAP-096PMF</Model>
           <Driver>Ath9k</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>MediaTek</Vendor>
           <Model>RT3800PDAP3</Model>
           <Driver>3.3.3.0</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>1</SigmaControlAgent>
+          <WTSControlAgent>1</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
-        <SigmaComponent>
+      <WTS>
+        <WTSComponent>
           <Name>UCC</Name>
           <Version>4.0.1</Version>
           <Others>09022010_1</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>Sniffer</Name>
           <Version>4.0.1</Version>
           <Others>Atheros X, 1.4.0rc1-WFA-1.0</Others>
-        </SigmaComponent>
-        <SigmaComponent>
+        </WTSComponent>
+        <WTSComponent>
           <Name>APControlAgent</Name>
           <Version>4.0.1</Version>
           <Others>-</Others>
-        </SigmaComponent>
-      </Sigma>
+        </WTSComponent>
+      </WTS>
     </ConfigSet>
    <ConfigSet>
 	<Testbed>
@@ -4018,35 +4018,35 @@
           <Model>BCM943224HMS</Model>
           <Driver>5.110.62</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>Marvell</Vendor>
           <Model>RD-88W-PLUG-8787-B0</Model>
           <Driver>3.3.7</Driver>
           <OS>-</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
 		<Device>
           <Vendor>Qualcomm</Vendor>
           <Model>AR5BXB-0092DA</Model>
           <Driver>Ath9k</Driver>
           <OS>Linux</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
         <Device>
           <Vendor>MediaTek</Vendor>
           <Model>RT3593</Model>
           <Driver>3.2.4.0</Driver>
           <OS>Win7</OS>
-          <SigmaControlAgent>WINv05.00.00</SigmaControlAgent>
+          <WTSControlAgent>WINv05.00.00</WTSControlAgent>
         </Device>
       </Testbed>
-      <Sigma>
+      <WTS>
         <UCC>4.0.1</UCC>
         <Sniffer>4.0.1<DeviceModel>Ralink 3800PD2</DeviceModel><Wireshark>1.2.1</Wireshark></Sniffer>
         <APControlAgent>WINv05.00.00</APControlAgent>
-      </Sigma>
+      </WTS>
     </ConfigSet>
    <TestCases>
 	  <TestCase>

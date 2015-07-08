@@ -7,7 +7,7 @@ REM #################################################################
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\..\cmds\Sigma-WMM-AC\11ag
+set UCC_CMD_PATH=..\..\cmds\WTS-WMM-AC\11ag
 set MASTER_XML_FILE=MasterTestInfo.xml
 set isValid=
 echo .
@@ -30,7 +30,7 @@ set searchString=%1
 GOTO S
 
 :S
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" Sigma-WMM-AC') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" WTS-WMM-AC') do (
 	set isValid=1
 	echo #################################################################
 	echo          Running Testcase - %%B
@@ -49,7 +49,7 @@ GOTO EOF
 :GROUP
 IF "%2"=="" GOTO HELP
 FOR /F  %%T in ('findstr "AC" %2') do (
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" Sigma-WMM-AC') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" WTS-WMM-AC') do (
 	set isValid="1"
 	echo #################################################################
 	echo          Running Testcase - %%T

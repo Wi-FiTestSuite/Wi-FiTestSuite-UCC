@@ -45,7 +45,7 @@
 #       2/4/2008     0.4             Support for IBSS and Pass/Fail formula added
 #       2/4/2008     0.4             Automatic calculations of frame rates added for WMM
 #       5/23/2008    0.4             Support for pass/fail for WMM BB added
-#       8/25/2008    1.0             Sigma Prototype release
+#       8/25/2008    1.0             Wi-Fi Test Suite Prototype release
 ###################################################################
 #
 from socket import *
@@ -127,7 +127,7 @@ std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
 class TMSResponse:
 
     #Init variables
-    def __init__(self, TestResult="N/A", Mode="Sigma", DutParticipantName="Jeff", PrimaryTestbedParticipantName="Mark", is60GHz="False" ):
+    def __init__(self, TestResult="N/A", Mode="WTS", DutParticipantName="Jeff", PrimaryTestbedParticipantName="Mark", is60GHz="False" ):
         self.TmsEventId =""
         self.ProgramName = ""
         self.TestCaseId = ""
@@ -225,7 +225,7 @@ class TMSResponse:
 
         jsonFname="%s/tms_%s.json" %( logLoc , self.TestCaseId)
         self.TimeStamp = time.strftime("%Y-%m-%dT%H:%M:%S.%Z", time.localtime()) #time.strftime("%b-%d-%Y__%H-%M-%S", time.localtime())
-        self.Mode = "Sigma"
+        self.Mode = "WTS"
         self.DutParticipantName = "Jeff"
         self.PrimaryTestbedParticipantName = "Mark"
 
@@ -288,7 +288,7 @@ class TMSResponse:
     def getTestID(self, pkgName):    
         
         taskID = pkgName    
-        #removed first 6 digits of pkgName which is version of Sigma  ex) 8.1.0-NAN_Plugfest5
+        #removed first 6 digits of pkgName which is version of WTS  ex) 8.1.0-NAN_Plugfest5
         self.TmsEventId = taskID[6:]
         self.UCCversion = "UCC Version " + pkgName
 
@@ -1015,7 +1015,7 @@ def process_cmd(line):
             return
         
         if command[0].lower() == 'adduccscriptversion':
-            XLogger.AddSigmaComponent("UCC",VERSION,command[1])
+            XLogger.AddWTSComponent("UCC",VERSION,command[1])
         
 
         if command[0].lower() == 'add_media_file':
@@ -1024,7 +1024,7 @@ def process_cmd(line):
         if command[0].lower() == 'manual_check_info':
             XLogger.setManualCheckInfo(command[1])
             
-        if command[0].lower() == 'addsigmacompversioninfo' or command[0].lower() == 'adddutversioninfo':
+        if command[0].lower() == 'addwtscompversioninfo' or command[0].lower() == 'adddutversioninfo':
 
             vInfo=command[1].split(",")
             i=0
@@ -1050,8 +1050,8 @@ def process_cmd(line):
                 XLogger.AddDUTInfo(vInfo[1],vInfo[2],vInfo[3],vInfo[4])
                 logging.debug("DUT INFO [%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
             else:
-                logging.debug("Sigma Comp[%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
-                XLogger.AddSigmaComponent(vInfo[0],vInfo[1],"%s:%s:%s" % (vInfo[2], vInfo[3],vInfo[4]))
+                logging.debug("WTS Comp[%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
+                XLogger.AddWTSComponent(vInfo[0],vInfo[1],"%s:%s:%s" % (vInfo[2], vInfo[3],vInfo[4]))
                 
             logging.debug(vInfo)
             return        
@@ -1095,9 +1095,9 @@ def process_cmd(line):
                 
             set_color(FOREGROUND_INTENSITY)
             return
-        if command[0].lower() == 'userinput_ifnosigma':
+        if command[0].lower() == 'userinput_ifnowts':
             
-            if retValueTable["$Sigma_ControlAgent_Support"] == "0":
+            if retValueTable["$WTS_ControlAgent_Support"] == "0":
                 set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
                 logging.info("[USER INPUT REQUIRED]")
                 udata=raw_input(command[1])
@@ -1109,9 +1109,9 @@ def process_cmd(line):
                 set_color(FOREGROUND_INTENSITY)
             return
 
-        if command[0].lower() == 'ifnosigma':
+        if command[0].lower() == 'ifnowts':
             
-            if retValueTable["$Sigma_ControlAgent_Support"] == "0":
+            if retValueTable["$WTS_ControlAgent_Support"] == "0":
                 set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
                 if len(command)>3 and command[2] in retValueTable:                      
                     s="- %s" % retValueTable[command[2]]
@@ -1125,7 +1125,7 @@ def process_cmd(line):
             return
 
         if command[0] == 'wfa_control_agent' or command[0] == 'wfa_control_agent_dut':
-            if retValueTable["$Sigma_ControlAgent_Support"] == "0":
+            if retValueTable["$WTS_ControlAgent_Support"] == "0":
                 return
         
         if command[0].lower() == 'getuccsystemtime':
@@ -1342,7 +1342,7 @@ def process_cmd(line):
             else:
                 logging.info("Unknown variable %s" %command[1])
             return
-        elif command[0].lower() == 'echo_ifnosigma' and retValueTable["$Sigma_ControlAgent_Support"] == "0":
+        elif command[0].lower() == 'echo_ifnowts' and retValueTable["$WTS_ControlAgent_Support"] == "0":
             set_color(FOREGROUND_BLUE |FOREGROUND_INTENSITY)
             if command[1] in  retValueTable:
                 logging.info("-%s=%s-" % (command[1],retValueTable[command[1]]))
@@ -1669,7 +1669,7 @@ def process_resp(toaddr,status,capi_elem,command):
         if not ss:
             set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
             logging.info('Please check the following:')
-            logging.info('	- Sigma CA is returning empty string, please make sure CA is working properly')
+            logging.info('	- WTS CA is returning empty string, please make sure CA is working properly')
             set_color(FOREGROUND_INTENSITY)
         #Exit in case of ERROR
         if (re.search('ERROR', ss) or re.search('INVALID', ss)) and (iDNB == 0 and iINV == 0):
@@ -2166,7 +2166,7 @@ def wfa_sys_exit(msg):
         logging.info('	- Make sure control network cable is connected')
     elif (msg.find("10061") != -1):
         logging.info('Please check the following:')
-        logging.info('	- Make sure Sigma CA is started')
+        logging.info('	- Make sure WTS CA is started')
         logging.info('	- Make sure destination port number is set correctly')
 
     XLogger.writeXML()
@@ -2305,7 +2305,7 @@ def firstword(line):
     command=str[0].split('!')
 
     if command[0] == 'wfa_control_agent' or command[0] == 'wfa_control_agent_dut':        
-        if retValueTable["$Sigma_ControlAgent_Support"] != "0":       
+        if retValueTable["$WTS_ControlAgent_Support"] != "0":       
             process_ipadd(command[1])
             retValueTable.setdefault(command[0],"%s:%s" % ((command[1].split(',')[0]).split('=')[1],(command[1].split(',')[1]).split('=')[1]))
     

@@ -7,7 +7,7 @@ REM #################################################################
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\cmds\Sigma-WPA2
+set UCC_CMD_PATH=..\cmds\WTS-WPA2
 set MASTER_XML_FILE=\MasterTestInfo.xml
 set PROG_NAME=WPA2
 set isValid=
@@ -27,7 +27,7 @@ set searchString=%1
 GOTO S
 
 :S
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" Sigma-WPA2') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" WTS-WPA2') do (
 	set isValid=1
 	echo #################################################################
 	echo          Running Testcase - %%B
@@ -46,7 +46,7 @@ GOTO EOF
 :GROUP
 IF "%2"=="" GOTO HELP
 FOR /F  %%T in ('findstr "WPA2" %2') do (
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" Sigma-WPA2') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" WTS-WPA2') do (
 	set isValid="1"
 	echo #################################################################
 	echo          Running Testcase - %%T

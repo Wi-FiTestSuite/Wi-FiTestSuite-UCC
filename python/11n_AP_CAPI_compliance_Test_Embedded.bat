@@ -6,5 +6,5 @@ REM #################################################################
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\..\cmds\Sigma-11n
+set UCC_CMD_PATH=..\..\cmds\WTS-11n
 C:\python25\python wfa_ucc.py 1 init_AP_compliance.txt AP_CAPI_compliance_Test_Embedded.txt

@@ -48,7 +48,7 @@ from xml.dom.minidom import Document
 from xml.dom.minidom import getDOMImplementation
 from xml.dom.minidom import parse
 from ResultSummary import TBDevice
-from ResultSummary import SigmaComponent
+from ResultSummary import WTSComponent
 
 # Override createElement:
 class XMLDoc(Document):
@@ -88,12 +88,12 @@ class XMLLogger:
         # Info
         self.Info = self.doc.createElement("Info")
         self.Testbed = self.doc.createElement("Testbed")
-        self.Sigma = self.doc.createElement("Sigma")
+        self.WTS = self.doc.createElement("WTS")
         self.DUT = self.doc.createElement("DUT")
         
         self.Log.appendChild(self.Info)
         self.Info.appendChild(self.Testbed)
-        self.Info.appendChild(self.Sigma)
+        self.Info.appendChild(self.WTS)
         self.Info.appendChild(self.DUT)
 
         # Media Log
@@ -196,23 +196,23 @@ class XMLLogger:
         
         self.LogItemCounter = self.LogItemCounter + 1
 
-    def AddTestbedDevice(self,SigmaControlAgent,vendor,model,driver,os=""):
-        device = TBDevice(vendor,model,driver,os,SigmaControlAgent)
+    def AddTestbedDevice(self,WTSControlAgent,vendor,model,driver,os=""):
+        device = TBDevice(vendor,model,driver,os,WTSControlAgent)
         device.AddXMLNode(self.doc,self.Testbed)
         return
 
-    def AddDUTInfo(self,SigmaControlAgent,vendor,model,driver,os=""):
-        device = TBDevice(vendor,model,driver,os,SigmaControlAgent)
+    def AddDUTInfo(self,WTSControlAgent,vendor,model,driver,os=""):
+        device = TBDevice(vendor,model,driver,os,WTSControlAgent)
         device.AddXMLNode(self.doc,self.DUT)
         return
     
-    def AddSigmaComponent(self,name,version,others):
-        comp = SigmaComponent()
+    def AddWTSComponent(self,name,version,others):
+        comp = WTSComponent()
         comp.name=name
         comp.version=version
         comp.others=others
         
-        comp.AddXMLNode(self.doc,self.Sigma)
+        comp.AddXMLNode(self.doc,self.WTS)
         
         return
     
@@ -274,7 +274,7 @@ def main():
     #rSummary = ResultSummary("log\\summary.xml","1","log")
     init_logging("test.txt")
     #rLog = open("sample.txt","r")
-    logPath="\\\\WFASHARE\\LabShare\\SCDC backup\\SIGMA\\P2P-CERT-Results\\log2"
+    logPath="\\\\WFASHARE\\LabShare\\SCDC backup\\WTS\\P2P-CERT-Results\\log2"
 
 
     
@@ -288,8 +288,8 @@ def main():
                 XLogger.setTestID("%s"%f.split("_")[0])
                 XLogger.AddTestbedDevice("02.04.09","Atheros","AR5BXB-0092DA","5","Linux")
                 XLogger.AddTestbedDevice("WINv04.00.00","Intel","622ANHMW","14.0.101.67","Win7")
-                XLogger.AddSigmaComponent("UCC","4.1.0","09022010_1")
-                XLogger.AddSigmaComponent("Sniffer","4.1.0","Wireshark 1.4.0-rc1")
+                XLogger.AddWTSComponent("UCC","4.1.0","09022010_1")
+                XLogger.AddWTSComponent("Sniffer","4.1.0","Wireshark 1.4.0-rc1")
                 logging.info("---- Opening File [%s]" % logPath + "\\" + f + "\\"+ f1)
                 
                 rLog = open(logPath + "\\" + f + "\\"+ f1,"r")

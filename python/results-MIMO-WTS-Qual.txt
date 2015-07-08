@@ -1010,7 +1010,7 @@ N-5.2.43:Combo 9 3x3 ( 16 6 ) | HT1 DUT PASS  | 0 Mbps       | 36.2470666667 Mbp
 N-5.2.43:Combo 9 3x3 ( 16 6 ) | HT1 STA PASS  | 0 Mbps       | 0.2436 Mbps  |./log/N-5.2.43_05-37-24_Sep-18-09/log_N-5.2.43.log |
 N-5.2.43:Combo 9 3x3 ( 16 6 ) | HT1 STA PASS  | 0 Mbps       | 0.2436 Mbps  |./log/N-5.2.43_05-37-24_Sep-18-09/log_N-5.2.43.log |
 -----------------------------------------------
-NOTE - 45,46 - Not required run through Sigma
+NOTE - 45,46 - Not required run through Wi-Fi Test Suite
 ---------------------------------------------------------------------------------------------
 N-5.2.47:Combo 1 ( 9 1 13 ) | ABORTED       |  NO ASSOCIATION -- Aborting the test | -            |./log/N-5.2.47_20-55-00_Sep-18-09/log_N-5.2.47.log |
 ---------------------------------------------------------------------------------------------

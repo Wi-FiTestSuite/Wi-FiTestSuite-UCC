@@ -7,7 +7,7 @@ REM #################################################################
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\cmds\Sigma-WMM\Sigma-WMM-BG
+set UCC_CMD_PATH=..\cmds\WTS-WMM\WTS-WMM-BG
 set isValid=
 IF "%1"=="" GOTO HELP
 
@@ -16,7 +16,7 @@ echo          Running Testcase - %1 * [Version 2.2.2 - WMM System Interoperabili
 echo .
 
 
-FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%1!" Sigma-WMM') do (
+FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%1!" WTS-WMM') do (
 set isValid=1
 wfa_ucc.exe 1 %%A %%B
 )

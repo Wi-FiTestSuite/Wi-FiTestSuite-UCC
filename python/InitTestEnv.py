@@ -186,7 +186,7 @@ class dutInfo:
 				 STBC_RX=0,
 				 STBC_TX=0,
 				 MCS32=0,
-				 SigmaSupport=1,
+				 WTSSupport=1,
 				 OBSS=0,
 				 AMPDU_TX=0,
 				 AP_Concurrent=0,
@@ -214,7 +214,7 @@ class dutInfo:
         self.STBC_RX=STBC_RX
 	self.STBC_TX=STBC_TX
         self.MCS32=MCS32
-        self.SigmaSupport=SigmaSupport
+        self.WTSSupport=WTSSupport
         self.OBSS=OBSS
         self.AMPDU_TX=AMPDU_TX
         self.AP_Concurrent=AP_Concurrent
@@ -238,7 +238,7 @@ class dutInfo:
 				 WEP =%s 
 				 PreAuth = %s 
 				 11h = %s 
-				 Sigma Support =%s 
+				 WTS Support =%s 
 				 11d = %s 
 				 STAUT_PM = %s""" % 
 				 (self.DUTType,
@@ -249,7 +249,7 @@ class dutInfo:
 				  self.WEP,
 				  self.PreAuth,
 				  self._11h,
-				  self.SigmaSupport,
+				  self.WTSSupport,
 				  self._11d,
 				  self.STAUT_PM))
 
@@ -328,7 +328,7 @@ class envVariables:
         self.APs={}
 
         # For each program, create a file 'TestbedAPNames.txt' in cmds folder and list the name of APs in that file
-        # E.G., for 11n, create a file 'TestbedAPNames.txt' in cmds\Sigma-11n folder with list of AP Names
+        # E.G., for 11n, create a file 'TestbedAPNames.txt' in cmds\WTS-11n folder with list of AP Names
         if os.path.exists(uccPath + TestbedAPList):
             APNames = open(uccPath + TestbedAPList, 'r')
             for l in (APNames.readlines()):
@@ -503,7 +503,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("STBC_RX",ReadMapFile(DUTFile,"STBC_RX","!"))
     dutInfoObject.__setattr__("STBC_TX",ReadMapFile(DUTFile,"STBC_TX","!"))
     dutInfoObject.__setattr__("MCS32",ReadMapFile(DUTFile,"MCS32","!"))
-    dutInfoObject.__setattr__("SigmaSupport",ReadMapFile(DUTFile,"Sigma_ControlAgent_Support","!"))
+    dutInfoObject.__setattr__("WTSSupport",ReadMapFile(DUTFile,"WTS_ControlAgent_Support","!"))
     dutInfoObject.__setattr__("OBSS",ReadMapFile(DUTFile,"OBSS","!"))
     dutInfoObject.__setattr__("AMPDU_TX",ReadMapFile(DUTFile,"AMPDU_TX","!"))
     dutInfoObject.__setattr__("AP_Concurrent",ReadMapFile(DUTFile,"AP_Concurrent","!"))
@@ -647,20 +647,20 @@ def GetCAPIFileNames (TestCaseID):
     global ProgName
     setattr (testEnvVariables,"TestbedConfigCAPIFile",find_TestbedFile(TestCaseID))
     
-    if (int (dutInfoObject.SigmaSupport) == 0 and
+    if (int (dutInfoObject.WTSSupport) == 0 and
 	    ProgName != "P2P" and 
 		ProgName != "HS2" and 
 		ProgName != "WFD" and 
 		ProgName != "WFDS" and 
 		ProgName != "HS2-R2" and
 		ProgName != "WMMPS"):
-        setattr (testEnvVariables,"DUTConfigCAPIFile","NoSigmaSupportMsg.txt")
-        VarList.setdefault("SigmaMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
-        VarList.setdefault("DUT_SIGMA_VERSION","NA")
+        setattr (testEnvVariables,"DUTConfigCAPIFile","NoWTSSupportMsg.txt")
+        VarList.setdefault("WTSMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
+        VarList.setdefault("DUT_WTS_VERSION","NA")
         
     else:
         setattr (testEnvVariables,"DUTConfigCAPIFile",find_STAFile(TestCaseID,"DUTFile"))
-        VarList.setdefault("SigmaMsg","")
+        VarList.setdefault("WTSMsg","")
     setattr (testEnvVariables,"STAConfigCAPIFile",find_STAFile(TestCaseID,"STAFile"))
     if ProgName=="PMF":
 		setattr (testEnvVariables,"WLANTestCAPIFile",find_WLANTestFile(TestCaseID,"WLanTestFile"))

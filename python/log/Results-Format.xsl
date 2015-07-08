@@ -18,7 +18,7 @@
  <TR bgcolor="Gray">DUT</TR>
  <TR bgcolor="Gray">
   <TH>DUT Name</TH>
-  <TH>Sigma Version</TH>
+  <TH>WTS Version</TH>
   <TH>Vendor Name</TH>
   <TH>Device Model</TH>
   <TH>Device Firmware</TH>
@@ -26,7 +26,7 @@
  </TR>
   <TR>
   <TD><xsl:value-of select="Results/Result/DUT/Name"/></TD>
-  <TD><xsl:value-of select="Results/Result/DUT/SigmaControlAgent"/></TD>
+  <TD><xsl:value-of select="Results/Result/DUT/WTSControlAgent"/></TD>
   <TD><xsl:value-of select="Results/Result/DUT/Vendor"/></TD>
   <TD><xsl:value-of select="Results/Result/DUT/Model"/></TD>
   <TD><xsl:value-of select="Results/Result/DUT/Driver"/></TD>
@@ -45,7 +45,7 @@
 
  <TR bgcolor="Gray">Test Bed</TR>
  <TR bgcolor="Gray">
-  <TH>Sigma Version</TH>
+  <TH>WTS Version</TH>
   <TH>Vendor Name</TH>
   <TH>Device Model</TH>
   <TH>Device Firmware</TH>
@@ -54,7 +54,7 @@
  </TR>
  <xsl:for-each select="Results/Result/Testbed/Device">
  <TR>
-  <TD><xsl:value-of select="SigmaControlAgent"/></TD>
+  <TD><xsl:value-of select="WTSControlAgent"/></TD>
   <TD><xsl:value-of select="Vendor"/></TD>
   <TD><xsl:value-of select="Model"/></TD>
   <TD><xsl:value-of select="Driver"/></TD>
@@ -75,11 +75,11 @@
   <COL width="33%"/>
   <COL width="33%"/>
  <TR bgcolor="Gray">
-  <TH>Sigma Component Name</TH>
-  <TH>Sigma Version</TH>
+  <TH>WTS Component Name</TH>
+  <TH>WTS Version</TH>
   <TH>Other Info</TH>
  </TR>
-  <xsl:for-each select="Results/Result/Sigma/SigmaComponent">
+  <xsl:for-each select="Results/Result/WTS/WTSComponent">
   <TR>
   <TD><xsl:value-of select="Name"/></TD>
   <TD><xsl:value-of select="Version"/></TD>

@@ -7,7 +7,7 @@ REM #################################################################
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\..\cmds\Sigma-Voice-Ent
+set UCC_CMD_PATH=..\..\cmds\WTS-Voice-Ent
 set PROG_NAME=VENT
 set isValid=
 echo .
@@ -30,7 +30,7 @@ set searchString=%1
 GOTO S
 
 :S
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" Sigma-Voice-Ent') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" WTS-Voice-Ent') do (
 	set isValid=1
 	echo #################################################################
 	echo          Running Testcase - %%B
@@ -51,7 +51,7 @@ GOTO EOF
 IF "%2"=="" GOTO HELP
 
 FOR /F  %%T in ('findstr "P2P" %2') do (
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" Sigma-P2P') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" WTS-P2P') do (
 	set isValid="1"
 	echo #################################################################
 	echo          Running Testcase - %%T

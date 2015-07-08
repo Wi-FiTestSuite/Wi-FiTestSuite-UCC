@@ -97,16 +97,16 @@ class XMLDoc(Document):
 
     
 class TBDevice:
-    def __init__(self,vendor,model,driver,os,SigmaControlAgent):
+    def __init__(self,vendor,model,driver,os,WTSControlAgent):
         self.vendor=vendor
         self.model=model
         self.driver=driver
         self.os=os
-        self.SigmaControlAgent=SigmaControlAgent
+        self.WTSControlAgent=WTSControlAgent
         self.verified=0
         self.msg=""
         
-        #logging.info("TBDevice Object created:%s:%s:%s:%s:%s"%(self.vendor,self.model,self.driver,self.os,self.SigmaControlAgent))
+        #logging.info("TBDevice Object created:%s:%s:%s:%s:%s"%(self.vendor,self.model,self.driver,self.os,self.WTSControlAgent))
     def AddXMLNode(self,doc,parent,ver=0):
         device = doc.createElement("Device")
         parent.appendChild(device)
@@ -115,7 +115,7 @@ class TBDevice:
         device.appendChild(doc.createElement("Model",self.model))
         device.appendChild(doc.createElement("Driver",self.driver))
         device.appendChild(doc.createElement("OS",self.os))
-        device.appendChild(doc.createElement("SigmaControlAgent",self.SigmaControlAgent))
+        device.appendChild(doc.createElement("WTSControlAgent",self.WTSControlAgent))
 
         #Check if verification node to be added
         if ver:
@@ -139,8 +139,8 @@ class TBDevice:
                 rc=("%s\n Model - Expected:%s \n-OR-" % (self.msg,node.model))
             if self.driver.lower() != node.driver.lower():
                 rc=("%s\n Driver - Expected:%s \n-OR-" % (self.msg,node.driver))
-            if self.SigmaControlAgent.lower() != node.SigmaControlAgent.lower():
-                rc=("%s\n Sigma Control Agent Expected:%s \n-OR-" % (self.msg,node.SigmaControlAgent))
+            if self.WTSControlAgent.lower() != node.WTSControlAgent.lower():
+                rc=("%s\n WTS Control Agent Expected:%s \n-OR-" % (self.msg,node.WTSControlAgent))
             
             if rc: self.msg=rc
             else: self.verified=1
@@ -148,10 +148,10 @@ class TBDevice:
         #logging.debug("TBDevice::compare return %s-%s-" % (rc,self.verified))
         return rc
     def __str__(self):
-        #return("\n TBDevice Object :%s:%s:%s:%s:%s"%(self.vendor,self.model,self.driver,self.os,self.SigmaControlAgent))
+        #return("\n TBDevice Object :%s:%s:%s:%s:%s"%(self.vendor,self.model,self.driver,self.os,self.WTSControlAgent))
         pass
 
-class SigmaComponent:
+class WTSComponent:
     
     def __init_(self,name,version="",others=""):
         self.name=name
@@ -159,13 +159,13 @@ class SigmaComponent:
         self.others=others
         
     def AddXMLNode(self,doc,parent):
-        #print ("SigmaComponent::AddXMLNode [%s] [%s]" % (doc,parent)) 
-        Sigma = doc.createElement("SigmaComponent")
-        parent.appendChild(Sigma)
+        #print ("WTSComponent::AddXMLNode [%s] [%s]" % (doc,parent)) 
+        WTS = doc.createElement("WTSComponent")
+        parent.appendChild(WTS)
 
-        Sigma.appendChild(doc.createElement("Name",self.name))
-        Sigma.appendChild(doc.createElement("Version",self.version))
-        Sigma.appendChild(doc.createElement("Others",self.others))
+        WTS.appendChild(doc.createElement("Name",self.name))
+        WTS.appendChild(doc.createElement("Version",self.version))
+        WTS.appendChild(doc.createElement("Others",self.others))
 
     def __str__(self):
         pass
@@ -380,9 +380,9 @@ class ResultSummary:
         if DUT:
             self.Result.appendChild(DUT)
 
-        Sigma = getNodeHandle(dlog,["Log","Info","Sigma"])
-        if Sigma:
-            self.Result.appendChild(Sigma)
+        WTS = getNodeHandle(dlog,["Log","Info","WTS"])
+        if WTS:
+            self.Result.appendChild(WTS)
 
         self.versionInfoFlag=1
         
@@ -533,7 +533,7 @@ class ResultSummary:
 				else:
 					lList.setdefault(n.tagName.strip(),"")
            
-       return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],lList["OS"],lList["SigmaControlAgent"]))
+       return(TBDevice(lList["Vendor"],lList["Model"],lList["Driver"],lList["OS"],lList["WTSControlAgent"]))
         
     def compareTwoTBNodes(self,left,right):
         logging.debug ("TLeft = %s TRight = %s" % (left,right))
@@ -662,7 +662,7 @@ def main():
 		global ACC
         
 		if nargs < 2 :
-			print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - Sigma-ResultSummary.conf")
+			print("\n\rUSAGE : ResultSummary <Result Summary Config File> \n\r Result Summary Config File : See Sample Config File - WTS-ResultSummary.conf")
 			return
 
 

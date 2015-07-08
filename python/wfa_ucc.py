@@ -116,9 +116,9 @@ def main():
 	return
 
 
-    cmdPath = ReadMapFile("Sigma-UCC.txt","%s_CMD_PATH" %(sys.argv[1]),"=")
-    tbAP = ReadMapFile("Sigma-UCC.txt","%s_TESTBED_AP" %(sys.argv[1]),"=")
-    tests= ReadMapFile("Sigma-UCC.txt","%s_TEST_LIST" %(sys.argv[1]),"=")
+    cmdPath = ReadMapFile("WTS-UCC.txt","%s_CMD_PATH" %(sys.argv[1]),"=")
+    tbAP = ReadMapFile("WTS-UCC.txt","%s_TESTBED_AP" %(sys.argv[1]),"=")
+    tests= ReadMapFile("WTS-UCC.txt","%s_TEST_LIST" %(sys.argv[1]),"=")
     
     if cmdPath == -1 or tbAP == -1 or tests == -1:
         print "Invalid Program Name - %s" % sys.argv[1]

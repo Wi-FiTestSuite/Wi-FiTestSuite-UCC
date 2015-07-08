@@ -7,7 +7,7 @@ REM #################################################################
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\..\cmds\Sigma-WMM-AC\11b
+set UCC_CMD_PATH=..\..\cmds\WTS-WMM-AC\11b
 set MASTER_XML_FILE=MasterTestInfo.xml
 set isValid=
 echo .

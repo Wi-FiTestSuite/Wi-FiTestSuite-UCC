@@ -3,7 +3,7 @@ cls
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\cmds\Sigma-WMM-Prototype\Sigma-WMM-BB-Prototype
+set UCC_CMD_PATH=..\cmds\WTS-WMM-Prototype\WTS-WMM-BB-Prototype
 set isValid=
 IF "%1"=="" GOTO HELP
 

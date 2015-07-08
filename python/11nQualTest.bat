@@ -7,7 +7,7 @@ REM #################################################################
 
 
 REM Path for the UCC command files folder
-set UCC_CMD_PATH=..\..\cmds\Sigma-11n
+set UCC_CMD_PATH=..\..\cmds\WTS-11n
 set MASTER_XML_FILE=\Qual-MasterTestInfo.xml
 set isValid=
 echo .
@@ -30,7 +30,7 @@ set searchString=%1
 GOTO S
 
 :S
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" Qual-Sigma-11n') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr "%searchString%!" Qual-WTS-11n') do (
 	set isValid=1
 	echo #################################################################
 	echo          Running Testcase - %%B
@@ -49,7 +49,7 @@ GOTO EOF
 :GROUP
 IF "%2"=="" GOTO HELP
 FOR /F  %%T in ('findstr "N" %2') do (
-	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" Qual-Sigma-11n') do (
+	FOR /F "eol=# tokens=2,3 delims=!" %%A in ('findstr /C:"%%T!" Qual-WTS-11n') do (
 	set isValid="1"
 	echo #################################################################
 	echo          Running Testcase - %%T

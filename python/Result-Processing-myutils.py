@@ -45,7 +45,7 @@
 #       2/4/2008     0.4             Support for IBSS and Pass/Fail formula added
 #       2/4/2008     0.4             Automatic calculations of frame rates added for WMM
 #       5/23/2008    0.4             Support for pass/fail for WMM BB added
-#       8/25/2008    1.0             Sigma Prototype release
+#       8/25/2008    1.0             Wi-Fi Test Suite Prototype release
 ###################################################################
 #
 from socket import *
@@ -551,9 +551,9 @@ def process_cmd(line):
             return
         
         if command[0].lower() == 'adduccscriptversion':
-            XLogger.AddSigmaComponent("UCC",VERSION,command[1])
+            XLogger.AddWTSComponent("UCC",VERSION,command[1])
             
-        if command[0].lower() == 'addsigmacompversioninfo' or command[0].lower() == 'adddutversioninfo':
+        if command[0].lower() == 'addwtscompversioninfo' or command[0].lower() == 'adddutversioninfo':
 
             vInfo=command[1].split(",")
             i=0
@@ -579,8 +579,8 @@ def process_cmd(line):
                 XLogger.AddDUTInfo(vInfo[1],vInfo[2],vInfo[3],vInfo[4])
                 logging.debug("DUT INFO [%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
             else:
-                logging.debug("Sigma Comp[%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
-                XLogger.AddSigmaComponent(vInfo[0],vInfo[1],"%s:%s:%s" % (vInfo[2], vInfo[3],vInfo[4]))
+                logging.debug("WTS Comp[%s][%s][%s][%s]" %(vInfo[1],vInfo[2],vInfo[3],vInfo[4]))
+                XLogger.AddWTSComponent(vInfo[0],vInfo[1],"%s:%s:%s" % (vInfo[2], vInfo[3],vInfo[4]))
                 
             logging.debug(vInfo)
             return        
@@ -618,9 +618,9 @@ def process_cmd(line):
                 
             set_color(FOREGROUND_INTENSITY)
             return
-        if command[0].lower() == 'userinput_ifnosigma':
+        if command[0].lower() == 'userinput_ifnowts':
             
-            if retValueTable["$Sigma_ControlAgent_Support"] == "0":
+            if retValueTable["$WTS_ControlAgent_Support"] == "0":
                 set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
                 logging.info("[USER INPUT REQUIRED]")
                 udata=raw_input(command[1])
@@ -632,9 +632,9 @@ def process_cmd(line):
                 set_color(FOREGROUND_INTENSITY)
             return
 
-        if command[0].lower() == 'ifnosigma':
+        if command[0].lower() == 'ifnowts':
             
-            if retValueTable["$Sigma_ControlAgent_Support"] == "0":
+            if retValueTable["$WTS_ControlAgent_Support"] == "0":
                 set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
                 if len(command)>3 and command[2] in retValueTable:                      
                     s="- %s" % retValueTable[command[2]]
@@ -648,7 +648,7 @@ def process_cmd(line):
             return
 
         if command[0] == 'wfa_control_agent' or command[0] == 'wfa_control_agent_dut':
-            if retValueTable["$Sigma_ControlAgent_Support"] == "0":
+            if retValueTable["$WTS_ControlAgent_Support"] == "0":
                 return
         
         if command[0].lower() == 'getuccsystemtime':
@@ -712,7 +712,7 @@ def process_cmd(line):
             else:
                 logging.info("Unknown variable %s" %command[1])
             return
-        elif command[0].lower() == 'echo_ifnosigma' and retValueTable["$Sigma_ControlAgent_Support"] == "0":
+        elif command[0].lower() == 'echo_ifnowts' and retValueTable["$WTS_ControlAgent_Support"] == "0":
             if command[1] in  retValueTable:
                 logging.info("-%s=%s-" % (command[1],retValueTable[command[1]]))
             else:
@@ -1422,7 +1422,7 @@ def firstword(line):
     command=str[0].split('!')
 
     if command[0] == 'wfa_control_agent' or command[0] == 'wfa_control_agent_dut':        
-        if retValueTable["$Sigma_ControlAgent_Support"] != "0":       
+        if retValueTable["$WTS_ControlAgent_Support"] != "0":       
             process_ipadd(command[1])
             retValueTable.setdefault(command[0],"%s:%s" % ((command[1].split(',')[0]).split('=')[1],(command[1].split(',')[1]).split('=')[1]))
     

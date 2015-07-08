@@ -2,7 +2,7 @@
 #FORMAT::
 #TestCaseID ::     related init :: map to test script file name
 #in MasterTestInfo.xml
-# STA test on Sigma-WMMPS for APUT
+# STA test on WTS-WMMPS for APUT
 WMMPS-4.1!init_wmmps.txt!4.1
 WMMPS-B.Z!init_wmmps.txt!B.Z
 WMMPS-B.H!init_wmmps.txt!B.H
@@ -18,7 +18,7 @@ WMMPS-M.V!init_wmmps.txt!M.V
 WMMPS-M.U!init_wmmps.txt!M.U
 WMMPS-A.U!init_wmmps.txt!A.U
 
-# AP test on Sigma-WMMPS  for STAUT
+# AP test on WTS-WMMPS  for STAUT
 WMMPS-B.B!init_wmmps.txt!B.B
 WMMPS-B.K!init_wmmps.txt!B.K
 WMMPS-B.W!init_wmmps.txt!B.W
