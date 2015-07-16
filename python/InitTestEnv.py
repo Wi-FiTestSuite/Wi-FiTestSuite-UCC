@@ -961,7 +961,7 @@ def GetOtherVariables(TID):
     if (getattr(dutInfoObject,"ASD")!="0"):
         find_ASD_threshold_values(TID,"Throughputs_ASD")
     else:
-    find_throughput_values(TID,"Throughputs")  
+        find_throughput_values(TID,"Throughputs") 
     cw=find_TestcaseInfo_Level1(TID,"APChannelWidth")
     LogMsg("Channel Width = %s"%cw)
     if (cw != ""):
