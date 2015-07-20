@@ -38,8 +38,6 @@ N-ExS7!init_802.11n.txt!N-ExS7.txt!
 N-ExS8!init_802.11n.txt!N-ExS8.txt!
 N-ExS9!init_802.11n.txt!N-ExS9.txt!
 N-ExS10!init_802.11n.txt!N-ExS10.txt!
-N-ExS11!init_802.11n.txt!N-ExS11.txt!
-N-ExS12!init_802.11n.txt!N-ExS12.txt!
 N-ExS13!init_802.11n.txt!N-ExS13.txt!
 N-ExS18!init_802.11n.txt!N-ExS18.txt!
 N-ExS19!init_802.11n.txt!N-ExS19.txt!
@@ -48,6 +46,7 @@ N-ExS21!init_802.11n.txt!N-ExS21.txt!
 N-ExS22!init_802.11n.txt!N-ExS22.txt!
 N-ExS23!init_802.11n.txt!N-ExS23.txt!
 N-ExS24!init_802.11n.txt!N-ExS24.txt!
+N-ExS25!init_802.11n.txt!N-ExS25.txt!
 N-5.2.26!init_802.11n.txt!N-5.2.26.txt
 N-5.2.26_S!init_802.11n.txt!N-5.2.26_S.txt
 
@@ -122,7 +121,6 @@ N-5.2.50_GN!init_802.11n.txt!N-5.2.50.txt
 N-5.2.51!init_802.11n.txt!N-5.2.51.txt
 N-5.2.52!init_802.11n.txt!N-5.2.52.txt
 N-5.2.53!init_802.11n.txt!N-5.2.53.txt
-N-5.2.54!init_802.11n.txt!N-5.2.54.txt
 N-5.2.55!init_802.11n.txt!N-5.2.55.txt
 
 # IBSS Cases
@@ -162,6 +160,7 @@ N-ExA17!init_802.11n.txt!N-ExA17.txt!
 N-ExA24!init_802.11n.txt!N-ExA24.txt!
 N-ExA25!init_802.11n.txt!N-ExA25.txt!
 N-ExA26!init_802.11n.txt!N-ExA26.txt!
+N-ExA27!init_802.11n.txt!N-ExA27.txt!
 
 N-4.2.19!init_802.11n.txt!N-4.2.19.txt
 
@@ -177,7 +176,7 @@ N-4.2.25!init_802.11n.txt!N-4.2.25.txt
 N-4.2.26_AN!init_802.11n.txt!N-4.2.26.txt
 N-4.2.26_GN!init_802.11n.txt!N-4.2.26.txt
 N-4.2.27!init_802.11n.txt!N-4.2.27.txt
-N-4.2.27_AGN!init_802.11n.txt!N-4.2.27-AGN.txt
+N-4.2.27_AGN!init_802.11n.txt!N-4.2.27.txt
 N-4.2.28!init_802.11n.txt!N-4.2.28.txt
 N-4.2.29!init_802.11n.txt!N-4.2.29.txt
 
@@ -234,7 +233,6 @@ N-4.2.43_AN!init_802.11n.txt!N-4.2.43.txt
 N-4.2.43_GN!init_802.11n.txt!N-4.2.43.txt
 N-4.2.44-PSKMixed!init_802.11n.txt!N-4.2.44-PSKMixed.txt
 N-4.2.45!init_802.11n.txt!N-4.2.45.txt
-N-4.2.46!init_802.11n.txt!N-4.2.46.txt
 N-4.2.47!init_802.11n.txt!N-4.2.47.txt
 
 #Info Files for Invalid Testcase ID

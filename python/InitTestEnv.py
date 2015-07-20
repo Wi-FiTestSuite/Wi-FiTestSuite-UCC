@@ -63,6 +63,7 @@ import pprint
 import xml.dom.minidom
 from xml.dom.minidom import Node
 import HTML
+from decimal import Decimal
 
 
 
@@ -90,7 +91,7 @@ DUTFeatureInfoFile="./log/DUTFeatureInfo.html"
 VarList={}
 
 # List of EAPMethods
-EAPList = ["TLS","TTLS","PEAP0","FAST","PEAP1","SIM","AKA"]
+EAPList = ["TLS","TTLS","PEAP0","FAST","PEAP1","SIM","AKA","AKA\'","PWD"]
 
 # List of WPS Config Methods
 WPSConfigList = ["WPS_Keypad" ,"WPS_Display","WPS_PushButton","WPS_Label"]
@@ -146,10 +147,10 @@ def InitTestEnv(testID,cmdPath,progName,initFile,TBFile,q=0,qualAP="",qualSTA=""
     LogMsg("----Test ID = %s-------" %TestID)
     GetCAPIFileNames (TestID)    
     GetTestbedDeviceInfo(TestID)
-    if ProgName =="P2P" or ProgName == "WFD" or ProgName == "WFDS":
+    if ProgName =="P2P" or ProgName == "WFD" or ProgName == "WFDS" or ProgName == "NAN":
         GetP2PVariables(TestID)
         
-    if not (ProgName == "P2P" or ProgName == "TDLS"):
+    if not (ProgName == "P2P" or ProgName == "TDLS" or ProgName == "NAN"):
         GetServerSupplicantInfo(TestID)
 
     if ProgName == "HS2-R2":
@@ -195,7 +196,9 @@ class dutInfo:
 				 _11d=0,
 				 STAUT_PM=0,
 				 Open_Mode=0,
-				 PMF_OOB=0):
+                 Mixedmode_WPA2WPA=0,
+                 PMF_OOB=0,
+                 ASD=0):
         self.DUTType=DUTType
         self.DUTCategory=DUTCategory
         self.DUTBand=DUTBand
@@ -221,10 +224,13 @@ class dutInfo:
         self._11d=_11d
         self.STAUT_PM=STAUT_PM
         self.Open_Mode=Open_Mode
+        self.Mixedmode_WPA2WPA=Mixedmode_WPA2WPA
         self.PMF_OOB=PMF_OOB
         #TDLS Specific
         self.TDLSDiscReq=TDLSDiscReq
         self.PUSleepSTA=PUSleepSTA
+        #ASD Device
+        self.ASD=ASD
 
     def __setattr__(self, attr, value):
         self.__dict__[attr] = value
@@ -459,6 +465,7 @@ def createUCCInitEnvFile (filename):
     uccInitFile = open(uccPath+filename,'w')
     uccInitFile.write("# This is an auto generated file  - %s \n# For test case - %s\n#DO NOT modify this file manually \n\n" %(time.strftime("%b-%d-%y_%H:%M:%S", time.localtime()),dutInfoObject.TestCaseID))
 
+    uccInitFile.write("\ndefine!$tcID!%s!\n"%(dutInfoObject.TestCaseID))
     uccInitFile.write(testEnvVariables.formatNameUCC())
     for p in testEnvVariables.APs:
         uccInitFile.write(testEnvVariables.APs[p].formatAPUCC())
@@ -510,6 +517,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("_11d",ReadMapFile(DUTFile,"11d","!"))
     dutInfoObject.__setattr__("STAUT_PM",ReadMapFile(DUTFile,"STAUT_PM","!"))
     dutInfoObject.__setattr__("Open_Mode",ReadMapFile(DUTFile,"Open_Mode","!"))
+    dutInfoObject.__setattr__("Mixedmode_WPA2WPA",ReadMapFile(DUTFile,"Mixedmode_WPA2WPA","!"))
     dutInfoObject.__setattr__("PMF_OOB",ReadMapFile(DUTFile,"PMF_OOB","!"))
 
     #EAP Methods
@@ -521,6 +529,7 @@ def ReadDUTInfo (filename,TestCaseID):
     dutInfoObject.__setattr__("SIM",ReadMapFile(DUTFile,"SIM","!"))
     dutInfoObject.__setattr__("AKA",ReadMapFile(DUTFile,"AKA","!"))
     dutInfoObject.__setattr__("AKA'",ReadMapFile(DUTFile,"AKA'","!"))
+    dutInfoObject.__setattr__("PWD",ReadMapFile(DUTFile,"PWD","!"))
     
     #VE Specific
     dutInfoObject.__setattr__("BSS_Trans_Query_Support",ReadMapFile(DUTFile,"BSS_Trans_Query_Support","!"))
@@ -535,6 +544,9 @@ def ReadDUTInfo (filename,TestCaseID):
     
     #Default method is TTLS
     dutInfoObject.__setattr__("DUTEAPMethod","TTLS")
+    
+    #ASD device testing
+    dutInfoObject.__setattr__("ASD",ReadMapFile(DUTFile,"ASD","!"))
     
     for EAP in EAPList:
         Ret = ReadMapFile(DUTFile,EAP,"!")
@@ -563,7 +575,8 @@ def ReadDUTInfo (filename,TestCaseID):
 		ProgName == "WFDS" or 
 		ProgName == "VHT" or 
 		ProgName == "HS2-R2" or
-		ProgName == "WMMPS"):
+		ProgName == "WMMPS" or 
+		ProgName == "NAN"):
         fFile=open(DUTFeatureInfoFile,"w")
         T=HTML.Table(col_width=['70%','30%'])
         R1=HTML.TableRow(cells=['Optional Feature','DUT Support'],bgcolor="Gray",header="True")
@@ -574,7 +587,8 @@ def ReadDUTInfo (filename,TestCaseID):
 			ProgName == "HS2" or 
 			ProgName == "WFD" or 
 			ProgName == "WFDS" or 
-			ProgName == "HS2-R2"):    
+			ProgName == "HS2-R2" or 
+			ProgName == "NAN"):    
             P2PVarList = ReadAllMapFile(DUTFile,ProgName,"!")
             if P2PVarList != -1:
                 P2PVarList=P2PVarList.split('!')
@@ -653,7 +667,8 @@ def GetCAPIFileNames (TestCaseID):
 		ProgName != "WFD" and 
 		ProgName != "WFDS" and 
 		ProgName != "HS2-R2" and
-		ProgName != "WMMPS"):
+		ProgName != "WMMPS" and 
+		ProgName != "NAN"):
         setattr (testEnvVariables,"DUTConfigCAPIFile","NoWTSSupportMsg.txt")
         VarList.setdefault("WTSMsg","Configure DUT for Testcase = -- %s --"%TestCaseID)
         VarList.setdefault("DUT_WTS_VERSION","NA")
@@ -684,6 +699,8 @@ def GetServerSupplicantInfo (TestCaseID):
         tag="Other"
         
     serverName=find_Server(TestCaseID,tag)
+
+    VarList.setdefault("RadiusServerName", serverName)
     
     if dutInfoObject.DUTCategory != -1:
         suppName = find_Supplicant(TestCaseID,"DUT",dutInfoObject.DUTCategory.lower())
@@ -801,7 +818,7 @@ def GetTestbedDeviceInfo (TestCaseID):
             #setattr(testEnvVariables,"SSID",SSID)
 
     
-    if (ProgName != "P2P" and ProgName != "WFD" and ProgName != "WFDS"):
+    if (ProgName != "P2P" and ProgName != "WFD" and ProgName != "WFDS" and ProgName != "NAN"):
         FindBandChannel(TestCaseID)
     #LogMsg("APs = %s  STAs = %s  SSID = %s "% (APs,STAs,SSID))
    
@@ -941,7 +958,10 @@ def AddTestCaseAP (APName,pos):
 
 def GetOtherVariables(TID):
     global dutInfoObject
-    find_throughput_values(TID,"Throughputs")  
+    if (getattr(dutInfoObject,"ASD")!="0"):
+        find_ASD_threshold_values(TID,"Throughputs_ASD")
+    else:
+        find_throughput_values(TID,"Throughputs") 
     cw=find_TestcaseInfo_Level1(TID,"APChannelWidth")
     LogMsg("Channel Width = %s"%cw)
     if (cw != ""):
@@ -983,7 +1003,9 @@ def GetOtherVariables(TID):
     VarList.setdefault("TSM_Support",dutInfoObject.TSM_Support)
     VarList.setdefault("Streams","%sSS" % dutInfoObject.Streams)
     VarList.setdefault("Open_Mode",dutInfoObject.Open_Mode)
+    VarList.setdefault("Mixedmode_WPA2WPA",dutInfoObject.Mixedmode_WPA2WPA)
     VarList.setdefault("PMF_OOB",dutInfoObject.PMF_OOB)
+    VarList.setdefault("ASD",dutInfoObject.ASD)
 
     #EAP Methods
     #VarList.setdefault("TLS",dutInfoObject.TLS)
@@ -1084,6 +1106,12 @@ def FindCheckFlag11n (TestCaseID):
         VarList.setdefault("TestNA","%s not supported by DUT; Skipping the Test. Re-Check the file \"DUTInfo.txt\"" % chkFlag)
     else:
         LogMsg ("%s is supported by DUT; Make sure [%s] is enabled" % (chkFlag,chkFlag))
+        for EAP in EAPList:
+            if (EAP == chkFlag):
+                dutInfoObject.__setattr__("DUTEAPMethod",EAP)
+                VarList.setdefault("DUTEAPMethod",dutInfoObject.DUTEAPMethod)
+                LogMsg("%s EAP method is supported by DUT" % chkFlag)
+                break
 
 
 def AddWPSConfigMethod (TID,VarName,VarValue):
@@ -1657,8 +1685,49 @@ def findPMFCap(testID,tag):
              #   for iCount in range(1,3):
               #      LogMsg ("------------Testbed PMF Cap%s= %s" %(iCount,node3.firstChild.nodeValue))
                #     VarList.setdefault("PMFCap%s" %(iCount),node3.firstChild.nodeValue)
+def get_ASD_framerate(ASDvalue):
+    # The expected traffic is about 30% more than the expected throughput value 
+    offset = 0.3
+    # payload value is 1000, which is hard-coded in the script
+    ASDframerate = ((float(ASDvalue) * (1+offset) * 1000000) / (1000 * 8)) 
+    ASDframerate = "{:.2f}".format(ASDframerate)
+    return ASDframerate
 	
+def find_ASD_threshold_values(testID,tag):
+    result="" 
+    tag1=""
+    LogMsg ("\n|\n|\n| Searching ASD Throughput values for TestID %s" % (testID))
+    for node in doc.getElementsByTagName(testID):
+        LogMsg ("Node1 = %s" %node.nodeName)
+        L = node.getElementsByTagName(tag)
+        asd_type=getattr(dutInfoObject,"ASD")
+        if asd_type=="1":
+            tag1="Handsets"
+        elif asd_type=="2":
+            tag1="TV"
+        elif asd_type=="3":
+            tag1="Printer"
+        elif asd_type=="4":
+            tag1="SetTopBox"
+        elif asd_type=="5":
+            tag1="MobileAP"
+        LogMsg(" Test Running ASD -%s-%s- " % (asd_type,tag1))
+        for node2 in L:
+            for node3 in node2.childNodes:
+                if node3.nodeName == tag1:
+                    for node4 in node3.childNodes:
+                        if(node4.nodeName != "#text"):
+                            LogMsg ("------------Node4. = %s %s" % (node4.nodeName,node4.firstChild.nodeValue))
+                            VarList.setdefault(node4.nodeName,node4.firstChild.nodeValue)
+                            #Add new key value in the Varlist dictionary to store coresponding framerate for ASD project
+                            ASDkey = "FrameRate_" + node4.nodeName
+                            ASDframerate = get_ASD_framerate(node4.firstChild.nodeValue)
+                            VarList.update({ASDkey:ASDframerate})
+                            result = 1
 
+                       
+    LogMsg ("\n|\n|\n| Found ASD Throughput values -%s-" % (result))
+    return result
 def find_throughput_values(testID,tag):
     result=""
     tag1=""

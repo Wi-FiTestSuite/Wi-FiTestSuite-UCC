@@ -104,6 +104,7 @@ def main():
         \n\r                      WFDS\
 	    \n\r                      VHT\
 		\n\r					  WMMPS\
+		\n\r                      NAN\
 		\n\r\n\r [2] Test ID : Test case ID for that program            OR\
 		\n\r\n\r [2] group : group if running group of test cases followed by group file name\
 		\n\r\n\r [3] group file name: Group file name which contains list of test cases\
