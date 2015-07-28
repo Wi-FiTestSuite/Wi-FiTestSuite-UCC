@@ -27,10 +27,17 @@ import ctypes
 import random
 import HTML
 import json, io, re
+import string
+import xml.dom.minidom
 import threading
 from xml.dom.minidom import Document
+from xml.dom.minidom import Node
 from XMLLogger import XMLLogger
+import math
+from datetime import datetime
 from random import randrange
+from xml.dom.minidom import Node
+from difflib import SequenceMatcher
 VERSION = "9.0.0"
 
 
@@ -59,9 +66,11 @@ socktimeout = 0
 deftimeout = 600
 
 #default command file path
+MasterTestInfo="\MasterTestInfo.xml"
+InitEnv = "\InitEnv.txt"
 uccPath = '..\\..\\cmds'
 DUTFeatureInfoFile = "./log/DUTFeatureInfo.html"
-
+doc = ""
 
 STD_INPUT_HANDLE = -10
 STD_OUTPUT_HANDLE = -11
@@ -93,188 +102,314 @@ std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
 
 #TMS response packet
 class TMSResponse:
-    """TMS Response Class"""
+
     #Init variables
-    def __init__(self, TestResult="N/A", Mode="WTS",
-                 DutParticipantName="Jeff",
-                 PrimaryTestbedParticipantName="Mark", is60GHz="False"):
-        self.TmsEventId = ""
-        self.ProgramName = ""
+    def __init__(self, TestResult="N/A", Mode="Sigma", DutParticipantName="Unknown", PrimaryTestbedParticipantName="Unknown" ):
+        self.TmsEventId =""
         self.TestCaseId = ""
-        self.UCCversion = ""
-        self.Dut = []
-        self.PrimaryTestbed = []
+        self.Mode = Mode
+        self.Dut = {'company':"", 'model':"", 'firmware':"", 'Category' : "", 'VendorDeviceId' : ""}
+        self.PrimaryTestbed =  {'company':"", 'model':"", 'firmware':"", 'Category' : "", 'VendorDeviceId' : ""}
         self.SupplementalTestbeds = []
-        self.LogFileName = ""
+        self.TestResult = TestResult
         self.TimeStamp = ""
-        self.TestResult = ""
-        self.snifferLogFileName = ""
-        self.Mode = ""
-        self.DutParticipantName = ""
-        self.PrimaryTestbedParticipantName = ""
-        self.is60GHz = ""
-        #need to get some infos(Mode, DutParticipantName,
-        #PrimaryTestbedParticipantName from TMS client
+        self.LogFileName = ""
+        self.ProgramName = ""
+        self.DutParticipantName = DutParticipantName
+        self.PrimaryTestbedParticipantName = PrimaryTestbedParticipantName
 
         #To DO :
-        #need to add AP get_device_inof ->
-        #do we need new Capi for AP device info??
-        #need logic to get info from TMS client
-        #(some txt file or init file, etc..)
+        #need to add AP get_device_inof -> do we need new Capi for AP device info?? 
+        #need logic to get info from TMS client(some txt file or init file, etc..) 
 
     def __str__(self):
-        return "\n Test Event ID = [%s] Prog Name = [%s] Test Case = [%s] Dut Name =[%s] Model Number =[%s] Test Result =[%s]" % (self.TmsEventId, self.ProgramName, self.TestCaseId, self.dutName, self.dutModeNumber, self.testResult)
-
+        return("\n Test Event ID = [%s] Prog Name = [%s] Test Case = [%s] Dut Name =[%s] Model Number =[%s] Test Result =[%s]" % (self.TmsEventId,self.ProgramName,self.TestCaseId,self.dutName,self.dutModeNumber, self.testResult))
+    
+    #func to get class to dict
     def asDict(self):
-        """function to get class to dict"""
         return self.__dict__
 
-    def writeTMSJson(self, logLoc):
-        """func to write JSON for TMS -> grep log file and look for Version Info"""
+    # This Function finds the value of given tag in master XML file of Testcase Info (from InitEnv)
+    #
+    #   Arguments  :        Testcase ID , Tag
+    #   Return     :        Tag Value (as per XML file)
+    #
+    def Search_MasterTestInfo(self, testID, tag):
+        global MasterTestInfo,doc,uccPath
+        result=""
 
-        flag = 0
-        counter = 0
+        doc = xml.dom.minidom.parse(uccPath + MasterTestInfo)
 
-        with open(self.LogFileName, "r") as f:
-            for line in f:
-                #this is to search for 60GHz string and figure out this is
-                #60GHz supported program or not.. This may need to be changed
-                #later once naming policy is set.
-                if re.search(r"60GHz", line):
-                    self.is60GHz = "True"
+        for node in doc.getElementsByTagName(testID):
+          L = node.getElementsByTagName(tag)
+          for node2 in L:
+              for node3 in node2.childNodes:
+                  if node3.nodeType == Node.TEXT_NODE:
+                      result = node3.nodeValue
+                      return result
 
-                if re.search(r"device_get_info", line):
-                    flag = 1
-                    continue
+        return result
 
-                if flag == 1:
-                    if re.search(r"~~~~~", line):
-                        flag = 0
-                        continue
 
-                    if re.search(r"--->", line):
-                        continue
+    #func to write JSON for TMS -> grep log file and look for Version Info
+    def writeTMSJson(self, logLoc, logTime):
 
-                    if re.search(r"<--", line) and re.search(r"status,COMPLETE,vendor", line):
-                        pos = line.index('     ') + 5
-                        str = line[pos:]
+        jsonFname="%s/tms_%s.json" %( logLoc , self.TestCaseId)
+        convertedTime = time.strptime(logTime, "%b-%d-%Y__%H-%M-%S")
+        self.TimeStamp = time.strftime('%Y-%m-%dT%H:%M:%SZ', convertedTime)
+        try :
+            primaryTB = self.Search_MasterTestInfo(self.TestCaseId,"PrimaryTestbed")
+        except :
+            #exception
+            primaryTB ="n/a"
 
-                        #DUT case
-                        if str.startswith('DUT'):
-                            posVendor = line.index('vendor,') + 7
+        BulkStorageServer = ""
 
-                            str = line[posVendor:]
-                            posSym = str.index(',')
-                            dutName = str[:posSym]
-                            str = str[len(self.dutName) + 7:]
-                            posSym = str.index(',')
-                            dutModel = str[:posSym]
-                            str = str[len(self.dutModel) + 9:]
-                            str = str.lstrip()
-                            dutVersion = str.rstrip('\n')
+        tmsPATH='./TmsClient.conf'
+        if(os.path.isfile(tmsPATH)):
+            with open(tmsPATH, "r") as f:
+                for line in f:
+                    if re.search(r"TmsEventId=", line) :
+                         pos = line.index('=') + 1
+                         str = line[pos:].rstrip('\r\n')
+                         self.TmsEventId = str
 
-                            self.Dut.append({'company':dutName,
-                                             'model':dutModel,
-                                             'firmware':dutVersion,
-                                             'Category' : 'N/A',
-                                             'VendorDeviceId' :
-                                             dutName + dutModel})
+                    if re.search(r"TestbedParticipantName=", line) :
+                         pos = line.index('=') + 1
+                         str = line[pos:].rstrip('\r\n')
+                         if primaryTB != "" :
+                            self.PrimaryTestbedParticipantName = str 
+                         else : 
+                            self.PrimaryTestbedParticipantName = ""
+                
+                    if re.search(r"DutParticipantName=", line) :
+                         pos = line.index('=') + 1
+                         str = line[pos:].rstrip('\r\n')
+                         self.DutParticipantName = str
 
-                        #TESTBED case
-                        else:
-                            posVendor = line.index('vendor,') + 7
-                            str = line[posVendor:]
-                            posSym = str.index(',')
-                            str = str.lstrip()
-                            companyTestBed = str[:posSym]
+                    if re.search(r"BulkStorageServer=", line) :
+                         pos = line.index('=') + 1
+                         str = line[pos:].rstrip('\r\n')
+                         BulkStorageServer = str
 
-                            str = str[len(companyTestBed) + 7:]
-                            posSym = str.index(',')
-                            modelTestBed = str[:posSym]
+        if self.Dut.get('VendorDeviceId') != "" :
+            if self.PrimaryTestbed.get('VendorDeviceId') != "" :
+                self.LogFileName = BulkStorageServer + "/" + self.TmsEventId + "/" + self.Dut.get('VendorDeviceId') + "/" + self.PrimaryTestbed.get('VendorDeviceId') + "/" + self.TestCaseId + "/" + logTime + ".zip"
+            else :
+                self.LogFileName = BulkStorageServer + "/" + self.TmsEventId + "/" + self.Dut.get('VendorDeviceId') + "/" + self.TestCaseId + "/" + logTime + ".zip"
+        else :
+            self.LogFileName = BulkStorageServer + "/" + self.TmsEventId + "/" + self.TestCaseId + "/" + logTime + ".zip"
 
-                            str = str[len(modelTestBed) + 9:]
-                            str = str.lstrip()
-                            firmwareTestBed = str.rstrip('\n')
+        tmsFile = open(jsonFname,"w")
+        
+        tmsDict = self.asDict()
 
-                            if counter == 0:
-                                self.PrimaryTestbed.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
-                            else:
-                                self.SupplementalTestbeds.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
+        if primaryTB == "" :
+            del tmsDict['PrimaryTestbed']
+            del tmsDict['PrimaryTestbedParticipantName']
+            del tmsDict['SupplementalTestbeds']
+        else :
+            line = self.Search_MasterTestInfo(self.TestCaseId,"STA")
+            sta_list = line.split(',')
+            if len(sta_list) <= 1 :
+                del tmsDict['SupplementalTestbeds']
 
-                            counter = counter + 1
-
-        jsonFname = "%s/tms_%s.json" %(logLoc, self.TestCaseId)
-        self.TimeStamp = time.strftime("%Y-%m-%dT%H:%M:%S.%Z", time.localtime()) #time.strftime("%b-%d-%Y__%H-%M-%S", time.localtime())
-        self.Mode = "WTS"
-        self.DutParticipantName = "Jeff"
-        self.PrimaryTestbedParticipantName = "Mark"
-
-        tmsFile = open(jsonFname, "w")
-        #tmsFile.write("#################################################################################\n")
-        #tmsFile.write("                                TMS RESPONSE JSON\n")
-        #tmsFile.write("#################################################################################\n")
-        json.dump(self.asDict(), tmsFile, indent=4)
+        TmsFinalResult = {"TmsTestResult" : tmsDict}
+        json.dump(TmsFinalResult, tmsFile, indent=4)
 
         tmsFile.close()
 
-    def getDeviceInfo(self, displayname, response):
-        """function to get device_get_info CAPI response"""
-        flag = 0
-        counter = 0
 
-        if re.search(r"status,COMPLETE,vendor", response):
+    #func to get device_get_info capi resonse
+    def setDutDeviceInfo(self, displayname, response):
+        category = self.Search_MasterTestInfo(self.TestCaseId,"DUT_CAT")
+        dutName = ""
+        dutModel = ""
+        dutVersion = ""
+        logging.info("setDutDeviceInfo")
 
-            #DUT case
-            if  displayname.startswith('DUT'):
-                posVendor = line.index('vendor,') + 7
+        specials = '$#&*()[]{};:,//<>?/\/|`~=+' #etc
+        trans = string.maketrans(specials, '.'*len(specials))
 
-                str = line[posVendor:]
-                posSym = str.index(',')
-                dutName = str[:posSym]
-                str = str[len(self.dutName) + 7:]
-                posSym = str.index(',')
-                dutModel = str[:posSym]
-                str = str[len(self.dutModel) + 9:]
-                str = str.lstrip()
-                dutVersion = str.rstrip('\n')
-
-                self.Dut.append({'company':dutName, 'model':dutModel, 'firmware':dutVersion, 'Category' : 'N/A', 'VendorDeviceId' : dutName + dutModel})
+        try :
 
 
-            #TESTBED case
-            else:
+            if re.search(r"vendor", response):
                 posVendor = response.index('vendor,') + 7
                 str = response[posVendor:]
-                posSym = str.index(',')
                 str = str.lstrip()
-                companyTestBed = str[:posSym]
+                try :
+                    posSym = str.index(',')
+                    dutName = str[:posSym]
+                except :
+                    dutName = str.rstrip('\n')
 
-                str = str[len(companyTestBed) + 7:]
-                posSym = str.index(',')
-                modelTestBed = str[:posSym]
-
-                str = str[len(modelTestBed) + 9:]
+            if re.search(r"model", response):
+                posVendor = response.index('model,') + 6
+                str = response[posVendor:]
                 str = str.lstrip()
-                firmwareTestBed = str.rstrip('\n')
+                try :
+                    posSym = str.index(',')
+                    tempStr = str[:posSym]
+                    dutModel = tempStr.translate(trans)
+                except :
+                    dutModel = str.rstrip('\n')
+                    dutModel = dutModel.translate(trans)   
 
-                if counter == 0:
-                    self.PrimaryTestbed.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
-                else:
-                    self.SupplementalTestbeds.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : 'N/A', 'VendorDeviceId' : companyTestBed + modelTestBed})
+            if re.search(r"version", response):
+                posVendor = response.index('version,') + 8
+                str = response[posVendor:]
+                str = str.lstrip()
+                try :
+                    posSym = str.index(',')
+                    tempStr = str[:posSym]
+                    dutVersion = tempStr.translate(trans)   
+                except :
+                    dutVersion = str.rstrip('\n')
+                    dutVersion = dutVersion.translate(trans)   
 
-                counter = counter + 1
 
-    def getTestID(self, pkgName):
-        """function to get test case ID"""
-        taskID = pkgName
-        #removed first 6 digits of pkgName which is version of WTS  ex) 8.1.0-NAN_Plugfest5
+        except :
+            logging.info("couldn't create device info...")
+            
+                                               
+        self.Dut['company'] = dutName
+        self.Dut['model'] = dutModel
+        self.Dut['firmware'] = dutVersion
+        self.Dut['Category'] = category
+        self.Dut['VendorDeviceId'] = dutName + "_" +  dutModel
+
+          
+    #func to get device_get_info capi resonse
+    def setTestbedInfo(self, displayname, response):
+        primaryTB = ""
+        try : 
+            primaryTB = self.Search_MasterTestInfo(self.TestCaseId,"PrimaryTestbed")
+        
+            sta_list = []
+            sta_category = []
+
+            line = self.Search_MasterTestInfo(self.TestCaseId,"STA")
+            sta_list = line.split(',')
+
+            catline = self.Search_MasterTestInfo(self.TestCaseId,"STA_CAT")
+            sta_category = catline.split(',')
+        except : 
+            logging.info("self.Search_MasterTestInfo error")
+        #ap_category = self.Search_MasterTestInfo(self.TestCaseId,"AP_CAT")
+        #ap_list = self.Search_MasterTestInfo(self.TestCaseId,"AP")
+
+        #if there is no primary testbed then no need to create json..
+        if primaryTB == "" :
+            logging.info("no primary testbed info found")
+            return
+
+        #number of Stations and number of category should be matched..
+        if len(sta_list) != len(sta_category) :
+            logging.info("num STA and STA_CAT doesn't match")
+            return
+        
+        if len(sta_list) == 0 :
+            logging.info("num -- 0 ")
+            return
+
+        category  = ""
+        primaryFlag = 0
+
+        try :
+            for index in range(len(sta_list)):
+
+                str1 = sta_list[index].lower()
+                str2 = displayname.lower()
+                s = SequenceMatcher(None, str1, str2) 
+                str3 = primaryTB.lower()
+                
+                if(s.ratio() >= 0.90) :
+                    #logging.info("category there is match  s.ratio() %s", s.ratio())
+                    category  = sta_category[index]
+                    #logging.info("category --- %s   primaryTB --- %s   str--- %s", category, primaryTB, str1)
+                    if str1 == str3 :
+                        logging.info("sta1 is primary")
+                        primaryFlag = 1
+                
+
+        except : 
+            logging.info("error - sequence matcher...")
+        #logging.info("category there is no match, then skip -- category : %s ", category)
+        #if there is no match, then skip
+        
+        if category == "" :
+            return
+        companyTestBed = ""
+        modelTestBed = ""
+        firmwareTestBed = ""
+
+        specials = '$#&*()[]{};:,//<>?/\/|`~=+' #etc
+        trans = string.maketrans(specials, '.'*len(specials))
+
+        if re.search(r"status,COMPLETE", response):
+     
+            if re.search(r"vendor", response):
+                posVendor = response.index('vendor,') + 7
+                str = response[posVendor:]
+                str = str.lstrip()
+                try :
+                    posSym = str.index(',')
+                    companyTestBed = str[:posSym]
+                except :
+                    companyTestBed = str.rstrip('\n')
+             
+            if re.search(r"model", response):
+                posVendor = response.index('model,') + 6
+                str = response[posVendor:]
+                str = str.lstrip()
+                try :
+                    posSym = str.index(',')
+                    tempStr = str[:posSym]
+                    modelTestBed = tempStr.translate(trans)   
+                except :
+                    modelTestBed = str.rstrip('\n')
+                    modelTestBed = modelTestBed.translate(trans)  
+
+            if re.search(r"version", response):
+                posVendor = response.index('version,') + 8
+                str = response[posVendor:]
+                str = str.lstrip()
+                try :
+                    posSym = str.index(',')
+                    tempStr = str[:posSym]
+                    firmwareTestBed = tempStr.translate(trans)
+                except :
+                    firmwareTestBed = str.rstrip('\n')
+                    firmwareTestBed = firmwareTestBed.translate(trans)
+
+            if primaryFlag == 1 :
+                #logging.info("primary")
+                self.PrimaryTestbed['company'] = companyTestBed
+                self.PrimaryTestbed['model'] = modelTestBed
+                self.PrimaryTestbed['firmware'] = firmwareTestBed
+                self.PrimaryTestbed['Category'] = category
+                self.PrimaryTestbed['VendorDeviceId'] = companyTestBed + "_" +  modelTestBed
+
+            else :
+                #logging.info("supplicant")
+                self.SupplementalTestbeds.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : category, 'VendorDeviceId' : companyTestBed + "_" +  modelTestBed})                                                    
+
+            #logging.info("finished")
+                
+
+    def getTestID(self, pkgName):    
+        
+        taskID = pkgName    
+        #removed first 6 digits of pkgName which is version of Sigma  ex) 8.1.0-NAN_Plugfest5
         self.TmsEventId = taskID[6:]
-        self.UCCversion = "UCC Version " + pkgName
 
 #global to save tms values
 tmsPacket = TMSResponse()
 tmsLogLocation = ""
+tmsTimeStamp = ""
 
+# Global Handler for classified Logs
 cSLog = ""
 class classifiedLogs:
     """Global Handler for classified Logs"""
@@ -677,6 +812,7 @@ def process_cmd(line):
     """
     global conntable, threadCount, waitsocks_par, runningPhase, testRunning, streamInfoArray, resultPrinted
     global retValueTable, RTPCount, multicast, ifcondBit, iDNB, iINV, ifCondBit, socktimeout
+    global tmsPacket
     line = line.rstrip()
     str = line.split('#')
     lhs = []
@@ -1669,7 +1805,14 @@ def process_resp(toaddr, status, capi_elem, command):
         #if re.search('ERROR', ss):
             set_test_result("ERROR", "-", "Command returned Error")
             wfa_sys_exit("Command returned Error. Aborting the test")
-
+        if capi_elem[0] == 'device_get_info':
+            if command[0] == 'wfa_control_agent_dut' :
+                tmsPacket.setDutDeviceInfo(displayName, ss)
+            else :
+                try :
+                    tmsPacket.setTestbedInfo(displayName, ss)
+                except :
+                    logging.info( "exception -- device_get_info capi call")
         stitems = ss.split(',')
         if len(stitems) > 3:
             if stitems[2] == 'streamID':
@@ -1860,6 +2003,7 @@ def process_cmdfile(line):
 
 def set_test_result(result, data, rdata):
     """Print TMS ending result to console"""
+    global tmsPacket
     XLogger.setTestResult(result, data, rdata)
     if re.search("PASS", result):
         set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
@@ -2153,12 +2297,13 @@ def process_ResultCheck(line):
 #JIRA SIG-868
 def wfa_print_result(expt_flag, msg=""):
     """Print ending result to console"""
+    global tmsPacket
     time.sleep(2)
     if expt_flag == 0 and XLogger.result == "NOT COMPLETED":
         set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
         XLogger.setTestResult("ABORTED")
         #logging.info("ABORTED-: %s" % msg)
-        tmsPacket.TestResult = "ABORTED"
+        tmsPacket.TestResult = "FAIL"
         tmsPrint()
 
     elif expt_flag == 1 and XLogger.resultChangeCount > 1:
@@ -2174,11 +2319,11 @@ def wfa_print_result(expt_flag, msg=""):
             tmsPrint()
 
     else:
-        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        set_color(FOREGROUND_CYAN | FOREGROUND_INTENSITY)
         XLogger.setTestResult("ERROR")
         logging.info("ERROR-Result N/A: %s" % msg)
-        tmsPacket.TestResult = "ERROR"
-        tmsPrint()
+        #tmsPacket.TestResult = "FAIL"
+        #tmsPrint()
 
     XLogger.writeXML()
 ####################################################################
@@ -2193,8 +2338,6 @@ def wfa_sys_exit(msg):
         XLogger.setTestResult("ABORTED", msg)
         #setattr(ResInfo,"rdata", msg)
     logging.info("ABORTED-: %s" % msg)
-    tmsPacket.TestResult = "ABORTED"
-    tmsPrint()
     if msg.find("10060") != -1:
         logging.info('Control Network Timeout - Please check the following:')
         logging.info('	- Make sure destination IP Address is set correctly')
@@ -2228,13 +2371,14 @@ class XMLLogHandler(logging.FileHandler):
 XLogger = ""
 
 def init_logging(_filename, level, loop=0):
-    global cSLog, XLogger, tmsPacket, tmsLogLocation
+    global cSLog, XLogger, tmsPacket, tmsLogLocation, tmsTimeStamp
     p = _filename.split('\\')
     resultCollectionFile = open("TestResults", "a")
     for s in p:
         tFileName = s
 
-    directory = "./log/%s_%s" %(tFileName.rstrip(".txt"), time.strftime("%b-%d-%Y__%H-%M-%S", time.localtime()))
+    tmsTimeStamp = time.strftime("%b-%d-%Y__%H-%M-%S", time.localtime())
+    directory= "./log/%s_%s" %(tFileName.rstrip(".txt"),tmsTimeStamp)
     tmsLogLocation = directory
 
     os.mkdir(directory)
@@ -2249,7 +2393,7 @@ def init_logging(_filename, level, loop=0):
 
     tmsPacket.TestCaseId = tFileName.rstrip(".txt")
     tmsPacket.LogFileName = fname
-    tmsPacket.snifferLogFileName = fname_sniffer
+    #tmsPacket.snifferLogFileName = fname_sniffer
 
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s %(levelname)-8s %(message)s',
@@ -2392,8 +2536,9 @@ def firstword(line):
 
 def tmsPrint():
     """function to run writeTMSJson()"""
-    global tmsPacket, tmsLogLocation
-    tmsPacket.writeTMSJson(tmsLogLocation)
+    global tmsPacket,tmsLogLocation, tmsTimeStamp
+    #logging.info("tmsPrint")
+    tmsPacket.writeTMSJson(tmsLogLocation, tmsTimeStamp)
 
 def get_display_name(toaddr):
     displayName = toaddr
