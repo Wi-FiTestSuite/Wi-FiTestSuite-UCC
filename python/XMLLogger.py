@@ -16,7 +16,6 @@
 #
 ###################################################################
 
-#!/usr/bin/evn python
 import os, sys
 import logging
 import logging.handlers
@@ -42,7 +41,6 @@ class XMLLogger:
         self.fileName = fileName
         self.doc = XMLDoc()
         self.result = "NOT COMPLETED"
-        #JIRA SIG-868
         self.resultChangeCount = 0
         self.multiStepResultDict = {"PASS" : 0, "FAIL" : 0}
         # Stylesheet
@@ -80,13 +78,11 @@ class XMLLogger:
 
     def setTestResult(self, result, r1="", r2=""):
         self.result = result
-        #JIRA SIG-868
         self.resultChangeCount += 1
         if "FAIL" in result:
             self.multiStepResultDict["FAIL"] += 1
         else:
             self.multiStepResultDict["PASS"] += 1
-        #print("*----> Setting results [%s] [%s] [%s] [%s]" % (result, self.LogItemCounter,r1,r2))
 
     def setManualCheckInfo(self, mChk):
         self.Log.appendChild(self.doc.createElement("ManualCheckInfo", mChk))
@@ -98,8 +94,6 @@ class XMLLogger:
 
         self.mediaLogNode.appendChild(self.doc.createElement("MediaFile", filename))
         self.mediaLogCounter = self.mediaLogCounter + 1
-
-        #print("*----> Setting results [%s] [%s] [%s] [%s]" % (result, self.LogItemCounter,r1,r2))
 
     def log(self, command):
         destName = ""
@@ -131,7 +125,6 @@ class XMLLogger:
 
         except:
             # Drop blank or unidentified format lines
-            #print ("drop %s " % command)
             pass
 
         # Log Item
@@ -232,9 +225,7 @@ def init_logging(_filename):
 # only for unit testing. main() function should be removed during integration with UCC core
 def main():
     global XLogger
-    #rSummary = ResultSummary("log\\summary.xml","1","log")
     init_logging("test.txt")
-    #rLog = open("sample.txt","r")
     logPath = "\\\\Input\\Your\\Log\\Location"
 
     for f in os.listdir(logPath):
@@ -260,8 +251,6 @@ def main():
                 XLogger.writeXML()
                 XLogger = XMLLogger("log\\abc.xml", "P2P-5.1.12", "..\\Log-Format.xsl")
 
-    #XLogger.writeXML()
-    #rSummary.writeXML()
 
 if __name__ == "__main__":
     main()

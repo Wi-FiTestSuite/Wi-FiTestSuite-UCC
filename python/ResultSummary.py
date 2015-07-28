@@ -73,7 +73,6 @@ class TBDevice:
         self.WTSControlAgent = WTSControlAgent
         self.verified = 0
         self.msg = ""
-        #logging.info("TBDevice Object created:%s:%s:%s:%s:%s"%(self.vendor,self.model,self.driver,self.os,self.WTSControlAgent))
 
     def AddXMLNode(self, doc, parent, ver=0):
         device = doc.createElement("Device")
@@ -100,7 +99,6 @@ class TBDevice:
             device.appendChild(verification)
 
     def compare(self, node):
-        #logging.debug("comparing two TBDevice node %s %s" % (self,node))
         rc = 0
         if self.vendor.lower() != node.vendor.lower():
             rc = 0
@@ -117,10 +115,8 @@ class TBDevice:
             else:
                 self.verified = 1
 
-        #logging.debug("TBDevice::compare return %s-%s-" % (rc, self.verified))
         return rc
     def __str__(self):
-        #return("\n TBDevice Object :%s:%s:%s:%s:%s"%(self.vendor, self.model, self.driver, self.os, self.WTSControlAgent))
         pass
 
 class WTSComponent:
@@ -130,7 +126,6 @@ class WTSComponent:
         self.others = others
 
     def AddXMLNode(self, doc, parent):
-        #print ("WTSComponent::AddXMLNode [%s] [%s]" % (doc,parent)) 
         WTS = doc.createElement("WTSComponent")
         parent.appendChild(WTS)
 
@@ -182,10 +177,8 @@ class ACCClient:
 
         status = self.socket.send(cmd)
         logging.info("SENT: %s Bytes" % status)
-        #time.sleep(1)
         status = self.socket.recv(1024)
 
-        #status="result,0,sigfile,%s.asc,errMsg,sig mismatch" % filename
         logging.info("<< ACC:%s" % status)
 
         if status:
@@ -247,7 +240,6 @@ class TestCase:
 
         # Verify signature if Sign Flag is ON and .asc signature file exists
         if self.passLogFile and int(self.SignVerification) and os.path.exists("%s.asc" % fullPathFile):
-        #if self.passLogFile and int(self.SignVerification):
             logging.info("Verifying Signature for [%s]" % fullPathFile)
             self.SignVerificationResult = ACC.verifySign(fullPathFile)
             TestCase.appendChild(doc.createElement("SignVerificationInfo", "%s" % (ACC.info)))
@@ -299,8 +291,6 @@ class ResultSummary:
         self.doc.appendChild(self.doc.createProcessingInstruction("xml-stylesheet",
                              "type=\"text/xsl\" href=\"%s\"" % stylesheet))
 
-        # Results->Result->Info
-        # Results->Result->TestResults
         self.Results = self.doc.createElement("Results")
         self.Result = self.doc.createElement("Result")
         self.ResultInfo = self.doc.createElement("Info")
@@ -355,7 +345,6 @@ class ResultSummary:
             if f1.startswith(self.ProgramName):
                 for f in os.listdir(self.logpath + "\\" + f1):
                     logging.debug("--File name [%s]" % f)
-                    #if len(f.split('.')) > 1 and f.split('.')[1] == "xml":
                     if f.endswith(".xml"):
                         lf = "%s%s/%s" % (self.logpath, f1, f)
                         logging.info("Processing log file - %s \n", lf)
@@ -370,7 +359,6 @@ class ResultSummary:
                         tID = self.getAttrValue(dlogFile, "Log", "id")
                         tID = tID.strip()
                         tResult = self.getNodeValue(dlogFile, "Log", "TestCaseResult")
-                        #sig=self.getNodeValue(dlogFile,"Log","Signature")
                         sig = "1"
 
                         # Add result nodes to TestCase
@@ -448,7 +436,7 @@ class ResultSummary:
                     tList.AddXMLNode(self.doc, self.TestResults)
                     break
 
-            # If results not found for the test, mark it mising
+            # If results not found for the test, mark it missing
             if not listEmpty and not iTestFound:
                 tMissing = TestCase(tID, "NO Results Found")
                 tMissing.type = self.getNodeValue(t, "TestCase", "Type")
@@ -496,7 +484,6 @@ class ResultSummary:
         logging.debug("TLeft = %s TRight = %s" % (left, right))
 
         lTBDevice = self.getTBDeviceObject(left)
-        #print rList["Vendor"]
         for r in right:
             rightList = getNodeHandle(r, ["ConfigSet", "Testbed", "Device"], r, 1)
             for d in rightList:
@@ -511,7 +498,6 @@ class ResultSummary:
         return lTBDevice
 
     def writeXML(self):
-        #print self.doc.toprettyxml(indent="  ")
         fXMLFile = open(self.fileName, "w")
         fXMLFile.write(self.doc.toprettyxml(indent=" "))
         fXMLFile.close()
@@ -546,7 +532,6 @@ def getNodeHandle(node, tagList, string="", lst=0):
     if string:
         node = xml.dom.minidom.parseString(string.toprettyxml(indent=" "))
 
-    #logging.debug("TAG Length = %s" % len(tagList))
     while TagCounter < len(tagList):
         nHandle = []
         _get_elements_by_tagName_helper(node, tagList[TagCounter], nHandle)
@@ -591,13 +576,11 @@ def ReadMapFile(filename, index, delim, n=1):
     if os.path.exists(filename) == 0:
         print "File not found -%s-" % filename
         return -1
-    #print ("ReadMapFile ------- %s-%s-%s" %(filename,index,delim))
     fileP = open(filename, 'r')
     for l in fileP.readlines():
         if not l: break
         line = l.split('#')
         command = line[0].split(delim)
-        #print ("ReadMapFile ------- %s" %(command))
         if index in command:
             returnString = command[command.index(index)+n].strip()
             break
@@ -643,15 +626,10 @@ def main():
             acc_port = ReadMapFile(sys.argv[1], "ACC_IP_PORT", '=')
             ACC = ACCClient(acc_ip, acc_port)
             #unit test with hard coded file name
-            #ACC.verifySign("HS2-5.1_2012-03-20T10_00_12Z.xml")
 
         rSummary.generateSummary()
         rSummary.writeXML()
 
-        # valid results C:\MyDocs\Self-Cert\Self-Cert_Result-Files\TestCriteria\TestCriteria.xml
-        #validator = ResultValidation(rSummary.fileName,"C:\\MyDocs\\Self-Cert\\Self-Cert_Result-Files\\TestCriteria\\TestCriteria.xml",rSummary.ProgramName)
-        #validator.validate()
-        #logging.info("%s" % validator)
     except StandardError:
         err = sys.exc_info()
         logging.error("End %s" % err[1])

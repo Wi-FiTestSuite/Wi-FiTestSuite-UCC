@@ -261,11 +261,8 @@ class server:
 #Global Object to handle server Information
 serverInfo = server()
 
-#
-# Class: envVariables
-# This class holds all the required variables for the test
-#
 class envVariables:
+    """This class holds all the required variables for the test"""
     global ProgName, uccPath
     def __init__(self,
                  Channel="",
@@ -419,7 +416,6 @@ def LogMsg(Msg):
     """
     global LogFile
     LogFile.write("\n %s - %s" %(time.strftime("%H-%M-%S_%b-%d-%y", time.localtime()), Msg))
-    #print("%s - %s" %(time.strftime("%H-%M-%S_%b-%d-%y", time.localtime()),Msg))
     return
 
 def createUCCInitEnvFile(filename):
@@ -448,7 +444,6 @@ def createUCCInitEnvFile(filename):
     for var in VarList:
         uccInitFile.write("\ndefine!$%s!%s!\n"%(var, VarList[var]))
 
-    #uccInitFile.write("\ndefine!WPA2Test!0!\n")
     uccInitFile.write("#EOF")
     uccInitFile.close()
     return
@@ -524,7 +519,6 @@ def ReadDUTInfo(filename, TestCaseID):
 
     for EAP in EAPList:
         Ret = ReadMapFile(DUTFile, EAP, "!")
-        #LogMsg ("EAP--- %s %s" %(EAP,Ret))
         if int(Ret) == 1:
             dutInfoObject.__setattr__("DUTEAPMethod", EAP)
             break
@@ -784,23 +778,18 @@ def GetTestbedDeviceInfo(TestCaseID):
         iCount = iCount+1
     # Searching SSID
     iCount = 1
-    #SSID= find_TestcaseInfo_Level1(TestCaseID,"SSID")
+
     setattr(testEnvVariables, "SSID", find_TestcaseInfo_Level1(TestCaseID, "SSID"))
     setattr(testEnvVariables, "SSID_1", find_TestcaseInfo_Level1(TestCaseID, "SSID"))
     SSIDs = find_TestcaseInfo_Level1(TestCaseID, "SSID").split(" ")
-    #LogMsg("SSID = %s %d"% (SSIDs,len(SSIDs)))
+
     for SSID in SSIDs:
         if len(SSIDs) > 1:
             setattr(testEnvVariables, "SSID_%s"%(iCount), SSID)
             iCount = iCount + 1
-        #else:
-            #setattr(testEnvVariables,"SSID",SSID)
 
     if ProgName != "P2P" and ProgName != "WFD" and ProgName != "WFDS" and ProgName != "NAN":
         FindBandChannel(TestCaseID)
-    #LogMsg("APs = %s  STAs = %s  SSID = %s "% (APs,STAs,SSID))
-
-    #testEnvVariables.__setattr__("TAP1",ReadMapFile(uccPath+filename,TestCaseID))
 
     return 1
 
@@ -866,16 +855,12 @@ def ReadMapFile(filename, index, delim):
         if not l: break
         line = l.split('#')
         command = line[0].split(delim)
-        #LogMsg ("ReadMapFile ------- %s" %(command))
         if index in command:
             returnString = command[command.index(index)+1]
             break
 
     fileP.close()
     return returnString
-
-#
-# Function: ReadAllMapFile
 
 def ReadAllMapFile(filename, index, delim):
     """
@@ -968,7 +953,6 @@ def AddTestCaseAP(APName, pos):
         LogMsg("Invalid AP Name")
         return -1
 
-
 def GetOtherVariables(TID):
     global dutInfoObject
     if getattr(dutInfoObject, "ASD") != "0":
@@ -1020,21 +1004,10 @@ def GetOtherVariables(TID):
     VarList.setdefault("PMF_OOB", dutInfoObject.PMF_OOB)
     VarList.setdefault("ASD", dutInfoObject.ASD)
 
-    #EAP Methods
-    #VarList.setdefault("TLS",dutInfoObject.TLS)
-    #VarList.setdefault("TTLS",dutInfoObject.TTLS)
-    #VarList.setdefault("PEAP0",dutInfoObject.PEAP0)
-    #VarList.setdefault("PEAP1",dutInfoObject.PEAP1)
-    #VarList.setdefault("SIM",dutInfoObject.SIM)
-    #VarList.setdefault("FAST",dutInfoObject.FAST)
-    #VarList.setdefault("AKA",dutInfoObject.AKA)
-    #VarList.setdefault("AKA'",dutInfoObject.AKA`)
-
     #Check for 11n Optional Test Cases Flag
     FindCheckFlag11n(TID)
 
     #TDLS specific conditional step
-    # TBD - remove the checks from python file and do it command scripts
     cond = find_TestcaseInfo_Level1(TID, "ConditionalStep-DiscReq")
     if cond != "":
         if dutInfoObject.TDLSDiscReq == "1":
@@ -1070,7 +1043,7 @@ def GetOtherVariables(TID):
             VarList.setdefault("ConditionalStep-3SS", cond)
         else:
             VarList.setdefault("ConditionalStep-3SS", "DoNothing.txt")
-     #Check for Special Stream
+    #Check for Special Stream
     cond = find_TestcaseInfo_Level1(TID, "TX-SS")
     if cond != "":
         VarList.setdefault("TX-SS", cond)
@@ -1233,15 +1206,11 @@ def FindBandOperChannel(TestCaseID):
     iCount = 1
     for chan in testOperChannel:
         if len(testOperChannel) > 1:
-            #setattr(testEnvVariables,"OPER_CHN_%s"%(iCount),chan)
             VarList.setdefault("OPER_CHN_%s"%(iCount), chan)
             iCount = iCount + 1
-            #setattr(testEnvVariables,"OPER_CHN",testEnvVariables.OPER_CHN_1)
             VarList.setdefault("OPER_CHN", OPER_CHN_1)
         else:
-            #setattr(testEnvVariables,"OPER_CHN",chan)
             VarList.setdefault("OPER_CHN", chan)
-        #LogMsg("%s %s %s" %(testEnvVariables.OPER_CHN_1, testEnvVariables.Channel_2, testEnvVariables.Channel_3))
 
     return testOperChannel
 
@@ -1270,7 +1239,6 @@ def FindBandChannel(TestCaseID):
         Band = "AG"
     if Band == "A/G/N":
         Band = "AGN"
-        #LogMsg("It is AGN")
     if Band == "G/N":
         Band = "GN"
     if Band == "A/N":
@@ -1356,7 +1324,7 @@ def FindBandChannel(TestCaseID):
 
 def LoadBandSelection():
     """Init band selection array"""
-    # Testcase Band : DUT Band
+    #Testcase Band : DUT Band
     #DUT Mode BG
     bandSelectionList.setdefault("A:BG", "11g")
     bandSelectionList.setdefault("B:BG", "11b")
@@ -1684,10 +1652,6 @@ def findPMFCap(testID, tag):
             elif node3.nodeName == "PMFCap3":
                 LogMsg("------------Testbed PMF Cap3= %s" % (node3.firstChild.nodeValue))
                 VarList.setdefault("PMFCap3", node3.firstChild.nodeValue)
-            #else:
-             #   for iCount in range(1,3):
-              #      LogMsg ("------------Testbed PMF Cap%s= %s" %(iCount,node3.firstChild.nodeValue))
-               #     VarList.setdefault("PMFCap%s" %(iCount),node3.firstChild.nodeValue)
 
 def get_ASD_framerate(ASDvalue):
     # The expected traffic is about 30% more than the expected throughput value
@@ -1786,21 +1750,10 @@ def createDownloadLog():
     downloadLogs.write("@@echo off \n")
     downloadLogs.write("FOR /F  %%T in ('findstr \".\" p') do (\n set LogPath=%%T\n )\n")
     #DUT Log
-    #downloadLogs.write("wget -q -t 1 -T 4 -P %sLogPath%s\DUT ftp://%s/WFASTA.log \n"%("%","%",ReadMapFile(uccPath+InitFile,"wfa_control_agent_dut","!").split(',')[0].split('=')[1]))
-    #downloadLogs.write("wget -q -t 1 -T 4 -P %sLogPath%s\DUT ftp://%s/WFASTA_ControlAgent.log \n"%("%","%",ReadMapFile(uccPath+InitFile,"wfa_control_agent_dut","!").split(',')[0].split('=')[1]))
 
     #Sniffer Trace
     LogMsg("============================= Init File -%s-  Sniffer Flag-%s-  Sniffer IP -%s--" % (uccPath+InitFile, ReadMapFile(uccPath+InitFile, "sniffer_enable", "!"), ReadMapFile(uccPath+InitFile, "wfa_console_tg", "!")))
     if ReadMapFile(uccPath+InitFile, "sniffer_enable", "!") == "1":
         downloadLogs.write("wget -q -t 1 -T 4 -P %sLogPath%s\Sniffer --ftp-user=wifiuser --ftp-password=asdlinux ftp://%s/sniffer_trace*\n"%("%", "%", ReadMapFile(uccPath+InitFile, "wfa_sniffer", "!").split(',')[0].split('=')[1]))
-
-    # AP Log
-    #downloadLogs.write("wget -q -t 1 -T 4 -P %sLogPath%s\AP ftp://%s/ApConfig.log\n"%("%","%",ReadMapFile(uccPath+TestbedAPFile,"TestbedAPConfigServer","!").split(',')[0].split('=')[1]))
-
-    #ADEPT Log
-
-    #STA Log
-
-    #PCEndpoint Log
 
     downloadLogs.close()

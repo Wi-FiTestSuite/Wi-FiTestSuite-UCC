@@ -118,10 +118,6 @@ class TMSResponse:
         self.DutParticipantName = DutParticipantName
         self.PrimaryTestbedParticipantName = PrimaryTestbedParticipantName
 
-        #To DO :
-        #need to add AP get_device_inof -> do we need new Capi for AP device info?? 
-        #need logic to get info from TMS client(some txt file or init file, etc..) 
-
     def __str__(self):
         return("\n Test Event ID = [%s] Prog Name = [%s] Test Case = [%s] Dut Name =[%s] Model Number =[%s] Test Result =[%s]" % (self.TmsEventId,self.ProgramName,self.TestCaseId,self.dutName,self.dutModeNumber, self.testResult))
     
@@ -129,12 +125,19 @@ class TMSResponse:
     def asDict(self):
         return self.__dict__
 
-    # This Function finds the value of given tag in master XML file of Testcase Info (from InitEnv)
-    #
-    #   Arguments  :        Testcase ID , Tag
-    #   Return     :        Tag Value (as per XML file)
-    #
     def Search_MasterTestInfo(self, testID, tag):
+    """
+    Finds the value of given tag in master XML file of Testcase Info (from InitEnv)
+
+    Parameters
+    ----------
+    testID : str
+    tag : tuple of str
+
+    Returns
+    -------
+    Tag Value (as per XML file) : str
+    """
         global MasterTestInfo,doc,uccPath
         result=""
 
@@ -150,68 +153,66 @@ class TMSResponse:
 
         return result
 
-
-    #func to write JSON for TMS -> grep log file and look for Version Info
     def writeTMSJson(self, logLoc, logTime):
-
+        """Write JSON for TMS -> grep log file and look for Version Info"""
         jsonFname="%s/tms_%s.json" %( logLoc , self.TestCaseId)
         convertedTime = time.strptime(logTime, "%b-%d-%Y__%H-%M-%S")
         self.TimeStamp = time.strftime('%Y-%m-%dT%H:%M:%SZ', convertedTime)
         try :
-            primaryTB = self.Search_MasterTestInfo(self.TestCaseId,"PrimaryTestbed")
+            primaryTB = self.Search_MasterTestInfo(self.TestCaseId, "PrimaryTestbed")
         except :
             #exception
             primaryTB ="n/a"
 
         BulkStorageServer = ""
 
-        tmsPATH='./TmsClient.conf'
+        tmsPATH = './TmsClient.conf'
         if(os.path.isfile(tmsPATH)):
             with open(tmsPATH, "r") as f:
                 for line in f:
-                    if re.search(r"TmsEventId=", line) :
+                    if re.search(r"TmsEventId=", line):
                          pos = line.index('=') + 1
                          str = line[pos:].rstrip('\r\n')
                          self.TmsEventId = str
 
-                    if re.search(r"TestbedParticipantName=", line) :
+                    if re.search(r"TestbedParticipantName=", line):
                          pos = line.index('=') + 1
                          str = line[pos:].rstrip('\r\n')
                          if primaryTB != "" :
                             self.PrimaryTestbedParticipantName = str 
-                         else : 
+                         else: 
                             self.PrimaryTestbedParticipantName = ""
-                
-                    if re.search(r"DutParticipantName=", line) :
+
+                    if re.search(r"DutParticipantName=", line):
                          pos = line.index('=') + 1
                          str = line[pos:].rstrip('\r\n')
                          self.DutParticipantName = str
 
-                    if re.search(r"BulkStorageServer=", line) :
+                    if re.search(r"BulkStorageServer=", line):
                          pos = line.index('=') + 1
                          str = line[pos:].rstrip('\r\n')
                          BulkStorageServer = str
 
-        if self.Dut.get('VendorDeviceId') != "" :
-            if self.PrimaryTestbed.get('VendorDeviceId') != "" :
+        if self.Dut.get('VendorDeviceId') != "":
+            if self.PrimaryTestbed.get('VendorDeviceId') != "":
                 self.LogFileName = BulkStorageServer + "/" + self.TmsEventId + "/" + self.Dut.get('VendorDeviceId') + "/" + self.PrimaryTestbed.get('VendorDeviceId') + "/" + self.TestCaseId + "/" + logTime + ".zip"
-            else :
+            else:
                 self.LogFileName = BulkStorageServer + "/" + self.TmsEventId + "/" + self.Dut.get('VendorDeviceId') + "/" + self.TestCaseId + "/" + logTime + ".zip"
-        else :
+        else:
             self.LogFileName = BulkStorageServer + "/" + self.TmsEventId + "/" + self.TestCaseId + "/" + logTime + ".zip"
 
-        tmsFile = open(jsonFname,"w")
-        
+        tmsFile = open(jsonFname, "w")
+
         tmsDict = self.asDict()
 
         if primaryTB == "" :
             del tmsDict['PrimaryTestbed']
             del tmsDict['PrimaryTestbedParticipantName']
             del tmsDict['SupplementalTestbeds']
-        else :
-            line = self.Search_MasterTestInfo(self.TestCaseId,"STA")
+        else:
+            line = self.Search_MasterTestInfo(self.TestCaseId, "STA")
             sta_list = line.split(',')
-            if len(sta_list) <= 1 :
+            if len(sta_list) <= 1:
                 del tmsDict['SupplementalTestbeds']
 
         TmsFinalResult = {"TmsTestResult" : tmsDict}
@@ -219,10 +220,9 @@ class TMSResponse:
 
         tmsFile.close()
 
-
     #func to get device_get_info capi resonse
     def setDutDeviceInfo(self, displayname, response):
-        category = self.Search_MasterTestInfo(self.TestCaseId,"DUT_CAT")
+        category = self.Search_MasterTestInfo(self.TestCaseId, "DUT_CAT")
         dutName = ""
         dutModel = ""
         dutVersion = ""
@@ -231,9 +231,7 @@ class TMSResponse:
         specials = '$#&*()[]{};:,//<>?/\/|`~=+' #etc
         trans = string.maketrans(specials, '.'*len(specials))
 
-        try :
-
-
+        try:
             if re.search(r"vendor", response):
                 posVendor = response.index('vendor,') + 7
                 str = response[posVendor:]
@@ -248,11 +246,11 @@ class TMSResponse:
                 posVendor = response.index('model,') + 6
                 str = response[posVendor:]
                 str = str.lstrip()
-                try :
+                try:
                     posSym = str.index(',')
                     tempStr = str[:posSym]
                     dutModel = tempStr.translate(trans)
-                except :
+                except:
                     dutModel = str.rstrip('\n')
                     dutModel = dutModel.translate(trans)   
 
@@ -264,12 +262,11 @@ class TMSResponse:
                     posSym = str.index(',')
                     tempStr = str[:posSym]
                     dutVersion = tempStr.translate(trans)   
-                except :
+                except:
                     dutVersion = str.rstrip('\n')
                     dutVersion = dutVersion.translate(trans)   
 
-
-        except :
+        except:
             logging.info("couldn't create device info...")
             
                                                
@@ -279,44 +276,41 @@ class TMSResponse:
         self.Dut['Category'] = category
         self.Dut['VendorDeviceId'] = dutName + "_" +  dutModel
 
-          
-    #func to get device_get_info capi resonse
     def setTestbedInfo(self, displayname, response):
+        """To get device_get_info CAPI response"""
         primaryTB = ""
-        try : 
-            primaryTB = self.Search_MasterTestInfo(self.TestCaseId,"PrimaryTestbed")
-        
+        try: 
+            primaryTB = self.Search_MasterTestInfo(self.TestCaseId, "PrimaryTestbed")
+
             sta_list = []
             sta_category = []
 
-            line = self.Search_MasterTestInfo(self.TestCaseId,"STA")
+            line = self.Search_MasterTestInfo(self.TestCaseId, "STA")
             sta_list = line.split(',')
 
-            catline = self.Search_MasterTestInfo(self.TestCaseId,"STA_CAT")
+            catline = self.Search_MasterTestInfo(self.TestCaseId, "STA_CAT")
             sta_category = catline.split(',')
-        except : 
+        except: 
             logging.info("self.Search_MasterTestInfo error")
-        #ap_category = self.Search_MasterTestInfo(self.TestCaseId,"AP_CAT")
-        #ap_list = self.Search_MasterTestInfo(self.TestCaseId,"AP")
 
         #if there is no primary testbed then no need to create json..
-        if primaryTB == "" :
+        if primaryTB == "":
             logging.info("no primary testbed info found")
             return
 
         #number of Stations and number of category should be matched..
-        if len(sta_list) != len(sta_category) :
+        if len(sta_list) != len(sta_category):
             logging.info("num STA and STA_CAT doesn't match")
             return
-        
-        if len(sta_list) == 0 :
+
+        if len(sta_list) == 0:
             logging.info("num -- 0 ")
             return
 
         category  = ""
         primaryFlag = 0
 
-        try :
+        try:
             for index in range(len(sta_list)):
 
                 str1 = sta_list[index].lower()
@@ -324,20 +318,16 @@ class TMSResponse:
                 s = SequenceMatcher(None, str1, str2) 
                 str3 = primaryTB.lower()
                 
-                if(s.ratio() >= 0.90) :
-                    #logging.info("category there is match  s.ratio() %s", s.ratio())
+                if(s.ratio() >= 0.90):
                     category  = sta_category[index]
-                    #logging.info("category --- %s   primaryTB --- %s   str--- %s", category, primaryTB, str1)
                     if str1 == str3 :
                         logging.info("sta1 is primary")
                         primaryFlag = 1
-                
 
-        except : 
+        except: 
             logging.info("error - sequence matcher...")
-        #logging.info("category there is no match, then skip -- category : %s ", category)
+			
         #if there is no match, then skip
-        
         if category == "" :
             return
         companyTestBed = ""
@@ -348,26 +338,25 @@ class TMSResponse:
         trans = string.maketrans(specials, '.'*len(specials))
 
         if re.search(r"status,COMPLETE", response):
-     
             if re.search(r"vendor", response):
                 posVendor = response.index('vendor,') + 7
                 str = response[posVendor:]
                 str = str.lstrip()
-                try :
+                try:
                     posSym = str.index(',')
                     companyTestBed = str[:posSym]
-                except :
+                except:
                     companyTestBed = str.rstrip('\n')
              
             if re.search(r"model", response):
                 posVendor = response.index('model,') + 6
                 str = response[posVendor:]
                 str = str.lstrip()
-                try :
+                try:
                     posSym = str.index(',')
                     tempStr = str[:posSym]
                     modelTestBed = tempStr.translate(trans)   
-                except :
+                except:
                     modelTestBed = str.rstrip('\n')
                     modelTestBed = modelTestBed.translate(trans)  
 
@@ -375,28 +364,23 @@ class TMSResponse:
                 posVendor = response.index('version,') + 8
                 str = response[posVendor:]
                 str = str.lstrip()
-                try :
+                try:
                     posSym = str.index(',')
                     tempStr = str[:posSym]
                     firmwareTestBed = tempStr.translate(trans)
-                except :
+                except:
                     firmwareTestBed = str.rstrip('\n')
                     firmwareTestBed = firmwareTestBed.translate(trans)
 
-            if primaryFlag == 1 :
-                #logging.info("primary")
+            if primaryFlag == 1:
                 self.PrimaryTestbed['company'] = companyTestBed
                 self.PrimaryTestbed['model'] = modelTestBed
                 self.PrimaryTestbed['firmware'] = firmwareTestBed
                 self.PrimaryTestbed['Category'] = category
                 self.PrimaryTestbed['VendorDeviceId'] = companyTestBed + "_" +  modelTestBed
 
-            else :
-                #logging.info("supplicant")
+            else:
                 self.SupplementalTestbeds.append({'company':companyTestBed, 'model':modelTestBed, 'firmware':firmwareTestBed, 'Category' : category, 'VendorDeviceId' : companyTestBed + "_" +  modelTestBed})                                                    
-
-            #logging.info("finished")
-                
 
     def getTestID(self, pkgName):    
         
@@ -409,7 +393,6 @@ tmsPacket = TMSResponse()
 tmsLogLocation = ""
 tmsTimeStamp = ""
 
-# Global Handler for classified Logs
 cSLog = ""
 class classifiedLogs:
     """Global Handler for classified Logs"""
@@ -418,7 +401,6 @@ class classifiedLogs:
         self.fileD = open(fileName, 'a')
         self.msg = msg
         self.fileD.write("%s\n" % msg)
-        #time.strftime("%H-%M-%S_%b-%d-%y", time.localtime())
 
     def log(self, msg):
         """Print out time and message into file"""
@@ -458,7 +440,6 @@ class streamResult:
         self.rxBytes = rxBytes
         self.txBytes = txBytes
         self.phase = phase
-        #print 'self = %s streamID =%s' % (self,streamID)
     def __str__(self):
         return "%-10s RX   %10s  Bytes   |  TX  %10s   | Stream ID = %s" % (' ', self.rxBytes, self.txBytes, self.streamID)
 
@@ -473,7 +454,6 @@ class UCCThread (threading.Thread):
     def run(self):
         logging.info("Starting %s" % self.name)
         # Get lock to synchronize threads
-        #glock = threadLock.acquire(0)
         logging.debug("To Addr:%s" % self.toaddr)
         if len(tstate) > 0:
             tstateStatus = tstateCheck(self.toaddr)
@@ -482,7 +462,6 @@ class UCCThread (threading.Thread):
         status = send_capi_command(self.toaddr,self.capi_elem)
         process_resp(self.toaddr,status,self.capi_elem,self.command)
         # Free lock to release next thread
-        #threadLock.release()
         tstate.remove(self.toaddr)
         logging.debug("TstateDel: %s" % tstate)
         logging.info("Exiting %s" % self.name)
@@ -537,7 +516,6 @@ def sock_tcp_conn(ipaddr, ipport):
 
     mysock = socket(AF_INET, SOCK_STREAM)
     # Temporarily commented. Will be tested on VHT test bed before deletion
-	#mysock.setblocking(1)
     mysock.settimeout(deftimeout)
     try:
         mysock.connect(addr)
@@ -546,7 +524,6 @@ def sock_tcp_conn(ipaddr, ipport):
         logging.error('Connection Error, IP = %s PORT = %s REASON = %s',
                       ipaddr, ipport, exc_info[1])
         wfa_sys_exit("REASON = %s" %(ipaddr, ipport, exc_info[1]))
-        #wfa_sys_exit ("")
 
     readsocks.append(mysock)
     # Add the descriptor to select wait
@@ -576,9 +553,6 @@ def process_ipadd(line, rc=0):
 
 def close_conn():
     global conntable
-    #ifor name in conntable:
-    #    (conntable[name]).close()
-    #    logging.debug("Closing connection with - %s %s" % (name,conntable[name]) )
 
 def printStreamResults():
     """Determines if WMM or WPA2 before printing results"""
@@ -694,8 +668,6 @@ def read1line(s):
         except OSError, e:
             logging.info("Recv error: " + e)
             print "Socket error " + e
-#       ret = ''
-#       break
 
         if c == '\n' or c == '':
             if c == '':
@@ -704,7 +676,6 @@ def read1line(s):
         else:
             ret += c
 
-#    logging.info("\nReceived One Response back: " + ret)
     return ret + '\n'
 
 def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
@@ -721,12 +692,10 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
     logging.debug("responseWaitThreadFunc started %s" % testRunning)
     while testRunning > 0:
         #Temporarily commented. Will be tested on VHT to confirm removal
-        #time.sleep(1)
         readables, writeables, exceptions = select(readsocks, writesocks, [], 0.1)
         for sockobj in readables:
             if sockobj in waitsocks:
-                #resp = sockobj.recv(2048)
-		        # resolve the issue in reading 1 single line with multiple messages
+		        #Resolve the issue in reading 1 single line with multiple messages
                 resp = read1line(sockobj)
                 resp_arr = resp.split(',')
                 for socks in conntable:
@@ -748,7 +717,6 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
                     logging.info("Some Junk Returned, ignoring")
                     continue
 
-                #resp_arr = resp.split(',')
                 logging.debug("%-15s <--2 %s" % (displayaddr, resp))
                 # Check for send stream completion
                 if len(resp_arr) > 2:
@@ -774,7 +742,6 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
 
                                 # Setting status complete
                                 for p in streamInfoArray:
-                                    #logging.debug("Recv Stream %s , Status of Recv Stream %s  %s %s " % (responseIPAddress,p.status,p.streamID,p.phase))
                                     if p.IPAddress == responseIPAddress and p.streamID == i and p.phase == runningPhase:
                                         p.status = 1
                                 streamSendResultArray.append(streamResult(i, responseIPAddress, resp_arr[7].split(' ')[sCounter], resp_arr[5].split(' ')[sCounter], resp_arr[11].split(' ')[sCounter], resp_arr[9].split(' ')[sCounter], runningPhase))
@@ -787,7 +754,6 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
 
             else:
                 logging.debug('Unwanted data on socket')
-    #logging.debug("\n THREAD STOPPED ")
     return
 
 def process_cmd(line):
@@ -819,7 +785,6 @@ def process_cmd(line):
     rhs = []
     boolOp = []
     oper = []
-    #logging.debug("\r\n")
     recv_id = {}
 
     try:
@@ -849,7 +814,6 @@ def process_cmd(line):
             ifCondBit = 1
             return
         if command[0].lower() == "if":
-            #logging.info("Length of command = %d" %len(command))
             itern = 0
             for count, val in enumerate(command):
                 if count % 4 == 0:
@@ -862,39 +826,32 @@ def process_cmd(line):
                 elif count % 4 == 3:
                     rhs.append(val)
             itern = itern - 1
-            #logging.info(" Iteretion - %d " % (itern))
             for iCount in range(0, itern):
-                #logging.info(" FOR ICOUNT %d " % iCount)
                 if lhs[iCount] in retValueTable:
                     lhs[iCount] = retValueTable[lhs[iCount]]
                 if rhs[iCount] in retValueTable:
                     rhs[iCount] = retValueTable[rhs[iCount]]
                 if(oper[iCount]).lower() == "=":
-                    #logging.info("%s == %s" %(lhs[iCount],rhs[iCount]))
                     if lhs[iCount].lower() == rhs[iCount].lower():
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == ">":
-                    #if long(lhs[iCount]) > long(rhs[iCount]):
                     if float(lhs[iCount]) > float(rhs[iCount]):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == "<":
-                    #if long(lhs[iCount]) < long(rhs[iCount]):
                     if float(lhs[iCount]) < float(rhs[iCount]):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == ">=":
-                    #if long(lhs[iCount]) >= long(rhs[iCount]):
                     if float(lhs[iCount]) >= float(rhs[iCount]):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
                 elif (oper[iCount]).lower() == "<=":
-                    #if long(lhs[iCount]) <= long(rhs[iCount]):
                     if float(lhs[iCount]) <= float(rhs[iCount]):
                         ifcondBit = 1
                     else:
@@ -904,7 +861,6 @@ def process_cmd(line):
                         ifcondBit = 1
                     else:
                         ifcondBit = 0
-                #logging.info("boolOper = %s" % boolOp[iCount])
                 if boolOp[iCount] == "if":
                     ifCondBit = ifcondBit
                 elif boolOp[iCount] == "or":
@@ -929,8 +885,6 @@ def process_cmd(line):
                 command[1] = retValueTable[command[1]]
             if command[3] in retValueTable:
                 command[3] = retValueTable[command[3]]
-            #if (command[1].lstrip('-')).isdigit() and (command[3].lstrip('-')).isdigit():
-            #if (command[1].lstrip('-').replace('.','',1)).isdigit() and (command[3].lstrip('-').replace('.','',1)).isdigit():
             #Error handling for math operators, excluding rand
             if command[2].lower() != "rand":
                 try:
@@ -957,40 +911,6 @@ def process_cmd(line):
                 varlist = command[3].split(":")
                 random_index = randrange(0, len(varlist))
                 retValueTable[tmp] = "%s" % int(varlist[random_index])
-
-        #else:
-        #    logging.error("Invalid parameters to math function")
-
-   	#VHT Specific - Commented because the existing function is already taking care of float value.
-   	#Will be tested for VHT and legacy programs before deleting
-
-        #if command[0].lower() == "math":
-    #    tmp=command[1]
-        #    if command[1] in retValueTable:
-        #        command[1]=retValueTable[command[1]]
-        #        #command[1]=command[1].lstrip('-')
-        #    if command[3] in retValueTable:
-        #        command[3]=retValueTable[command[3]]
-        #
-        #    try:
-        #        vara=float(command[1])
-        #    except ValueError:
-        #        print("You must enter a number")
-        #    try:
-        #       varb=float(command[3])
-        #    except ValueError:
-        #        print("You must enter a number")
-        #
-        #    if(command[2]).lower() == "+":
-        #        retValueTable[tmp] = "%s" % int(vara +  varb)
-        #    elif(command[2]).lower() == "-":
-        #        retValueTable[tmp] = "%s" % int(vara -  varb)
-        #    elif(command[2]).lower() == "*":
-        #        retValueTable[tmp] = "%s" % int(vara *  varb)
-        #    elif(command[2]).lower() == "/":
-        #        retValueTable[tmp] = "%s" % int(vara /  varb)
-    #    else:
-   	#        logging.error("Invalid parameters to math function")
 
         if command[0].lower() == "_dnb_":
             iDNB = 1
@@ -1097,7 +1017,6 @@ def process_cmd(line):
             iCn = 0
 
             #Hex SSID
-            #SSID = command[3].split(" ")[1]
             SSID = retValueTable[command[3]].split(" ")[1]
             SSIDLength = len(SSID)
             SSIDLen1 = hex(int(SSIDLength) + 22).split("0x")[1]
@@ -1298,8 +1217,6 @@ def process_cmd(line):
                 rdata = command[2]
             resultPrinted = 1
             set_test_result(command[1], rdata, "-")
-            #JIRA SIG-868
-       	    #XLogger.setTestResult(command[1],rdata)
             wfa_sys_exit_0()
             return
 
@@ -1320,14 +1237,12 @@ def process_cmd(line):
         elif re.search('define', command[0]):
             logging.debug("..Define %s = %s"%(command[1], command[2]))
             if command[1] in retValueTable:
-                #logging.info("REDFINE %s" % retValueTable[command[1]])
                 if command[2] in retValueTable:
                     command[2] = retValueTable[command[2]]
                 retValueTable[command[1]] = command[2]
             else:
                 if command[2] in retValueTable:
                     command[2] = retValueTable[command[2]]
-                #logging.info("DFINE")
                 retValueTable.setdefault(command[1], command[2])
 
             return
@@ -1406,7 +1321,6 @@ def process_cmd(line):
                 return
 
             else:
-                #logging.info("In search...")
                 if command[1] in retValueTable:
                     cmd1 = retValueTable[command[1]]
                 else:
@@ -1424,10 +1338,8 @@ def process_cmd(line):
             if cmd2 != "":
                 for c in cmd2:
                     logging.info("Search \"%s\" in \"%s\"" %(cmd2[i], cmd1))
-                    #if re.search('^%s$' %command[2],cmd[i],re.IGNORECASE):
                     if re.search('%s' % cmd2[i], cmd1, re.IGNORECASE):
                         retValueTable[command[3]] = "1"
-                        #return
                     i += 1
             
                 return
@@ -1543,7 +1455,6 @@ def process_cmd(line):
         # Remove R from ResultCheck as some scripts might be case Sensitive
         elif re.search('esultCheck', command[0]):
             time.sleep(5)
-            #printStreamResults()
             process_ResultCheck(command[1])
             return
 
@@ -1576,7 +1487,6 @@ def process_cmd(line):
             i = 0
             for r in recv_value:
                 recv_id[i] = r
-                #logging.debug(" %s = %s " % (i, recv_id[i]))
                 i += 1
             logging.debug('RECV ID %s', recv_id)
 
@@ -1597,7 +1507,6 @@ def process_cmd(line):
         logging.debug("%s (%-15s) --> %s " % (displayName, toaddr, capi_elem))
 
         if capi_elem[0] == 'traffic_agent_receive_stop':
-            #logging.debug("To Send Traffic_Agent_Receive_Stop")
             idx = capi_elem.index('streamID')
             # Wait for Send to finish, in case of receive_stop
             sid = capi_elem[2].split(' ')
@@ -1607,10 +1516,7 @@ def process_cmd(line):
                 if re.search(";", retValueTable[i]):
                     val = retValueTable[i].split(";")[0]
 
-                #logging.info('Waiting for stream %s to be stopped',retValueTable[i])
                 for p in streamInfoArray:
-                    #logging.info("@@@@@@@@@@@@@@@ p.Id-%s- p.pairID %s-I=%s-retValI=%s-"%(p.streamID,p.pairID,i,retValueTable[i]))
-                    #logging.info("@@@@@@@@@@@@@@@ CAPI -%s-"% capi_elem[idx+1])
                     if p.pairID == retValueTable[i] and p.phase == runningPhase:
                         count = 0 #Wait 10 seconds and avoid infinite loop
                         while (p.status != 1) and (count < 10):
@@ -1628,7 +1534,6 @@ def process_cmd(line):
                     elif multicast == 1:
                         capi_elem[idx+1] = val
 
-            #logging.info("@@@@@@@@@@@@@@@ CAPI Final -%s-"% capi_elem[idx+1])
             capi_run = ','.join(capi_elem)
             capi_cmd = capi_run + ' \r\n'
             logging.info("%s (%-10s) --> %s" % (displayName, toaddr, capi_cmd))
@@ -1639,17 +1544,14 @@ def process_cmd(line):
 
         elif capi_elem[0] == 'traffic_agent_send':
             idx = capi_elem.index('streamID')
-            #logging.debug( "Traffic Agent Send , Stream ID  %s %s" % (idx,capi_elem[2]))
             sid = capi_elem[2].split(' ')
             capi_elem[idx+1] = ''
             rCounter = 0
             for i in sid:
                 #Making Send-receive Pair
-                #logging.debug("Checking %s %s" % (i,retValueTable[i]))
                 for s in streamInfoArray:
                     if s.IPAddress == toaddr and s.streamID == retValueTable[i] and s.phase == runningPhase:
                         s.pairID = retValueTable[recv_id[rCounter]]
-                        #logging.info("_Pair Send = %s Receive = %s" % (s.streamID,retValueTable[recv_id[rCounter]]))
                 if re.search(";", retValueTable[i]):
                     val = retValueTable[i].split(";")[0]
                 else:
@@ -1657,13 +1559,11 @@ def process_cmd(line):
                 capi_elem[idx+1] += val
                 capi_elem[idx+1] += ' '
                 rCounter += 1
-                #logging.debug("%s" % capi_elem[idx+1])
 
             capi_run = ','.join(capi_elem)
             logging.info("%s (%-15s) --> %s " %(displayName, toaddr, capi_run))
 
             # Pass the receiver ID for send stream
-            #logging.debug('RECV ID %s',recv_id)
 
             # Start the response wait thread (only once)
             if threadCount == 0:
@@ -1671,7 +1571,6 @@ def process_cmd(line):
                 thread.start_new(responseWaitThreadFunc, (threadCount, capi_run, toaddr, recv_id))
                 threadCount = threadCount + 1
 				#Temporary Addition for VHT
-                #time.sleep(1)
             capi_cmd = capi_run + ' \r\n'
             asock = conntable.get(toaddr)
             asock.send(capi_cmd)
@@ -1739,9 +1638,6 @@ def process_cmd(line):
                     return
                 else:
                     # Wait for all threads to complete
-                    #for t in threads:
-                        #logging.info("Inside MTF4")
-                    #    t.join()
                     logging.debug("Main Thread")
                     status = send_capi_command(toaddr, capi_elem)
 
@@ -1802,7 +1698,6 @@ def process_resp(toaddr, status, capi_elem, command):
             set_color(FOREGROUND_INTENSITY)
         #Exit in case of ERROR
         if (re.search('ERROR', ss) or re.search('INVALID', ss)) and (iDNB == 0 and iINV == 0):
-        #if re.search('ERROR', ss):
             set_test_result("ERROR", "-", "Command returned Error")
             wfa_sys_exit("Command returned Error. Aborting the test")
         if capi_elem[0] == 'device_get_info':
@@ -1829,14 +1724,12 @@ def process_resp(toaddr, status, capi_elem, command):
                     retValueTable[ret_data_idx] = ("%s;%s" %(stitems[3], toaddr))
                 else:
                     retValueTable.setdefault(ret_data_idx, "%s;%s" %(stitems[3], toaddr))
-                #retValueTable.setdefault(ret_data_idx,stitems[3])
             elif stitems[2] == 'interfaceType':
                 if ret_data_idx in retValueTable:
                     retValueTable[ret_data_idx] = ("%s" %(stitems[5]))
                 else:
                     retValueTable.setdefault(ret_data_idx, stitems[5])
             elif stitems[2].lower() == 'interfaceid':
-                #TBD - AP interface selection
                 if ret_data_idx in retValueTable:
                     retValueTable[ret_data_idx] = stitems[3].split('_')[0]
                 else:
@@ -1845,7 +1738,6 @@ def process_resp(toaddr, status, capi_elem, command):
                 retValueTable["%s;%s"%(capi_elem[2], toaddr)] = stitems[5]
                 logging.debug("%s = %s" %  (capi_elem[2], retValueTable["%s;%s"%(capi_elem[2], toaddr)]))
                 retValueTable["$pingResp"] = retValueTable["%s;%s"%(capi_elem[2], toaddr)]
-                #logging.info("%s" % (retValueTable["$pingResp"]))
                 if "PingInternalChk" in retValueTable:
                     if retValueTable["PingInternalChk"] == "0":
                         logging.debug("Ping Internal Check")
@@ -1858,7 +1750,6 @@ def process_resp(toaddr, status, capi_elem, command):
                 i = 0
 
                 for s in stitems:
-                    #logging.info("ITEM = %s"% ret_data_def_type)
                     if(int(i)%2 == 0) and len(stitems) > i+1 and len(ret_data_def_type) > int(i/2):
                         logging.debug("--------> Adding %s = %s"%(ret_data_def_type[i/2], stitems[i+1]))
                         stitems[i+1] = stitems[i+1].rstrip(' ')
@@ -1926,7 +1817,6 @@ def send_capi_command(toaddr, capi_elem):
     except:
         exc_info = sys.exc_info()
         logging.error('Connection Error, REASON = %s', exc_info[1])
-        #wfa_sys_exit("REASON = %s" %(exc_info[1]))
         time.sleep(5)
         process_ipadd("ipaddr=%s,port=%s" % (ipa,ipp),1)
         asock = conntable.get(toaddr)
@@ -1999,7 +1889,6 @@ def process_cmdfile(line):
         scanner(file, process_cmd)
         file.close()
         i = i+1
-    #XLogger.writeXML()
 
 def set_test_result(result, data, rdata):
     """Print TMS ending result to console"""
@@ -2015,7 +1904,6 @@ def set_test_result(result, data, rdata):
         logging.info("\n     TEST RESULT ---> %15s | %s |" % (result, data))
         tmsPacket.TestResult = "FAIL"
         tmsPrint()
-    #XLogger.writeXML()
 
 def process_passFailWMM_2(line):
     """Determines pass or fail for WMM based on results and what is expected"""
@@ -2153,7 +2041,6 @@ def process_passFailIBSS(line):
             actual = ((float(P1) * 8)) / (1000000 * int(cmd[2]))
 
         logging.info("Expected = %s Mbps  Received =%s Mbps" % (cmd[1], actual))
-        #if ( (long (P1) / (1000 * long (cmd[2]))) >= (( float (cmd[1])*125 ))) :
         if float(actual) >= float(cmd[1]):
             result = cmd[3]
         else:
@@ -2294,7 +2181,6 @@ def process_ResultCheck(line):
         exc_info = sys.exc_info()
         logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
 
-#JIRA SIG-868
 def wfa_print_result(expt_flag, msg=""):
     """Print ending result to console"""
     global tmsPacket
@@ -2302,7 +2188,6 @@ def wfa_print_result(expt_flag, msg=""):
     if expt_flag == 0 and XLogger.result == "NOT COMPLETED":
         set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
         XLogger.setTestResult("ABORTED")
-        #logging.info("ABORTED-: %s" % msg)
         tmsPacket.TestResult = "FAIL"
         tmsPrint()
 
@@ -2322,8 +2207,6 @@ def wfa_print_result(expt_flag, msg=""):
         set_color(FOREGROUND_CYAN | FOREGROUND_INTENSITY)
         XLogger.setTestResult("ERROR")
         logging.info("ERROR-Result N/A: %s" % msg)
-        #tmsPacket.TestResult = "FAIL"
-        #tmsPrint()
 
     XLogger.writeXML()
 ####################################################################
@@ -2336,7 +2219,6 @@ def wfa_sys_exit(msg):
         XLogger.setTestResult("TEST N/A")
     else:
         XLogger.setTestResult("ABORTED", msg)
-        #setattr(ResInfo,"rdata", msg)
     logging.info("ABORTED-: %s" % msg)
     if msg.find("10060") != -1:
         logging.info('Control Network Timeout - Please check the following:')
@@ -2355,7 +2237,6 @@ def wfa_sys_exit_0():
     """Exiting because a failure has occurred"""
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
-    #logging.disable("ERROR")
     XLogger.writeXML()
     raise StandardError("END-0-")
 
@@ -2393,7 +2274,6 @@ def init_logging(_filename, level, loop=0):
 
     tmsPacket.TestCaseId = tFileName.rstrip(".txt")
     tmsPacket.LogFileName = fname
-    #tmsPacket.snifferLogFileName = fname_sniffer
 
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s %(levelname)-8s %(message)s',
@@ -2441,7 +2321,6 @@ def init_logging(_filename, level, loop=0):
 
     tmsPacket.getTestID(VERSION)
 
-    #set_color(FOREGROUND_WHITE)
     logging.info("###########################################################\n")
     logging.info("UCC Version [%s]" % VERSION)
     logging.info('Logging started in file - %s' % (fname))
@@ -2504,14 +2383,11 @@ def firstword(line):
     elif command[0] == 'dut_wireless_ip' or command[0] == 'dut_default_gateway' or command[0] == 'wfa_console_tg' or re.search('wireless_ip', command[0]) or re.search('wmmps_console', command[0]) or re.search('tg_wireless', command[0]):
         retValueTable.setdefault(command[0], command[1])
     elif re.search('define', command[0]):
-        #logging.info("----- Define %s = %s"%(command[1],command[2]))
         if command[2] in retValueTable:
             command[2] = retValueTable[command[2]]
         if command[1] in retValueTable:
-            #logging.info("REDFINE")
             retValueTable[command[1]] = command[2]
         else:
-            #logging.info("DFINE")
             retValueTable.setdefault(command[1], command[2])
     elif re.search('DisplayName', command[0]):
         if command[1] in retValueTable:
@@ -2537,7 +2413,6 @@ def firstword(line):
 def tmsPrint():
     """function to run writeTMSJson()"""
     global tmsPacket,tmsLogLocation, tmsTimeStamp
-    #logging.info("tmsPrint")
     tmsPacket.writeTMSJson(tmsLogLocation, tmsTimeStamp)
 
 def get_display_name(toaddr):

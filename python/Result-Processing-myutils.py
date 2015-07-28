@@ -74,7 +74,6 @@ BACKGROUND_INTENSITY = 0x80 # background color is intensified.
 
 std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
 
-# Global Handler for classified Logs
 cSLog = ""
 class classifiedLogs:
     """Global Handler for classified Logs"""
@@ -153,7 +152,6 @@ def scanner(fileobject, linehandler):
     """Scan file objects"""
     for line in fileobject.readlines():
         if not line: break
-        #logging.debug("%s" % line)
         linehandler(line)
 
 def sock_tcp_conn(ipaddr, ipport):
@@ -170,7 +168,6 @@ def sock_tcp_conn(ipaddr, ipport):
         logging.error('Connection Error, IP = %s PORT = %s REASON = %s',
                       ipaddr, ipport, exc_info[1])
         wfa_sys_exit("IP-%s:%s REASON = %s" % (ipaddr, ipport, exc_info[1]))
-        #wfa_sys_exit ("")
 
     readsocks.append(mysock)
     # Add the descriptor to select wait
@@ -195,9 +192,6 @@ def process_ipadd(line):
         i = i+1
 def close_conn():
     global conntable
-    #ifor name in conntable:
-    #    (conntable[name]).close()
-    #    logging.debug("Closing connection with - %s %s" % (name,conntable[name]) )
 
 def printStreamResults():
     """Determines if WMM or WPA2 before printing results"""
@@ -331,7 +325,7 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
                         # spliting the values of multiple streams
                         idx = resp_arr[3].strip()
                         idx = idx.split(' ')
-                        sCounter = 0 # For mutliple stream value returns
+                        sCounter = 0 # For multiple stream value returns
                         if resp_arr[7].split(' ')[sCounter] == '':
                             sCounter = 1
 
@@ -344,7 +338,6 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
 
                                 # Setting status complete
                                 for p in streamInfoArray:
-                                    #logging.debug("Recv Stream %s , Status of Recv Stream %s  %s %s " % (responseIPAddress,p.status,p.streamID,p.phase))
                                     if p.IPAddress == responseIPAddress and p.streamID == i and p.phase == runningPhase:
                                         p.status = 1
                                 streamSendResultArray.append(streamResult(i, responseIPAddress, resp_arr[7].split(' ')[sCounter], resp_arr[5].split(' ')[sCounter], resp_arr[11].split(' ')[sCounter], resp_arr[9].split(' ')[sCounter], runningPhase))
@@ -383,7 +376,6 @@ def process_cmd(line):
     global retValueTable, RTPCount, multicast, ifcondBit, iDNB, iINV, ifCondBit, socktimeout
     line = line.rstrip()
     str = line.split('#')
-    #logging.debug("\r\n")
     recv_id = {}
 
     try:
@@ -499,7 +491,6 @@ def process_cmd(line):
             iCn = 0
 
             #Hex SSID
-            #SSID = command[3].split(" ")[1]
             SSID = retValueTable[command[3]].split(" ")[1]
             SSIDLength = len(SSID)
             SSIDLen1 = hex(int(SSIDLength) + 22).split("0x")[1]
@@ -710,14 +701,12 @@ def process_cmd(line):
         elif re.search('define', command[0]):
             logging.debug("..Define %s = %s"%(command[1], command[2]))
             if command[1] in retValueTable:
-                #logging.info("REDFINE %s" % retValueTable[command[1]])
                 if command[2] in retValueTable:
                     command[2] = retValueTable[command[2]]
                 retValueTable[command[1]] = command[2]
             else:
                 if command[2] in retValueTable:
                     command[2] = retValueTable[command[2]]
-                #logging.info("DFINE")
                 retValueTable.setdefault(command[1], command[2])
 
             return
@@ -784,7 +773,6 @@ def process_cmd(line):
             return
         elif re.search('esultCheck', command[0]):
             time.sleep(5)
-            #printStreamResults()
             process_ResultCheck(command[1])
             return
 
@@ -817,7 +805,6 @@ def process_cmd(line):
             i = 0
             for r in recv_value:
                 recv_id[i] = r
-                #logging.debug(" %s = %s " % (i, recv_id[i]))
                 i += 1
             logging.debug('RECV ID %s', recv_id)
 
@@ -849,10 +836,7 @@ def process_cmd(line):
                 if re.search(";", retValueTable[i]):
                     val = retValueTable[i].split(";")[0]
 
-                #logging.info('Waiting for stream %s to be stopped',retValueTable[i])
                 for p in streamInfoArray:
-                    #logging.info("@@@@@@@@@@@@@@@ p.Id-%s- p.pairID %s-I=%s-retValI=%s-"%(p.streamID,p.pairID,i,retValueTable[i]))
-                    #logging.info("@@@@@@@@@@@@@@@ CAPI -%s-"% capi_elem[idx+1])
                     if p.pairID == retValueTable[i] and p.phase == runningPhase:
                         while p.status != 1:
                             #Minor sleep to avoid 100% CPU Usage by rapid while
@@ -869,7 +853,6 @@ def process_cmd(line):
                     elif multicast == 1:
                         capi_elem[idx+1] = val
 
-            #logging.info("@@@@@@@@@@@@@@@ CAPI Final -%s-"% capi_elem[idx+1])
             capi_run = ','.join(capi_elem)
             capi_cmd = capi_run + ' \r\n'
             logging.info("%s (%-10s) --> %s" % (displayName, toaddr, capi_cmd))
@@ -880,17 +863,14 @@ def process_cmd(line):
 
         elif capi_elem[0] == 'traffic_agent_send':
             idx = capi_elem.index('streamID')
-            #logging.debug( "Traffic Agent Send , Stream ID  %s %s" % (idx,capi_elem[2]))
             sid = capi_elem[2].split(' ')
             capi_elem[idx+1] = ''
             rCounter = 0
             for i in sid:
                 #Making Send-receive Pair
-                #logging.debug("Checking %s %s" % (i,retValueTable[i]))
                 for s in streamInfoArray:
                     if s.IPAddress == toaddr and s.streamID == retValueTable[i] and s.phase == runningPhase:
                         s.pairID = retValueTable[recv_id[rCounter]]
-                        #logging.info("_Pair Send = %s Receive = %s" % (s.streamID,retValueTable[recv_id[rCounter]]))
                 if re.search(";", retValueTable[i]):
                     val = retValueTable[i].split(";")[0]
                 else:
@@ -898,13 +878,11 @@ def process_cmd(line):
                 capi_elem[idx+1] += val
                 capi_elem[idx+1] += ' '
                 rCounter += 1
-                #logging.debug("%s" % capi_elem[idx+1])
 
             capi_run = ','.join(capi_elem)
             logging.info("%s (%-15s) --> %s " %(displayName, toaddr, capi_run))
 
             # Pass the receiver ID for send stream
-            #logging.debug('RECV ID %s',recv_id)
 
             # Start the response wait thread (only once)
             if threadCount == 0:
@@ -912,7 +890,6 @@ def process_cmd(line):
                 thread.start_new(responseWaitThreadFunc, (threadCount, capi_run, toaddr, recv_id))
                 threadCount = threadCount + 1
 				#Temporary Addition for VHT
-                #time.sleep(1)
             capi_cmd = capi_run + ' \r\n'
             asock = conntable.get(toaddr)
             asock.send(capi_cmd)
@@ -987,7 +964,6 @@ def process_cmd(line):
         logging.info("%s (%-15s) <-- %s" % (displayName, toaddr, ss))
         #Exit in case of ERROR
         if re.search('ERROR', ss) or re.search('INVALID', ss) and iDNB == 0 and iINV == 0:
-        #if re.search('ERROR', ss):
             set_test_result("ERROR", "-", "Command returned Error")
             wfa_sys_exit(" Command returned Error. Aborting the test")
 
@@ -1007,11 +983,9 @@ def process_cmd(line):
                     retValueTable[ret_data_idx] = ("%s;%s" %(stitems[3], toaddr))
                 else:
                     retValueTable.setdefault(ret_data_idx, "%s;%s" %(stitems[3], toaddr))
-                #retValueTable.setdefault(ret_data_idx, stitems[3])
             elif stitems[2] == 'interfaceType':
                 retValueTable.setdefault(ret_data_idx, stitems[5])
             elif stitems[2].lower() == 'interfaceid':
-                #TBD - AP interface selection
                 if ret_data_idx in retValueTable:
                     retValueTable[ret_data_idx] = stitems[3].split('_')[0]
                 else:
@@ -1031,7 +1005,6 @@ def process_cmd(line):
                 i = 0
 
                 for s in stitems:
-                    #logging.info("ITEM = %s"% ret_data_def_type)
                     if(int(i)%2 == 0) and len(stitems) > i+1:
                         logging.debug("--------> Adding %s = %s"%(ret_data_def_type[i/2], stitems[i+1]))
                         stitems[i+1] = stitems[i+1].rstrip(' ')
@@ -1246,7 +1219,6 @@ def process_passFailIBSS(line):
             actual = ((float(P1) * 8)) / (1000000 * int(cmd[2]))
 
         logging.info("Expected = %s Mbps  Received =%s Mbps" % (cmd[1], actual))
-        #if ( (long (P1) / (1000 * long (cmd[2]))) >= (( float (cmd[1])*125 ))) :
         if float(actual) >= float(cmd[1]):
             result = cmd[3]
         else:
@@ -1507,11 +1479,9 @@ def firstword(line):
     elif command[0] == 'dut_wireless_ip' or command[0] == 'dut_default_gateway' or command[0] == 'wfa_console_tg' or re.search('wireless_ip', command[0]) or re.search('wmmps_console', command[0]) or re.search('tg_wireless', command[0]):
         retValueTable.setdefault(command[0], command[1])
     elif re.search('define', command[0]):
-        #logging.info("----- Define %s = %s"%(command[1],command[2]))
         if command[2] in retValueTable:
             command[2] = retValueTable[command[2]]
         if command[1] in retValueTable:
-            #logging.info("REDFINE")
             retValueTable[command[1]] = command[2]
         else:
             retValueTable.setdefault(command[1], command[2])
