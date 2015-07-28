@@ -1,0 +1,51 @@
+Syntax error(s) were found in file STA-SwitchState_524_8_b.txt in directory WTS-NAN
+Syntax error on line 39: info!Beacon not detected should end with a '!' symbol
+
+Syntax error(s) were found in file NAN-5.2.8.txt in directory WTS-NAN
+Syntax error on line 63: info![ Sniffer capture for another 10 seconds ] should end with a '!' symbol
+
+Syntax error(s) were found in file NAN-5.2.7.txt in directory WTS-NAN
+Syntax error on line 79: info!SUCCESS - DUT reverts to non-master non-sync state should end with a '!' symbol
+Syntax error on line 113: info!SUCCESS - DUT assumes anchor master role should end with a '!' symbol
+Syntax error on line 115: r_info!FAIL - DUT doesn't assume anchor master role should end with a '!' symbol
+Syntax error on line 134: info![ Start Sniffer - Capture for 5 seconds ] should end with a '!' symbol
+Syntax error on line 179: info![ Start Sniffer - Capture for 5 seconds ] should end with a '!' symbol
+Syntax error on line 197: info!SUCCESS - DUT reverts to non-master non-sync state should end with a '!' symbol
+Syntax error on line 219: info![ Step 15b Verify STAUT advertises hop count = 1 and AM info displays STA2 as AM ] should end with a '!' symbol
+
+Syntax error(s) were found in file NAN-5.2.3.txt in directory WTS-NAN
+Syntax error on line 199: info![ Step 9 - Enable NAN functionality on STA2 and sleep for 5 seconds ] should end with a '!' symbol
+Syntax error on line 223: r_info!FAIL - DUT not in Non-Master non-Sync State should end with a '!' symbol
+Syntax error on line 264: info![ Step 11 - Turn off NAN on STA2 ] should end with a '!' symbol
+
+Syntax error(s) were found in file NAN-5.2.15A.txt in directory WTS-NAN
+Syntax error on line 60: info![ Step 6 - Configure STA1 to follow-up with the STAUT on the published service. STA1 sends a unicast follow-up message. ] should end with a '!' symbol
+
+Syntax error(s) were found in file STA-SwitchState_527_14_a.txt in directory WTS-NAN
+Syntax error on line 36: info!SUCCESS - DUT starts sending discovery and sync beacons should end with a '!' symbol
+
+Syntax error(s) were found in file NAN-5.2.4.txt in directory WTS-NAN
+Syntax error on line 79: r_info!FAIL - DUT not transmitting both sync and discovery beacons should end with a '!' symbol
+
+Syntax error(s) were found in file STA-SwitchState_524_8_a.txt in directory WTS-NAN
+Syntax error on line 39: info!Beacon not detected should end with a '!' symbol
+
+Syntax error(s) were found in file NAN-5.2.18.txt in directory WTS-NAN
+Syntax error on line 47: info!SUCCESS - DUT is in non-master non-sync state should end with a '!' symbol
+Syntax error on line 56: info![ Start Sniffer - Capture for 3 seconds ] should end with a '!' symbol
+Syntax error on line 129: wfa_sniffer!sniffer_control_field_check,filename,NAN_5218_C,srcmac,$IF_ADDR_DUT,framename,action,ServiceDescAttr!DEFAULT is not a valid CAPI Command
+
+Syntax error(s) were found in file NAN-5.2.12.txt in directory WTS-NAN
+Syntax error on line 123: info![ Start Sniffer - Capture for 10 seconds ] should end with a '!' symbol
+Syntax error on line 139: wfa_sniffer!sniffer_control_field_check,filename,NAN_5212_B_1,srcmac,$IF_ADDR_DUT,framename,action,ServiceDescAttr!DEFAULT is not a valid CAPI Command
+Syntax error on line 156: info![ Step 11 - Sniffer Check - Verify no Publish SDFs for the service configured in step 10 are transmitted by STAUT on 2.4 GHz or 5 GHz NAN channels ] should end with a '!' symbol
+Syntax error on line 157: info![ Start Sniffer - Capture for 10 seconds ] should end with a '!' symbol
+Syntax error on line 197: info![ Start Sniffer - Capture for 5 seconds ] should end with a '!' symbol
+Syntax error on line 206: wfa_sniffer!sniffer_control_field_check,filename,NAN_5212_D_1,srcmac,$IF_ADDR_DUT,framename,action,ServiceDescAttr!DEFAULT is not a valid CAPI Command
+Syntax error on line 208: wfa_sniffer!sniffer_control_upload,filename,_NAN_5212_A:NAN_5212_A_1:_NAN_5212_B:NAN_5212_B_1:_NAN_5212_C:NAN_5212_C_1:_NAN_5212_D,_NAN_5212_Y:NAN_5212_Y_1,_NAN_5212_Z:NAN_5212_Z_1,NAN_5212_Z_2,filetype,pcap,destpath,$logDir!DEFAULT is not a valid CAPI Command
+
+Syntax error(s) were found in file STA-SwitchState_527_14_b.txt in directory WTS-NAN
+Syntax error on line 36: info!SUCCESS - DUT starts sending discovery and sync beacons should end with a '!' symbol
+
+Number of files scanned: 82
+Program completed with (at least) 27 syntax errors found
