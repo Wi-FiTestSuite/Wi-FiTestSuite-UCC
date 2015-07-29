@@ -2413,7 +2413,11 @@ def firstword(line):
 def tmsPrint():
     """function to run writeTMSJson()"""
     global tmsPacket,tmsLogLocation, tmsTimeStamp
+    try :
     tmsPacket.writeTMSJson(tmsLogLocation, tmsTimeStamp)
+    except :
+        #exception
+        logging.debug("TMS N/A")
 
 def get_display_name(toaddr):
     displayName = toaddr
