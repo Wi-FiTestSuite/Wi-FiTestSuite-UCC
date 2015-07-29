@@ -126,18 +126,18 @@ class TMSResponse:
         return self.__dict__
 
     def Search_MasterTestInfo(self, testID, tag):
-    """
-    Finds the value of given tag in master XML file of Testcase Info (from InitEnv)
+        """
+        Finds the value of given tag in master XML file of Testcase Info (from InitEnv)
 
-    Parameters
-    ----------
-    testID : str
-    tag : tuple of str
+        Parameters
+        ----------
+        testID : str
+        tag : tuple of str
 
-    Returns
-    -------
-    Tag Value (as per XML file) : str
-    """
+        Returns
+        -------
+        Tag Value (as per XML file) : str
+        """
         global MasterTestInfo,doc,uccPath
         result=""
 
