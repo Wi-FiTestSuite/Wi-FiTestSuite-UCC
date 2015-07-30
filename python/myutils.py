@@ -1701,13 +1701,13 @@ def process_resp(toaddr, status, capi_elem, command):
             set_test_result("ERROR", "-", "Command returned Error")
             wfa_sys_exit("Command returned Error. Aborting the test")
         if capi_elem[0] == 'device_get_info':
-            if command[0] == 'wfa_control_agent_dut' :
-                tmsPacket.setDutDeviceInfo(displayName, ss)
-            else :
-                try :
-                    tmsPacket.setTestbedInfo(displayName, ss)
-                except :
-                    logging.info( "exception -- device_get_info capi call")
+        	try :
+	            if command[0] == 'wfa_control_agent_dut' :
+	                tmsPacket.setDutDeviceInfo(displayName, ss)
+	            else :
+	                 tmsPacket.setTestbedInfo(displayName, ss)
+            except :
+                logging.debug( "exception -- device_get_info capi call")
         stitems = ss.split(',')
         if len(stitems) > 3:
             if stitems[2] == 'streamID':
@@ -1828,8 +1828,7 @@ def send_capi_command(toaddr, capi_elem):
             asock.settimeout(deftimeout)
         status = asock.recv(2048)
 
-        if re.search(r"device_get_info", capi_cmd.rstrip):
-            tmsPacket.getDeviceInfo(displayaddr, status.rstrip('\r\n'))
+
 
         logging.debug( "%s (%s) <--- [%s]" % (displayaddr, toaddr, status.rstrip('\r\n' )))
 
