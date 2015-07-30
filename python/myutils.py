@@ -1518,11 +1518,9 @@ def process_cmd(line):
 
                 for p in streamInfoArray:
                     if p.pairID == retValueTable[i] and p.phase == runningPhase:
-                        count = 0 #Wait 10 seconds and avoid infinite loop
-                        while (p.status != 1) and (count < 10):
+                        while (p.status != 1):
                             #Minor sleep to avoid 100% CPU Usage by rapid while
-                            time.sleep(1)
-                            count += 1
+                            time.sleep(0.5)
 
                         if multicast == 1:
                             capi_elem[idx+1] = val
@@ -1701,11 +1699,11 @@ def process_resp(toaddr, status, capi_elem, command):
             set_test_result("ERROR", "-", "Command returned Error")
             wfa_sys_exit("Command returned Error. Aborting the test")
         if capi_elem[0] == 'device_get_info':
-        	try :
-	            if command[0] == 'wfa_control_agent_dut' :
-	                tmsPacket.setDutDeviceInfo(displayName, ss)
-	            else :
-	                 tmsPacket.setTestbedInfo(displayName, ss)
+            try :
+                if command[0] == 'wfa_control_agent_dut' :
+                    tmsPacket.setDutDeviceInfo(displayName, ss)
+                else :
+                    tmsPacket.setTestbedInfo(displayName, ss)
             except :
                 logging.debug( "exception -- device_get_info capi call")
         stitems = ss.split(',')
