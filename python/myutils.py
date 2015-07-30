@@ -2414,7 +2414,7 @@ def tmsPrint():
     """function to run writeTMSJson()"""
     global tmsPacket,tmsLogLocation, tmsTimeStamp
     try :
-    tmsPacket.writeTMSJson(tmsLogLocation, tmsTimeStamp)
+        tmsPacket.writeTMSJson(tmsLogLocation, tmsTimeStamp)
     except :
         #exception
         logging.debug("TMS N/A")
