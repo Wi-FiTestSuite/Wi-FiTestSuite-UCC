@@ -955,7 +955,7 @@ def AddTestCaseAP(APName, pos):
 
 def GetOtherVariables(TID):
     global dutInfoObject
-    if getattr(dutInfoObject, "ASD") != "0":
+    if getattr(dutInfoObject, "ASD") > "0":
         find_ASD_threshold_values(TID, "Throughputs_ASD")
     else:
         find_throughput_values(TID, "Throughputs")
