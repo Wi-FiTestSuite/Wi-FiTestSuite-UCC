@@ -43,6 +43,9 @@ class XMLLogger:
         self.result = "NOT COMPLETED"
         self.resultChangeCount = 0
         self.multiStepResultDict = {"PASS" : 0, "FAIL" : 0}
+        self.conditional_chk_flag = 0
+        self.pass_count = 0
+        self.fail_count = 0
         # Stylesheet
         self.doc.appendChild(self.doc.createProcessingInstruction("xml-stylesheet",
                              "type=\"text/xsl\" href=\"%s\"" % stylesheet))
@@ -81,8 +84,12 @@ class XMLLogger:
         self.resultChangeCount += 1
         if "FAIL" in result:
             self.multiStepResultDict["FAIL"] += 1
+            if self.conditional_chk_flag == 1:
+                self.fail_count += 1
         else:
             self.multiStepResultDict["PASS"] += 1
+            if self.conditional_chk_flag == 1:
+                self.pass_count += 1
 
     def setManualCheckInfo(self, mChk):
         self.Log.appendChild(self.doc.createElement("ManualCheckInfo", mChk))

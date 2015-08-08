@@ -1432,6 +1432,10 @@ def process_cmd(line):
             printStreamResults()
             process_passFailWMM_2(command[1])
             return
+        elif command[0].lower() == 'config_multi_subresults':
+            time.sleep(5)
+            process_config_multi_subresults(command[1])
+            return
         elif re.search('CheckThroughput', command[0]):
             time.sleep(5)
             printStreamResults()
@@ -1902,6 +1906,51 @@ def set_test_result(result, data, rdata):
         tmsPacket.TestResult = "FAIL"
         tmsPrint()
 
+#global to save config flag
+#num_of_pass_required == 0 -> test pass, if all checks are passed
+#num_of_pass_required >= 1  -> test pass, if any value of check is passed
+#value > 1  -> test pass, if any value of check is passed
+num_of_pass_required = 0
+total_checks = 0
+
+def process_config_multi_subresults(line):
+    global num_of_pass_required, total_checks
+    try:
+        cmd=line.split(',')
+
+        if cmd[0] in  retValueTable:
+            logging.debug("%s=%s" % (cmd[0],retValueTable[cmd[0]]))
+        else:
+            logging.info("Unknown variable %s" %cmd[0])
+        if cmd[1] in  retValueTable:
+            logging.debug("%s=%s" % (cmd[1],retValueTable[cmd[1]]))
+        else:
+            logging.info("Unknown variable %s" %cmd[1])
+
+        logging.info("\n----------------Pass condition---------------------------\n")
+        logging.info("Total number of checks = %s" % (retValueTable[cmd[1]]))
+        logging.info("Number of pass required = %s" % (retValueTable[cmd[0]]))
+
+        pass_required = int(retValueTable[cmd[0]])
+        total_checks = int(retValueTable[cmd[1]])
+
+        if pass_required == total_checks:
+            #set true(1) to conditional_chk_flag in XLogger class
+            XLogger.conditional_chk_flag = 1;
+            num_of_pass_required = total_checks 
+        elif pass_required < total_checks:
+            #set true(1) to conditional_chk_flag in XLogger class
+            XLogger.conditional_chk_flag = 1;
+            num_of_pass_required = pass_required
+        else:
+            ## ignore if num of pass required > total num, and set default value 0
+            num_of_pass_required = 0
+            total_checks = 0
+	
+    except:
+        exc_info = sys.exc_info( )
+        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+
 def process_passFailWMM_2(line):
     """Determines pass or fail for WMM based on results and what is expected"""
     global runningPhase
@@ -2180,7 +2229,8 @@ def process_ResultCheck(line):
 
 def wfa_print_result(expt_flag, msg=""):
     """Print ending result to console"""
-    global tmsPacket
+    global tmsPacket,num_of_pass_required,total_checks
+
     time.sleep(2)
     if expt_flag == 0 and XLogger.result == "NOT COMPLETED":
         set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
@@ -2190,10 +2240,22 @@ def wfa_print_result(expt_flag, msg=""):
 
     elif expt_flag == 1 and XLogger.resultChangeCount > 1:
         if XLogger.multiStepResultDict["FAIL"] > 0:
-            set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
-            logging.info("\nTEST RESULT ---> %15s" % "FAIL")
-            tmsPacket.TestResult = "FAIL"
-            tmsPrint()
+            if XLogger.conditional_chk_flag == 1:
+                if num_of_pass_required <= XLogger.pass_count:
+                    set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
+                    logging.info ("\nTEST RESULT  ---> %15s" % "PASS")
+                    tmsPacket.TestResult = "PASS"
+                    tmsPrint()
+                else:
+                    set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+                    logging.info ("\nTEST RESULT ---> %15s" % "FAIL")
+                    tmsPacket.TestResult = "FAIL"
+                    tmsPrint()
+            else :
+                set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+                logging.info ("\nTEST RESULT ---> %15s" % "FAIL")
+                tmsPacket.TestResult = "FAIL"
+                tmsPrint()
         else:
             set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
             logging.info("\nTEST RESULT  ---> %15s" % "PASS")
@@ -2204,6 +2266,12 @@ def wfa_print_result(expt_flag, msg=""):
         set_color(FOREGROUND_CYAN | FOREGROUND_INTENSITY)
         XLogger.setTestResult("ERROR")
         logging.info("ERROR-Result N/A: %s" % msg)
+    #JIRA SIG-1298
+    num_of_pass_required = 0
+    total_checks = 0
+    XLogger.pass_count = 0
+    XLogger.fail_count = 0
+    XLogger.conditional_chk_flag = 0
 
     XLogger.writeXML()
 ####################################################################
