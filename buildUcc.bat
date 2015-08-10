@@ -1,2 +1,2 @@
-set UCC_PKG=python\wfa_ucc.py 
-c:\Python27\python python\setup.py py2exe 
+set UCC_PKG=scripts\wfa_ucc.py 
+c:\Python27\python scripts\setup.py py2exe 
