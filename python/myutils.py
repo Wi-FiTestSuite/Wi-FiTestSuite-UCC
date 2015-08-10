@@ -714,7 +714,7 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
                 elif re.search("COMPLETE", resp):
                     logging.debug("Complete Returned")
                 else:
-                    logging.info("Some Junk Returned, ignoring")
+                    logging.info("Unknown response, ignoring")
                     continue
 
                 logging.debug("%-15s <--2 %s" % (displayaddr, resp))
