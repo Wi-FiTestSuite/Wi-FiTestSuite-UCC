@@ -1334,13 +1334,13 @@ def process_cmd(line):
                 retValueTable[command[3]] = "0"
                 i = 0
 
-            #Check for NULL before comparison
-            if cmd2 != "":
-                for c in cmd2:
-                    logging.info("Search \"%s\" in \"%s\"" %(cmd2[i], cmd1))
-                    if re.search('%s' % cmd2[i], cmd1, re.IGNORECASE):
-                        retValueTable[command[3]] = "1"
-                    i += 1
+                #Check for NULL before comparison
+                if cmd2 != "":
+                    for c in cmd2:
+                        logging.info("Search \"%s\" in \"%s\"" %(cmd2[i], cmd1))
+                        if re.search('%s' % cmd2[i], cmd1, re.IGNORECASE):
+                            retValueTable[command[3]] = "1"
+                        i += 1
             
                 return
 
