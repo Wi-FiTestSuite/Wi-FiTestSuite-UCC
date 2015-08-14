@@ -714,7 +714,7 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
                 elif re.search("COMPLETE", resp):
                     logging.debug("Complete Returned")
                 else:
-                    logging.info("Unknown response, ignoring")
+                    logging.info("Did not receive expected RUNNING or COMPLETE response, check device local log for additional information")
                     continue
 
                 logging.debug("%-15s <--2 %s" % (displayaddr, resp))
