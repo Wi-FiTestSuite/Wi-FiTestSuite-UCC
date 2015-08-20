@@ -2,18 +2,18 @@
 
 **Thank you for your interest in contributing to the Wi-Fi Test Suite project!**
 
-## 1. Become a Contributer
+## 1. Become a Contributor
 
-Contributors are members who contribute to the code, testing, bug reporting, documentation, design, discussion, etc. Contributors get involved in the project through the issue tracker, forum, and the contributor mailing list. Changes are submitted through pull requests which will be considered for inclusion in the project by Committers.
+Contributors are members who contribute to the code, testing, bug reporting, documentation, design, discussion etc. Contributors get involved in the project through the issue tracker, forum, and the contributor mailing list. Changes are submitted through pull requests which will be considered for inclusion in the project by Committers.
 
 How to become a Contributor:
-Contributors must sign the Wi-Fi Alliance Contributor Agreement before contributing work to Wi-Fi Test Suite software through the following URL:http://www.wi-fi.org/wi-fi-alliance-contributor-agreement
+Contributors must sign the [Wi-Fi Alliance Contributor Agreement](http://www.wi-fi.org/wi-fi-alliance-contributor-agreement) before contributing work to Wi-Fi Test Suite software.
 
 Contributors must follow the Contribution Standards, sections 2 through 6 of this file. 
 
 ## 2. Propose a Submission
 
-Proposals can be submitted via a Wi-Fi Test Suite Blog or as an idea to the Contributor Mailing List. Submissions that follow our contribution standards and are aligned with the direction of the project will be accepted. Please review Wi-Fi Test Suite contributor model for more information about how proposals are processed once submitted.
+Proposals can be submitted via a [Wi-Fi Test Suite Google Groups](https://groups.google.com/d/forum/wi-fitestsuite) or as an idea to the Contributor Mailing List. Submissions that follow our contribution standards and are aligned with the direction of the project will be accepted. Please review Wi-Fi Test Suite contributor model for more information about how proposals are processed once submitted.
 
 ## 3. Minimum Requirements
 
