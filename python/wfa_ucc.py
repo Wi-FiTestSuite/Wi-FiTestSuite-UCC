@@ -229,7 +229,7 @@ def runTestCase(testListFile, testID, grp=0):
         process_cmdfile(testFile)
 
     except Exception:
-        expt_msg = sys.exc_info()[1]
+        expt_msg = "%s" % sys.exc_info()[1]
     finally:
         if expt_msg != "":
             wfa_print_result(0, expt_msg)
