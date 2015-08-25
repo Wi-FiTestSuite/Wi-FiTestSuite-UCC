@@ -1676,8 +1676,8 @@ def process_cmd(line):
         process_resp(toaddr, status, capi_elem, command)
 
     except:
-        exc_info = sys.exc_info()
-        wfa_sys_exit(exc_info[1])
+        exc_info = sys.exc_info()[1]
+        wfa_sys_exit("%s" % exc_info)
 
 # For P2P-NFC 
 def process_resp(toaddr, status, capi_elem, command):
@@ -2220,7 +2220,7 @@ def process_ResultCheck(line):
             result = cmd[3]
 
         XLogger.setTestResult(result)
-        logging.info("\nTEST RESULT ---> %15s" % result)
+        logging.info("\nRESULT CHECK---> %15s" % result)
         XLogger.writeXML()
 
     except:
@@ -2238,27 +2238,27 @@ def wfa_print_result(expt_flag, msg=""):
         tmsPacket.TestResult = "FAIL"
         tmsPrint()
 
-    elif expt_flag == 1 and XLogger.resultChangeCount > 1:
+    elif expt_flag == 1 and XLogger.resultChangeCount >= 1:
         if XLogger.multiStepResultDict["FAIL"] > 0:
             if XLogger.conditional_chk_flag == 1:
                 if num_of_pass_required <= XLogger.pass_count:
                     set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
-                    logging.info ("\nTEST RESULT  ---> %15s" % "PASS")
+                    logging.info ("\n    FINAL TEST RESULT  ---> %15s" % "PASS")
                     tmsPacket.TestResult = "PASS"
                     tmsPrint()
                 else:
                     set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
-                    logging.info ("\nTEST RESULT ---> %15s" % "FAIL")
+                    logging.info ("\n    FINAL TEST RESULT ---> %15s" % "FAIL")
                     tmsPacket.TestResult = "FAIL"
                     tmsPrint()
             else :
                 set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
-                logging.info ("\nTEST RESULT ---> %15s" % "FAIL")
+                logging.info ("\n    FINAL TEST RESULT ---> %15s" % "FAIL")
                 tmsPacket.TestResult = "FAIL"
                 tmsPrint()
         else:
             set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
-            logging.info("\nTEST RESULT  ---> %15s" % "PASS")
+            logging.info("\n    FINAL TEST RESULT  ---> %15s" % "PASS")
             tmsPacket.TestResult = "PASS"
             tmsPrint()
 
@@ -2279,6 +2279,8 @@ def wfa_print_result(expt_flag, msg=""):
 def wfa_sys_exit(msg):
     """Exiting because an error has occurred"""
     time.sleep(2)
+    if re.search("r_info", msg):
+        raise StandardError()
     set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
     if re.search("not applicable", msg) or re.search("not supported", msg):
         XLogger.setTestResult("TEST N/A")
@@ -2303,7 +2305,7 @@ def wfa_sys_exit_0():
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
     XLogger.writeXML()
-    raise StandardError("END-0-")
+    raise StandardError("END-0-r_info")
 
 class XMLLogHandler(logging.FileHandler):
 
