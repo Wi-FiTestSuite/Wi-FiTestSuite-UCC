@@ -434,7 +434,8 @@ def createUCCInitEnvFile(filename):
     LogMsg("Init file created --- > %s" % (uccPath+filename))
     uccInitFile = open(uccPath+filename, 'w')
     uccInitFile.write("# This is an auto generated file  - %s \n# For test case - %s\n#DO NOT modify this file manually \n\n" %(time.strftime("%b-%d-%y_%H:%M:%S", time.localtime()), dutInfoObject.TestCaseID))
-
+    
+    uccInitFile.write("\ndefine!$tcID!%s!\n"%(dutInfoObject.TestCaseID))
     uccInitFile.write(testEnvVariables.formatNameUCC())
     for p in testEnvVariables.APs:
         uccInitFile.write(testEnvVariables.APs[p].formatAPUCC())
