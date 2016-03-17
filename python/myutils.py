@@ -905,7 +905,7 @@ def process_cmd(line):
         destmac,55:44:33:22:11:00)
     """
     global conntable, threadCount, waitsocks_par, runningPhase, testRunning, streamInfoArray, streamInfoArrayTemp, resultPrinted
-    global retValueTable, RTPCount, multicast, ifcondBit, iDNB, iINV, ifCondBit, tidx, socktimeout
+    global retValueTable, RTPCount, multicast, ifcondBit, iDNB, iINV, ifCondBit, tidx, socktimeout, oplist
     global tmsPacket
     line = line.rstrip()
     str = line.split('#')
