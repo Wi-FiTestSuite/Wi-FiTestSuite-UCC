@@ -6,7 +6,7 @@ Wi-Fi Test Suite is a software platform originally developed by Wi-Fi Alliance, 
 ## UCC and how to get it
 The Unified CAPI Console (UCC) provides the overall control console for the Wi-Fi Test Suite.
 
-UCC runs tests defined by input text files containing CAPI commands. The individual CAPI commands within the input files are handled by UCC to perform functions such as DUT configuration, traffic stream definition, and test execution. UCC will direct specific CAPI commands to the appropriate device. This is accomplished via the Control Network.
+UCC runs tests defined by input text files containing CAPI commands[(CAPI specification)](http://www.wi-fi.org/file/wi-fi-test-suite-control-api-specification-v831) . The individual CAPI commands within the input files are handled by UCC to perform functions such as DUT configuration, traffic stream definition, and test execution. UCC will direct specific CAPI commands to the appropriate device. This is accomplished via the Control Network.
 
 UCC can be downloaded through the [open source repository](https://github.com/Wi-FiTestSuite/Wi-FiTestSuite-UCC)  or by members in the most recent Wi-Fi Test Suite package.
 
