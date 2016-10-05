@@ -16,6 +16,7 @@
 #
 ###################################################################
 
+from __future__ import division
 from socket import *
 from time import gmtime, strftime
 import thread, time, Queue, os
@@ -38,7 +39,7 @@ from datetime import datetime
 from random import randrange
 from xml.dom.minidom import Node
 from difflib import SequenceMatcher
-VERSION = "9.0.0"
+VERSION = "9.2.0"
 
 
 conntable = {}
@@ -47,6 +48,7 @@ DisplayNameTable = {}
 streamSendResultArray = []
 streamRecvResultArray = []
 streamInfoArray = []
+streamInfoArrayTemp = []
 lhs = []
 rhs = []
 oper = []
@@ -64,12 +66,15 @@ RTPCount = 1
 socktimeout = 0
 #default socket time out in seconds
 deftimeout = 600
+errdisplayed=0
+thread_error_flag = False
 
 #default command file path
 MasterTestInfo="\MasterTestInfo.xml"
 InitEnv = "\InitEnv.txt"
 uccPath = '..\\..\\cmds'
 DUTFeatureInfoFile = "./log/DUTFeatureInfo.html"
+STATUS_CONST=('RUNNING','INVALID','ERROR','COMPLETE')
 doc = ""
 
 STD_INPUT_HANDLE = -10
@@ -206,14 +211,20 @@ class TMSResponse:
         tmsDict = self.asDict()
 
         if primaryTB == "" :
-            del tmsDict['PrimaryTestbed']
-            del tmsDict['PrimaryTestbedParticipantName']
-            del tmsDict['SupplementalTestbeds']
-        else:
-            line = self.Search_MasterTestInfo(self.TestCaseId, "STA")
-            sta_list = line.split(',')
-            if len(sta_list) <= 1:
+            try:
+                del tmsDict['PrimaryTestbed']
+                del tmsDict['PrimaryTestbedParticipantName']
                 del tmsDict['SupplementalTestbeds']
+            except:
+                logging.debug("primaryTB not found")
+        else:
+            try: 
+                line = self.Search_MasterTestInfo(self.TestCaseId, "TB_LIST")
+                tb_list = line.split(',')
+                if len(tb_list) <= 1:
+                    del tmsDict['SupplementalTestbeds']
+            except:
+                logging.debug("SupplimentalTestbeds not found")
 
         TmsFinalResult = {"TmsTestResult" : tmsDict}
         json.dump(TmsFinalResult, tmsFile, indent=4)
@@ -226,7 +237,7 @@ class TMSResponse:
         dutName = ""
         dutModel = ""
         dutVersion = ""
-        logging.info("setDutDeviceInfo")
+        logging.debug("setDutDeviceInfo")
 
         specials = '$#&*()[]{};:,//<>?/\/|`~=+' #etc
         trans = string.maketrans(specials, '.'*len(specials))
@@ -282,28 +293,29 @@ class TMSResponse:
         try: 
             primaryTB = self.Search_MasterTestInfo(self.TestCaseId, "PrimaryTestbed")
 
-            sta_list = []
-            sta_category = []
+            line = self.Search_MasterTestInfo(self.TestCaseId, "TB_LIST")
+            if line == "":
+                line = self.Search_MasterTestInfo(self.TestCaseId, "STA")
+            
+            tb_list = line.split(',')
 
-            line = self.Search_MasterTestInfo(self.TestCaseId, "STA")
-            sta_list = line.split(',')
+            catline = self.Search_MasterTestInfo(self.TestCaseId, "TB_CAT")
+            if catline == "":
+                catline = self.Search_MasterTestInfo(self.TestCaseId, "STA_CAT")
 
-            catline = self.Search_MasterTestInfo(self.TestCaseId, "STA_CAT")
-            sta_category = catline.split(',')
+            tb_category = catline.split(',')
         except: 
             logging.info("self.Search_MasterTestInfo error")
 
         #if there is no primary testbed then no need to create json..
         if primaryTB == "":
-            logging.info("no primary testbed info found")
+            logging.debug("no primary testbed info found")
             return
-
         #number of Stations and number of category should be matched..
-        if len(sta_list) != len(sta_category):
-            logging.info("num STA and STA_CAT doesn't match")
+        if len(tb_list) != len(tb_category):
+            logging.info("num TB_LIST and TB_CAT doesn't match")
             return
-
-        if len(sta_list) == 0:
+        if len(tb_list) == 0:
             logging.info("num -- 0 ")
             return
 
@@ -311,17 +323,16 @@ class TMSResponse:
         primaryFlag = 0
 
         try:
-            for index in range(len(sta_list)):
+            for index in range(len(tb_list)):
 
-                str1 = sta_list[index].lower()
+                str1 = tb_list[index].lower()
                 str2 = displayname.lower()
                 s = SequenceMatcher(None, str1, str2) 
                 str3 = primaryTB.lower()
                 
                 if(s.ratio() >= 0.90):
-                    category  = sta_category[index]
+                    category  = tb_category[index]
                     if str1 == str3 :
-                        logging.info("sta1 is primary")
                         primaryFlag = 1
 
         except: 
@@ -414,7 +425,7 @@ class classifiedLogs:
 class streamInfo:
     """Returns string in formatted stream info"""
     def __init__(self, streamID, IPAddress, pairID, direction,
-                 trafficClass, frameRate, phase, RTPID):
+                 trafficClass,frameRate,phase,RTPID,corrID):
         self.streamID = streamID
         self.IPAddress = IPAddress
         self.pairID = pairID
@@ -424,6 +435,8 @@ class streamInfo:
         self.phase = phase
         self.status = -1
         self.RTPID = RTPID
+        self.corrID = corrID
+        self.streamTimeout = " "
 
     def __str__(self):
         return "%-10s Stream ID = %s , IP Address = %s \n\r%-10s pairID = %s direction = %s \n\r%-10s frameRate =%s \n\r%-10s status =%s  %s" % (' ', self.streamID, self.IPAddress, ' ', self.pairID, self.direction, ' ', self.frameRate, ' ', self.status, self.phase)
@@ -452,19 +465,24 @@ class UCCThread (threading.Thread):
         self.capi_elem = threadCapiElem
         self.command = command
     def run(self):
-        logging.info("Starting %s" % self.name)
+        global thread_error_flag
+        try:
+            logging.info("Starting %s" % self.name)
         # Get lock to synchronize threads
-        logging.debug("To Addr:%s" % self.toaddr)
-        if len(tstate) > 0:
-            tstateStatus = tstateCheck(self.toaddr)
-        tstate.append(self.toaddr)
-        logging.debug("TstateAdd: %s" % tstate)
-        status = send_capi_command(self.toaddr,self.capi_elem)
-        process_resp(self.toaddr,status,self.capi_elem,self.command)
+            logging.debug("To Addr:%s" % self.toaddr)
+            if len(tstate) > 0:
+                tstateStatus = tstateCheck(self.toaddr)
+            tstate.append(self.toaddr)
+            logging.debug("TstateAdd: %s" % tstate)
+            status = send_capi_command(self.toaddr,self.capi_elem)
+            process_resp(self.toaddr,status,self.capi_elem,self.command)
         # Free lock to release next thread
-        tstate.remove(self.toaddr)
-        logging.debug("TstateDel: %s" % tstate)
-        logging.info("Exiting %s" % self.name)
+            tstate.remove(self.toaddr)
+            logging.debug("TstateDel: %s" % tstate)
+            logging.info("Exiting %s" % self.name)
+        except:
+            if thread_error_flag == False:
+                thread_error_flag = True
 # socket desc list to be used by select
 waitsocks, readsocks, writesocks = [], [], []
 
@@ -521,9 +539,7 @@ def sock_tcp_conn(ipaddr, ipport):
         mysock.connect(addr)
     except:
         exc_info = sys.exc_info()
-        logging.error('Connection Error, IP = %s PORT = %s REASON = %s',
-                      ipaddr, ipport, exc_info[1])
-        wfa_sys_exit("REASON = %s" %(ipaddr, ipport, exc_info[1]))
+        wfa_sys_exit("Control Network Timeout - IP-%s:%s REASON = %s" %(ipaddr,ipport,exc_info[1]))
 
     readsocks.append(mysock)
     # Add the descriptor to select wait
@@ -561,7 +577,6 @@ def printStreamResults():
     if resultPrinted == 1:
         return
 
-    XLogger.setTestResult("COMPLETED")
     if ProgName == "P2P":
         return
     if "WPA2Test" in retValueTable:
@@ -611,6 +626,7 @@ def printStreamResults_WMM():
     summaryStreamDisplay = {}
     maxRTP = 1
     i = 1
+    recv_id = -1
     if not streamSendResultArray:
         resultPrinted = 0
     else:
@@ -671,7 +687,7 @@ def read1line(s):
 
         if c == '\n' or c == '':
             if c == '':
-                logging.info("get a null char")
+                logging.debug("get a null char")
             break
         else:
             ret += c
@@ -680,7 +696,7 @@ def read1line(s):
 
 def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
     """Thread runs until send string completion or when test stops running"""
-    global waitsocks, readsocks, writesocks, runningPhase, testRunning, streamInfoArray, retValueTable
+    global waitsocks, readsocks, writesocks, runningPhase, testRunning, streamInfoArray, streamInfoArrayTemp, retValueTable
     if "$MT" in retValueTable:
         logging.info("MT START")
         while 1:
@@ -689,34 +705,99 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
             time.sleep(0.1)
         logging.info("MT STOP")
 
+    sCounter1 = 0
+    numOfSendStream = 0
+    program_60G_flag = 0
+    #for p in streamInfoArray:
+    for p in streamInfoArrayTemp:
+        if p.direction == 'send' or p.direction == 'receive':
+            numOfSendStream += 1
+    timeoutval = 180.0
     logging.debug("responseWaitThreadFunc started %s" % testRunning)
+    start_time = time.time()
     while testRunning > 0:
         #Temporarily commented. Will be tested on VHT to confirm removal
-        readables, writeables, exceptions = select(readsocks, writesocks, [], 0.1)
+        ######readables, writeables, exceptions = select(readsocks, writesocks, [],0.1)
+        readables, writeables, exceptions = select(readsocks, [], [], timeoutval)
+        if not readables:
+            logging.info("DEBUG: 3 mins timeout caught")
+            total_time = time.time() - start_time
+            msg_string =  " Total wait time : " + str(total_time)
+            testRunning = 0
+            sendsock = conntable.get(addr)
+            sendsock.shutdown(SHUT_RDWR)
+            time.sleep(0.1)
+            sendsock.close()
+            #for p in streamInfoArray:
+            for p in streamInfoArrayTemp:
+                p.streamTimeout = "ABORTED Response timeout at " + str(addr) + msg_string
+            break
         for sockobj in readables:
             if sockobj in waitsocks:
 		        #Resolve the issue in reading 1 single line with multiple messages
-                resp = read1line(sockobj)
-                resp_arr = resp.split(',')
+                #resp = read1line(sockobj)
+                
+                dir_send_flag = 0
+                try:
+                    resp = read1line(sockobj)
+                except IOError as e:
+                    logging.info("IO error code: %s" % e.errno)
+                    logging.info("IO error message: %s" % e.strerror)
+                    #exc_info = sys.exc_info()
+                    #wfa_sys_exit(exc_info[1])
+                    testRunning = 0
+                    sendsock = conntable.get(addr)
+                    sendsock.shutdown(SHUT_RDWR)
+                    time.sleep(0.1)
+                    sendsock.close()
+                    for p in streamInfoArrayTemp:
+                        p.streamTimeout = "IO Error at " + str(addr) + e.strerror
+                    break
+                
+                #resp_arr = resp.split(',')
                 for socks in conntable:
                     if sockobj == conntable[socks]:
                         responseIPAddress = socks
                 displayaddr = responseIPAddress
                 if responseIPAddress in DisplayNameTable:
                     displayaddr = DisplayNameTable[responseIPAddress]
-                logging.info("%-15s <--1 %s" % (displayaddr, resp))
+                    logging.info( "%-15s <--1 %s" % (displayaddr,resp))
+                else:
+                    logging.info("Response address not found")
 
+                if not (re.search(STATUS_CONST[0], resp, re.I) or re.search(STATUS_CONST[1], resp, re.I) or re.search(STATUS_CONST[2], resp, re.I) or re.search(STATUS_CONST[3], resp, re.I)):
+                    logging.debug("Receive error: expect <status,RUNNING|COMPLETE|INVALID|ERROR> but return - %s" % resp)
+                    continue
                 if re.search("RUNNING", resp):
-                    resp = resp.strip()
-                    resp = resp.lstrip('status,RUNNING')
-                    resp = resp.strip()
+                    #resp = resp.strip()
+                    #resp = resp.lstrip('status,RUNNING')
+                    #resp = resp.strip()
                     continue
                 elif re.search("COMPLETE", resp):
                     logging.debug("Complete Returned")
                 else:
-                    logging.info("Did not receive expected RUNNING or COMPLETE response, check device local log for additional information")
-                    continue
+                    #logging.info("Did not receive expected RUNNING or COMPLETE response, check device local log for additional information")
+                    if re.search("ERROR", resp):
+                        logging.info("Error Returned")
+                    elif re.search("INVALID", resp):
+                        logging.info("Invalid Returned")
+                    p.status = 1
+                    p.corrID = -1
+                    #wfa_sys_exit(resp)
+                    testRunning = 0
+                    sendsock = conntable.get(addr)
+                    sendsock.shutdown(SHUT_RDWR)
+                    time.sleep(0.1)
+                    sendsock.close()
+                    for p in streamInfoArrayTemp:
+                        p.streamTimeout = "Invalid Return at " + str(addr) + resp
+                    break
+                
+                if re.search("txActFrames", resp):
+                    program_60G_flag = 1
 
+                resp = resp.strip()
+                resp_arr = resp.split(',')
                 logging.debug("%-15s <--2 %s" % (displayaddr, resp))
                 # Check for send stream completion
                 if len(resp_arr) > 2:
@@ -730,32 +811,79 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
                         idx = resp_arr[3].strip()
                         idx = idx.split(' ')
                         sCounter = 0 # For mutliple stream value returns
-                        if resp_arr[7].split(' ')[sCounter] == '':
-                            sCounter = 1
+                        if program_60G_flag == 1:
+                            if resp_arr[9].split(' ')[sCounter] == '' :
+                                sCounter = 1
+                        else:
+                            if resp_arr[7].split(' ')[sCounter] == '' :
+                                sCounter = 1
+                        tmp_counter = sCounter
+                        for i in idx:
+                            if program_60G_flag == 1:
+                                tmp_txFrames = resp_arr[7].split(' ')[tmp_counter]
+                            else:
+                                tmp_txFrames = resp_arr[5].split(' ')[tmp_counter]
+                            if tmp_txFrames != '0':
+                                dir_send_flag = 1
+                            for p in streamInfoArrayTemp:
+                                realID = p.streamID.split(';')[0]
+                                if i == realID and p.direction == 'send':
+                                    dir_send_flag = 1
+                                    break
+                            tmp_counter += 1
 
                         for i in idx:
-                            txFrames = resp_arr[5].split(' ')[sCounter]
-                            logging.debug(" TXFRAMES = %s" % txFrames)
+#                                 txFrames = resp_arr[7].split(' ')[sCounter]
+#                             logging.debug(" TXFRAMES = %s" % txFrames)
                             i = ("%s;%s"%(i, responseIPAddress))
-                            if txFrames != '0':
+                            if dir_send_flag == 1:
                                 logging.info("%s (%-15s) <--  SEND Stream - %s Completed " % (displayaddr, responseIPAddress, i))
 
-                                # Setting status complete
+                                strmTimeStampList = []
                                 for p in streamInfoArray:
                                     if p.IPAddress == responseIPAddress and p.streamID == i and p.phase == runningPhase:
-                                        p.status = 1
-                                streamSendResultArray.append(streamResult(i, responseIPAddress, resp_arr[7].split(' ')[sCounter], resp_arr[5].split(' ')[sCounter], resp_arr[11].split(' ')[sCounter], resp_arr[9].split(' ')[sCounter], runningPhase))
-
+                                        strmTimeStampList.append(p.corrID)
+                                #for p in streamInfoArray:
+                                for p in streamInfoArray:                                    
+                                    if p.IPAddress == responseIPAddress and p.streamID == i and p.phase == runningPhase:
+                                        if len(strmTimeStampList) > 1:
+                                            p.corrID = -1
+                                            p.status = 1
+                                            strmTimeStampList.pop(0)
+                                            continue
+                                        else:
+                                            p.corrID = -1
+                                            p.status = 1
+                                            break
+                                if program_60G_flag == 1:
+                                    streamSendResultArray.append(streamResult(i,responseIPAddress,resp_arr[9].split(' ')[sCounter],resp_arr[7].split(' ')[sCounter],resp_arr[13].split(' ')[sCounter],resp_arr[11].split(' ')[sCounter],runningPhase))
+                                else:
+                                    streamSendResultArray.append(streamResult(i,responseIPAddress,resp_arr[7].split(' ')[sCounter],resp_arr[5].split(' ')[sCounter],resp_arr[11].split(' ')[sCounter],resp_arr[9].split(' ')[sCounter],runningPhase))
                             else:
-                                streamRecvResultArray.append(streamResult(i, responseIPAddress, resp_arr[7].split(' ')[sCounter], resp_arr[5].split(' ')[sCounter], resp_arr[11].split(' ')[sCounter], resp_arr[9].split(' ')[sCounter], runningPhase))
+                                if program_60G_flag == 1:
+                                    streamRecvResultArray.append(streamResult(i,responseIPAddress,resp_arr[9].split(' ')[sCounter],resp_arr[7].split(' ')[sCounter],resp_arr[13].split(' ')[sCounter],resp_arr[11].split(' ')[sCounter],runningPhase))
+                                else:
+                                    streamRecvResultArray.append(streamResult(i,responseIPAddress,resp_arr[7].split(' ')[sCounter],resp_arr[5].split(' ')[sCounter],resp_arr[11].split(' ')[sCounter],resp_arr[9].split(' ')[sCounter],runningPhase))
                                 logging.info("%s (%-15s) <----  RECV Stream - %s Completed " % (displayaddr, responseIPAddress, i))
 
                             sCounter += 1
+                            sCounter1+=1
 
+                        program_60G_flag = 0
+                        
+                        if sCounter1 == numOfSendStream:
+                            testRunning = 0
+                            #sCounter1 = 0
+                            #numOfSendStream = 0
+                            #if program_60G_flag == 1:
+                            streamInfoArrayTemp = []
             else:
                 logging.debug('Unwanted data on socket')
+    logging.debug("\n THREAD STOPPED ")
     return
 
+def TimestampMillisec64():
+    return int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
 def process_cmd(line):
     """
     Process CAPI commands and send through socket if necessary
@@ -776,8 +904,8 @@ def process_cmd(line):
         outfile,521-step1_A,srcmac,00:11:22:33:44:55,
         destmac,55:44:33:22:11:00)
     """
-    global conntable, threadCount, waitsocks_par, runningPhase, testRunning, streamInfoArray, resultPrinted
-    global retValueTable, RTPCount, multicast, ifcondBit, iDNB, iINV, ifCondBit, socktimeout
+    global conntable, threadCount, waitsocks_par, runningPhase, testRunning, streamInfoArray, streamInfoArrayTemp, resultPrinted
+    global retValueTable, RTPCount, multicast, ifcondBit, iDNB, iINV, ifCondBit, tidx, socktimeout
     global tmsPacket
     line = line.rstrip()
     str = line.split('#')
@@ -795,6 +923,8 @@ def process_cmd(line):
         if "$MTF" in retValueTable and retValueTable["$MTF"] == "0":
             for t in threads:
                 t.join()
+        if thread_error_flag == True:
+            wfa_sys_exit("Thread aborted")
 
         if command[0].lower() == "socktimeout":
             if int(command[1]) > 0:
@@ -879,6 +1009,27 @@ def process_cmd(line):
 
         if int(ifCondBit) == 0:
             return
+
+        if command[0].lower() == "mathexpr":
+            myglobals = {}
+            mylocals = {}
+            tmp = command[1]
+            dollarvarlist = re.findall(r'\$\w+',command[2])            
+            mathstr = command[2].replace("$", "")
+            for var in dollarvarlist:                
+                if var in retValueTable:
+                    nodollarvar = var.replace("$", "")                    
+                    myglobals[nodollarvar] = float(retValueTable[var])
+            for key,value in myglobals.iteritems():
+                mathstr = mathstr.replace(key, "%s" % value)                
+
+            try:                
+                calrslt = eval(mathstr)
+                print 'calrslt=%s' % calrslt
+            except Exception as e:                
+                logging.info('An error occurred : %s\n' % e)
+                return
+            retValueTable[tmp] = "%s" % float(calrslt)
         if command[0].lower() == "math":
             tmp = command[1]
             if command[1] in retValueTable:
@@ -891,11 +1042,16 @@ def process_cmd(line):
                     vara = float(command[1])
                 except ValueError:
                     print "You must enter a number"
+                    set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+                    logging.info("Test Case Criteria Failure - You must enter a number")
+                    set_color(FOREGROUND_INTENSITY)
                 try:
                     varb = float(command[3])
                 except ValueError:
                     print "You must enter a number"
-
+                    set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+                    logging.info("Test Case Criteria Failure - You must enter a number")
+                    set_color(FOREGROUND_INTENSITY)
             if(command[2]).lower() == "+":
                 retValueTable[tmp] = "%s" % (float(command[1]) +  float(command[3]))
             if(command[2]).lower() == "-":
@@ -982,16 +1138,19 @@ def process_cmd(line):
             if len(p2p_ssid) > 1:
                 retValueTable.setdefault("$P2P_SSID", "%s" % p2p_ssid[1])
             else:
-                logging.ERROR("Invalid P2P Group ID")
+                set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+                logging.info("Test Case Criteria Failure - Invalid P2P Group ID")
+                set_color(FOREGROUND_INTENSITY)
+                logging.error("Test Case Criteria Failure - Invalid P2P Group ID")
             return
         if command[0].lower() == "calculate_ext_listen_values":
             if command[1] not in retValueTable or command[2] not in retValueTable:
-                wfa_sys_exit("%s or %s not available" % (command[1], command[2]))
-                command[1] = retValueTable[command[1]]
-                command[2] = retValueTable[command[2]]
-                retValueTable.setdefault("$PROBE_REQ_INTERVAL", "%s" % (int(command[2]) / 2))
-                retValueTable.setdefault("$PROBE_REQ_COUNT", "%s" % (int(command[1]) / (int(command[2]) / 2)))
-                return
+                wfa_sys_exit("Test Case Criteria Failure - %s or %s not available" % (command[1], command[2]))
+            command[1] = retValueTable[command[1]]
+            command[2] = retValueTable[command[2]]
+            retValueTable.setdefault("$PROBE_REQ_INTERVAL", "%s" % (int(command[2]) / 2))
+            retValueTable.setdefault("$PROBE_REQ_COUNT", "%s" % (int(command[1]) / (int(command[2]) / 2)))
+            return
         if command[0].lower() == "get_rnd_ip_address":
             if command[1] in retValueTable:
                 command[1] = retValueTable[command[1]]
@@ -1113,7 +1272,13 @@ def process_cmd(line):
             logging.debug(vInfo)
             return
 
-        if re.search("STA", command[0]) or (re.search("AP", command[0]) and not re.search("TestbedAPConfigServer", command[0])):
+        if re.search('esultIBSS', command[0]):
+            time.sleep(5)
+            printStreamResults()
+            process_passFailIBSS(command[1])
+            return
+        
+        if re.search("STA", command[0]) or (re.search("AP", command[0]) and not re.search("TestbedAPConfigServer", command[0])) or re.search("SS",command[0]):
             if command[0] in retValueTable:
                 command[0] = retValueTable[command[0]]
             else:
@@ -1127,7 +1292,7 @@ def process_cmd(line):
 
         if command[0].lower() == 'exit':
             set_color(FOREGROUND_CYAN | FOREGROUND_INTENSITY)
-            wfa_sys_exit("Exiting - %s" % command[1])
+            wfa_sys_exit("CAPI exit command - %s" % command[1])
 
         if command[0].lower() == 'pause':
             set_color(FOREGROUND_YELLOW | FOREGROUND_INTENSITY)
@@ -1182,8 +1347,13 @@ def process_cmd(line):
             return
 
         if command[0] == 'wfa_control_agent' or command[0] == 'wfa_control_agent_dut':
+            capi_cmd=command[1].split(',')
             if retValueTable["$WTS_ControlAgent_Support"] == "0":
-                return
+                if ("$WTS_TrafficAgent_Support" in retValueTable):
+                    if "traffic_" not in capi_cmd[0]:
+                        return
+                else:
+                    return
 
         if command[0].lower() == 'getuccsystemtime':
             timeStr = time.strftime("%H-%M-%S-%m-%d-%Y", time.localtime())
@@ -1228,13 +1398,7 @@ def process_cmd(line):
             set_color(FOREGROUND_INTENSITY)
             return
 
-        if re.search('esultIBSS', command[0]):
-            time.sleep(5)
-            printStreamResults()
-            process_passFailIBSS(command[1])
-            return
-
-        elif re.search('define', command[0]):
+        if re.search('define', command[0]):
             logging.debug("..Define %s = %s"%(command[1], command[2]))
             if command[1] in retValueTable:
                 if command[2] in retValueTable:
@@ -1245,6 +1409,13 @@ def process_cmd(line):
                     command[2] = retValueTable[command[2]]
                 retValueTable.setdefault(command[1], command[2])
 
+            return
+        
+        elif re.search('DisplayName',command[0]):
+            if (command[1] in retValueTable):
+                DisplayNameTable.setdefault(retValueTable[command[1]],command[2])
+            else:
+                DisplayNameTable.setdefault(command[1],command[2])
             return
 
         elif re.search('append', command[0]):
@@ -1320,6 +1491,26 @@ def process_cmd(line):
 
                 return
 
+            elif re.search('substring', command[4]):
+                if command[1] in retValueTable:
+                    cmd1 = retValueTable[command[1]]
+                else:
+                    cmd1 = command[1]
+
+                if command[2] in retValueTable:
+                    cmd2 = retValueTable[command[2]]
+                else:
+                    cmd2 = command[2]
+
+                retValueTable[command[3]] = "0"
+
+                if cmd2 != "":
+                    logging.info("Search \"%s\" in \"%s\"" %(cmd2, cmd1))
+                    if (cmd1.find(cmd2) != -1):
+                            retValueTable[command[3]] = "1"
+            
+                return
+
             else:
                 if command[1] in retValueTable:
                     cmd1 = retValueTable[command[1]]
@@ -1384,10 +1575,12 @@ def process_cmd(line):
             return
 
         elif command[0].lower() == 'echo':
+            set_color(FOREGROUND_YELLOW |FOREGROUND_INTENSITY)
             if command[1] in  retValueTable:
                 logging.info("%s=%s" % (command[1], retValueTable[command[1]]))
             else:
                 logging.info("Unknown variable %s" %command[1])
+            set_color(FOREGROUND_INTENSITY)
             return
         elif command[0].lower() == 'echo_ifnowts' and retValueTable["$WTS_ControlAgent_Support"] == "0":
             set_color(FOREGROUND_BLUE |FOREGROUND_INTENSITY)
@@ -1401,8 +1594,16 @@ def process_cmd(line):
             cmd = command[2].split(",")
             logging.debug("Storing the Throughput(Mbps) value of stream %s[%s %s] in %s  duration=%s p=%s", cmd[0], cmd[3], "%", command[1], retValueTable[cmd[2]], cmd[1])
             P1 = -1
+            strmTimeStampList2 = []
             for p in streamRecvResultArray:
                 if p.streamID == retValueTable[cmd[0]] and int(p.phase) == int(cmd[1]):
+                    strmTimeStampList2.append(p.streamID)
+            logging.info("strmTimeStampList2 count %s" % len(strmTimeStampList2))
+            for p in streamRecvResultArray:
+                if p.streamID == retValueTable[cmd[0]] and int (p.phase) == int (cmd[1]):
+                    if len(strmTimeStampList2) > 1:
+                        strmTimeStampList2.pop(0)
+                        continue
                     P1 = p.rxBytes
                     P1 = int(int(P1) / 100) * int(cmd[3])
                     if cmd[2] in retValueTable:
@@ -1478,7 +1679,10 @@ def process_cmd(line):
             time.sleep(2)
             return
         if len(command) < 3:
-            logging.error('Incorrect format of line - %s', line)
+            set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+            logging.info("Test Case Criteria Failure - Incorrect format of line - %s",line)
+            set_color(FOREGROUND_INTENSITY)
+            logging.error('Test Case Criteria Failure - Incorrect format of line - %s',line)
             return
 
         ret_data_def = command[2]
@@ -1520,10 +1724,21 @@ def process_cmd(line):
                 if re.search(";", retValueTable[i]):
                     val = retValueTable[i].split(";")[0]
 
+                #60GHz
+                strmTimeStampList1 = []
                 for p in streamInfoArray:
                     if p.pairID == retValueTable[i] and p.phase == runningPhase:
-                        while (p.status != 1):
+                        strmTimeStampList1.append(p.corrID)
+                for p in streamInfoArray:
+                    if p.pairID == retValueTable[i] and p.phase == runningPhase:
+                        if len(strmTimeStampList1) > 1:
+                            if p.corrID == -1 and p.status == 1:
+                                strmTimeStampList1.pop(0)
+                                continue
+                        while p.corrID != -1 and p.status != 1:                            
                             #Minor sleep to avoid 100% CPU Usage by rapid while
+                            if (p.streamTimeout != " "): #timeoutflag == 1:
+                                wfa_sys_exit(p.streamTimeout)
                             time.sleep(0.5)
 
                         if multicast == 1:
@@ -1551,6 +1766,9 @@ def process_cmd(line):
             rCounter = 0
             for i in sid:
                 #Making Send-receive Pair
+                for s in streamInfoArray:
+                    if s.IPAddress == toaddr and s.streamID == retValueTable[i] and s.phase == runningPhase:
+                        s.pairID = retValueTable[recv_id[rCounter]]
                 for s in streamInfoArray:
                     if s.IPAddress == toaddr and s.streamID == retValueTable[i] and s.phase == runningPhase:
                         s.pairID = retValueTable[recv_id[rCounter]]
@@ -1657,7 +1875,7 @@ def process_cmd(line):
                         retValueTable.setdefault("$IS_CONNECTED", stitems[3])
                         if "PingInternalChk" in retValueTable:
                             if retValueTable["PingInternalChk"] == "0":
-                                logging.debug("Skipping IS_CONNECTE check")
+                                logging.debug("Skipping IS_CONNECTED check")
                                 return
                             elif stitems[3] == '1':
                                 return
@@ -1668,7 +1886,7 @@ def process_cmd(line):
                                 return
                             else:
                                 continue
-                wfa_sys_exit("\n NO ASSOCIATION -- Aborting the test")
+                wfa_sys_exit("Test Case Criteria Failure - NO ASSOCIATION -- Aborting the test")
 
             else :
                 status = send_capi_command(toaddr, capi_elem)
@@ -1681,7 +1899,7 @@ def process_cmd(line):
 
 # For P2P-NFC 
 def process_resp(toaddr, status, capi_elem, command):
-        global conntable,threadCount, waitsocks_par, runningPhase, testRunning, streamInfoArray, resultPrinted
+        global conntable,threadCount, waitsocks_par, runningPhase, testRunning, streamInfoArray, streamInfoArrayTemp, resultPrinted
         global retValueTable, RTPCount , multicast, ifcondBit, iDNB, iINV, ifCondBit, tidx
 
         ret_data_def = command[2]
@@ -1692,16 +1910,17 @@ def process_resp(toaddr, status, capi_elem, command):
             ret_data_idx = ret_data_def_type[1]
 
         ss = status.rstrip('\r\n')
+        displayName = get_display_name(toaddr)
         logging.info("%s (%-15s) <-- %s" % (get_display_name(toaddr),toaddr,ss ))
-        if not ss:
+        if not ss and "$MT" not in retValueTable:
             set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
-            logging.info('Please check the following:')
+            logging.info('Test Case Criteria Failure - Please check the following:')
             logging.info('	- WTS CA is returning empty string, please make sure CA is working properly')
             set_color(FOREGROUND_INTENSITY)
         #Exit in case of ERROR
         if (re.search('ERROR', ss) or re.search('INVALID', ss)) and (iDNB == 0 and iINV == 0):
             set_test_result("ERROR", "-", "Command returned Error")
-            wfa_sys_exit("Command returned Error. Aborting the test")
+            wfa_sys_exit("Test Case Criteria Failure - Command returned Error. Aborting the test")
         if capi_elem[0] == 'device_get_info':
             try :
                 if command[0] == 'wfa_control_agent_dut' :
@@ -1710,61 +1929,72 @@ def process_resp(toaddr, status, capi_elem, command):
                     tmsPacket.setTestbedInfo(displayName, ss)
             except :
                 logging.debug( "exception -- device_get_info capi call")
-        stitems = ss.split(',')
-        if len(stitems) > 3:
-            if stitems[2] == 'streamID':
+        if ss:
+            stitems = ss.split(',')
+            if len(stitems) > 3:
+                if stitems[2] == 'streamID':
 
-                if capi_elem[4] == 'send':
-                    streamInfoArray.append(streamInfo("%s;%s" % (stitems[3], toaddr), toaddr, -1, 'send', capi_elem[16], capi_elem[18], runningPhase, RTPCount))
-                    RTPCount = RTPCount + 1
-                else:
-                    streamInfoArray.append(streamInfo("%s;%s" % (stitems[3], toaddr), toaddr, -1, 'receive', -1, -1, runningPhase, -1))
-                if capi_elem[2] == 'Multicast':
-                    logging.debug("----MULTICAST----")
-                    multicast = 1
-                if ret_data_idx in retValueTable:
-                    retValueTable[ret_data_idx] = ("%s;%s" %(stitems[3], toaddr))
-                else:
-                    retValueTable.setdefault(ret_data_idx, "%s;%s" %(stitems[3], toaddr))
-            elif stitems[2] == 'interfaceType':
-                if ret_data_idx in retValueTable:
-                    retValueTable[ret_data_idx] = ("%s" %(stitems[5]))
-                else:
-                    retValueTable.setdefault(ret_data_idx, stitems[5])
-            elif stitems[2].lower() == 'interfaceid':
-                if ret_data_idx in retValueTable:
-                    retValueTable[ret_data_idx] = stitems[3].split('_')[0]
-                else:
-                    retValueTable.setdefault(ret_data_idx, stitems[3].split('_')[0])
-            elif capi_elem[0] == 'traffic_stop_ping':
-                retValueTable["%s;%s"%(capi_elem[2], toaddr)] = stitems[5]
-                logging.debug("%s = %s" %  (capi_elem[2], retValueTable["%s;%s"%(capi_elem[2], toaddr)]))
-                retValueTable["$pingResp"] = retValueTable["%s;%s"%(capi_elem[2], toaddr)]
-                if "PingInternalChk" in retValueTable:
-                    if retValueTable["PingInternalChk"] == "0":
-                        logging.debug("Ping Internal Check")
-                    elif stitems[5] == '0':
-                        wfa_sys_exit("\n NO IP Connection -- Aborting the test")
-                else:
-                    if stitems[5] == '0':
-                        wfa_sys_exit("\n NO IP Connection -- Aborting the test")
-            if ret_data_def_type[0].lower() == "id":
-                i = 0
+                #60GHz
+                    corrID = TimestampMillisec64()
+                    if capi_elem[4] == 'send':
+                    #streamInfoArray.append(streamInfo("%s;%s" %(stitems[3],toaddr),toaddr,-1,'send',capi_elem[16],capi_elem[18],runningPhase,RTPCount))
+                    #60GHz                    
+                        streamInfoArray.append(streamInfo("%s;%s" %(stitems[3],toaddr),toaddr,-1,'send',capi_elem[16],capi_elem[18],runningPhase,RTPCount,corrID))
+                        streamInfoArrayTemp.append(streamInfo("%s;%s" %(stitems[3],toaddr),toaddr,-1,'send',capi_elem[16],capi_elem[18],runningPhase,RTPCount,corrID))
+                        RTPCount = RTPCount + 1
+                #else:
+                    if capi_elem[4] == 'receive':
+                    #streamInfoArray.append(streamInfo("%s;%s" %(stitems[3],toaddr),toaddr,-1,'receive',-1,-1,runningPhase,-1))
+                        streamInfoArray.append(streamInfo("%s;%s" %(stitems[3],toaddr),toaddr,-1,'receive',-1,-1,runningPhase,-1,corrID))
+                        streamInfoArrayTemp.append(streamInfo("%s;%s" %(stitems[3],toaddr),toaddr,-1,'receive',-1,-1,runningPhase,-1,corrID))
+                    if capi_elem[2] == 'Multicast':
+                        logging.debug("----MULTICAST----")
+                        multicast = 1
+                    if ret_data_idx in retValueTable:
+                        retValueTable[ret_data_idx] = ("%s;%s" %(stitems[3], toaddr))
+                    else:
+                        retValueTable.setdefault(ret_data_idx, "%s;%s" %(stitems[3], toaddr))
+                elif stitems[2] == 'interfaceType':
+                    if ret_data_idx in retValueTable:
+                        retValueTable[ret_data_idx] = ("%s" %(stitems[5]))
+                    else:
+                        retValueTable.setdefault(ret_data_idx, stitems[5])
+                elif stitems[2].lower() == 'interfaceid':
+                    if ret_data_idx in retValueTable:
+                        retValueTable[ret_data_idx] = stitems[3].split('_')[0]
+                    else:
+                        retValueTable.setdefault(ret_data_idx, stitems[3].split('_')[0])
+                elif capi_elem[0] == 'traffic_stop_ping':
+                    retValueTable["%s;%s"%(capi_elem[2], toaddr)] = stitems[5]
+                    logging.debug("%s = %s" %  (capi_elem[2], retValueTable["%s;%s"%(capi_elem[2], toaddr)]))
+                    retValueTable["$pingResp"] = retValueTable["%s;%s"%(capi_elem[2], toaddr)]
+                    if "PingInternalChk" in retValueTable:
+                        if retValueTable["PingInternalChk"] == "0":
+                            logging.debug("Ping Internal Check")
+                        elif stitems[5] == '0':
+                            wfa_sys_exit("Test Case Criteria Failure - NO IP Connection -- Aborting the test")
+                    else:
+                        if stitems[5] == '0':
+                            wfa_sys_exit("Test Case Criteria Failure - NO IP Connection -- Aborting the test")
+                if ret_data_def_type[0].lower() == "id":
+                    i = 0
 
-                for s in stitems:
-                    if(int(i)%2 == 0) and len(stitems) > i+1 and len(ret_data_def_type) > int(i/2):
-                        logging.debug("--------> Adding %s = %s"%(ret_data_def_type[i/2], stitems[i+1]))
-                        stitems[i+1] = stitems[i+1].rstrip(' ')
-                        stitems[i+1] = stitems[i+1].rstrip('\n')
-                        stitems[i+1] = stitems[i+1].rstrip('\r')
-                        if ret_data_def_type[i/2] in retValueTable:
-                            retValueTable[ret_data_def_type[i/2]] = stitems[i+1]
-                        else:
-                            retValueTable.setdefault(ret_data_def_type[i/2], stitems[i+1])
+                    for s in stitems:
+                        if(int(i)%2 == 0) and len(stitems) > i+1 and len(ret_data_def_type) > int(i/2):
+                            logging.debug("--------> Adding %s = %s"%(ret_data_def_type[int(i/2)], stitems[i+1]))
+                            stitems[i+1] = stitems[i+1].rstrip(' ')
+                            stitems[i+1] = stitems[i+1].rstrip('\n')
+                            stitems[i+1] = stitems[i+1].rstrip('\r')
+                            if ret_data_def_type[int(i/2)] in retValueTable:
+                                retValueTable[ret_data_def_type[int(i/2)]] = stitems[i+1]
+                            else:
+                                retValueTable.setdefault(ret_data_def_type[int(i/2)], stitems[i+1])
 
-                    i = int(i) + 1
+                        i = int(i) + 1
 
-        elif stitems[1] != "COMPLETE" and iINV == 0 and iDNB == 0:
+            elif not re.search("COMPLETE", stitems[1]) and iINV == 0 and iDNB == 0:
+                logging.info('COMPLETE not found in command %s' % command[1].strip())
+        else:
             logging.info('Command %s not completed' % command[1].strip())
 
         if capi_elem[0] == 'sta_associate':
@@ -1809,35 +2039,43 @@ def send_capi_command(toaddr, capi_elem):
     if toaddr in DisplayNameTable:
         displayaddr = DisplayNameTable[toaddr]
     logging.info("%s (%-15s) ---> %s" % (displayaddr, toaddr, capi_cmd.rstrip('\r\n')))
+    if (capi_cmd.find("$") != -1): 
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Found uninitialized variable ($)")
+        set_color(FOREGROUND_INTENSITY)
     if socktimeout > 0 :
         asock.settimeout(socktimeout)
     else:
         asock.settimeout(deftimeout)
 
     try:
-        status = asock.recv(2048)
+        #status = asock.recv(2048)
+        status = read1line(asock)
+        while not re.search(STATUS_CONST[0], status, re.I):
+            logging.debug("\n          MSG: expect <status,RUNNING> but return - :%s:" % status)
+            status = read1line(asock)
     except:
         exc_info = sys.exc_info()
-        logging.error('Connection Error, REASON = %s', exc_info[1])
+        logging.error('Control Network Timeout - Connection Error, REASON = %s', exc_info[1])
         time.sleep(5)
         process_ipadd("ipaddr=%s,port=%s" % (ipa,ipp),1)
         asock = conntable.get(toaddr)
         asock.send(capi_cmd)
         logging.info("%s (%-15s) ---> %s" % (displayaddr, toaddr, capi_cmd.rstrip('\r\n')))
-        if socktimeout > 0:
-            asock.settimeout(socktimeout)
-        else:
-            asock.settimeout(deftimeout)
-        status = asock.recv(2048)
 
-
+        asock.settimeout(deftimeout)            
+        #status = asock.recv(2048)
+        status = read1line(asock)
+        while not re.search(STATUS_CONST[0], status, re.I):
+            logging.debug("\nReceive error: expect <status,RUNNING> but return - %s" % status)
+            status = read1line(asock)
 
         logging.debug( "%s (%s) <--- [%s]" % (displayaddr, toaddr, status.rstrip('\r\n' )))
 
     # Status,Running
     # Quick fix for case where AzWTG sends response RUNNING and COMPLETED in one read
-    if len(status) > 25:
-        if status.find("status,RUNNING\n") != -1:
+    if (len(status) > 25):
+        if re.search(STATUS_CONST[1], status, re.I) or re.search(STATUS_CONST[2], status, re.I) or re.search(STATUS_CONST[3], status, re.I):
             status = status.split('\n')
             status = status[1]
         elif status.find("status,RUNNING\r\n") != -1:
@@ -1850,6 +2088,10 @@ def send_capi_command(toaddr, capi_elem):
     else:
         if iDNB == 0:
             status = asock.recv(2048)
+            #status = read1line(asock)
+            if not (re.search(STATUS_CONST[1], status, re.I) or re.search(STATUS_CONST[2], status, re.I) or re.search(STATUS_CONST[3], status, re.I)):
+                logging.debug("\nReceive error: expect <status,COMPLETE|INVALID|ERROR> but return - %s" % status)
+                #status = read1line(asock)
         else:
             iDNB = 0
 
@@ -1859,7 +2101,7 @@ def send_capi_command(toaddr, capi_elem):
 
     if re.search("FAIL", status) and re.search("SNIFFER", displayaddr) and iINV == 0:
         logging.info("%s <--- %s\n" % (displayaddr, status.rstrip('\r\n')))
-        wfa_sys_exit("Command returned FAIL")
+        wfa_sys_exit ("Test Case Criteria Failure - Command returned FAIL")
     return status
 
 def process_cmdfile(line):
@@ -1949,7 +2191,10 @@ def process_config_multi_subresults(line):
 	
     except:
         exc_info = sys.exc_info( )
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])
 
 def process_passFailWMM_2(line):
     """Determines pass or fail for WMM based on results and what is expected"""
@@ -1988,7 +2233,10 @@ def process_passFailWMM_2(line):
         set_test_result(result, "%6.6s %s" % (actual, "%"), ">= %s %s" % (cmd[2], "%"))
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])   
 
 def process_passFailWMM_1(line):
     """Determines pass or fail for WMM based on results and what is expected"""
@@ -2027,7 +2275,10 @@ def process_passFailWMM_1(line):
         set_test_result(result, "%6.6s %s" % (actual, "%"), "<= %s %s" % (cmd[2], "%"))
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])   
 
 def process_passFailWMM(line):
     """Determines pass or fail for WMM based on two phases result and what is expected"""
@@ -2035,6 +2286,9 @@ def process_passFailWMM(line):
         cmd = line.split(',')
         P1 = -1
         P2 = -1
+
+        if cmd[5] in retValueTable:
+            cmd[5] = retValueTable[cmd[5]]
 
         for p in streamRecvResultArray:
             if p.streamID == retValueTable[cmd[0]] and int(p.phase) == 1:
@@ -2067,7 +2321,10 @@ def process_passFailWMM(line):
         set_test_result(result, "%6.6s %s" % (actual, "%"), "> %s %s" % (cmd[2], "%"))
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])    
 
 def process_passFailIBSS(line):
     """Determines pass or fail for IBSS based on results and what is expected"""
@@ -2095,7 +2352,10 @@ def process_passFailIBSS(line):
 
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])
 
 def process_CheckThroughput(line, Trans):
     """Determines throughput and prints the results and expected to logs"""
@@ -2136,7 +2396,10 @@ def process_CheckThroughput(line, Trans):
 
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])
 
 def process_CheckMCSThroughput(line):
     """Determines MCS throughput and prints the results and expected to logs"""
@@ -2178,7 +2441,10 @@ def process_CheckMCSThroughput(line):
 
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])
 
 def process_CheckDT4(line):
     """Determines amount of DT4 packets and prints the results and expected to logs"""
@@ -2207,7 +2473,10 @@ def process_CheckDT4(line):
 
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])
 
 def process_ResultCheck(line):
     """Determines pass or fail at the end of the test run"""
@@ -2216,21 +2485,28 @@ def process_ResultCheck(line):
         logging.debug("%s-%s-%s-%s-%s-%s" % (retValueTable[cmd[0]], int(retValueTable["%s" % retValueTable[cmd[0]]]), cmd[0], cmd[1], cmd[2], cmd[3]))
         if int(retValueTable["%s" % retValueTable[cmd[0]]]) >= int(cmd[1]):
             result = cmd[2]
+            XLogger.setTestResult(result)
         else:
             result = cmd[3]
 
-        XLogger.setTestResult(result)
+            XLogger.setTestResult(result)
         logging.info("\nRESULT CHECK---> %15s" % result)
         XLogger.writeXML()
 
     except:
         exc_info = sys.exc_info()
-        logging.error('Invalid Pass/Fail Formula - %s' % exc_info[1])
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info("Test Case Criteria Failure - Invalid Pass/Fail Formula - %s" % exc_info[1])
+        set_color(FOREGROUND_INTENSITY)
+        logging.error('Test Case Criteria Failure - Invalid Pass/Fail Formula - %s' % exc_info[1])
 
+def get_reset_default_file():
+    return retValueTable.setdefault('testfailreset', None)
 def wfa_print_result(expt_flag, msg=""):
     """Print ending result to console"""
     global tmsPacket,num_of_pass_required,total_checks
 
+    tmsPacket.TestResult = "FAIL"
     time.sleep(2)
     if expt_flag == 0 and XLogger.result == "NOT COMPLETED":
         set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
@@ -2238,34 +2514,47 @@ def wfa_print_result(expt_flag, msg=""):
         tmsPacket.TestResult = "FAIL"
         tmsPrint()
 
-    elif expt_flag == 1 and XLogger.resultChangeCount >= 1:
-        if XLogger.multiStepResultDict["FAIL"] > 0:
-            if XLogger.conditional_chk_flag == 1:
-                if num_of_pass_required <= XLogger.pass_count:
-                    set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
-                    logging.info ("\n    FINAL TEST RESULT  ---> %15s" % "PASS")
-                    tmsPacket.TestResult = "PASS"
-                    tmsPrint()
-                else:
+    elif expt_flag == 1:
+        if XLogger.resultChangeCount >= 1:
+            if XLogger.multiStepResultDict["FAIL"] > 0:
+                if XLogger.conditional_chk_flag == 1:
+                    if num_of_pass_required <= XLogger.pass_count:
+                        set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
+                        logging.info ("\n    FINAL TEST RESULT  ---> %15s" % "PASS")
+                        tmsPacket.TestResult = "PASS"
+                        tmsPrint()
+                    else:
+                        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+                        logging.info ("\n    FINAL TEST RESULT ---> %15s" % "FAIL")
+                        tmsPacket.TestResult = "FAIL"
+                        tmsPrint()
+                else :
                     set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
                     logging.info ("\n    FINAL TEST RESULT ---> %15s" % "FAIL")
                     tmsPacket.TestResult = "FAIL"
                     tmsPrint()
-            else :
-                set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
-                logging.info ("\n    FINAL TEST RESULT ---> %15s" % "FAIL")
-                tmsPacket.TestResult = "FAIL"
+            else:
+                set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
+                logging.info("\n    FINAL TEST RESULT  ---> %15s" % "PASS")
+                tmsPacket.TestResult = "PASS"
                 tmsPrint()
         else:
-            set_color(FOREGROUND_GREEN | FOREGROUND_INTENSITY)
-            logging.info("\n    FINAL TEST RESULT  ---> %15s" % "PASS")
-            tmsPacket.TestResult = "PASS"
-            tmsPrint()
-
+            set_color(FOREGROUND_CYAN | FOREGROUND_INTENSITY)
+            logging.info("TEST COMPLETED")
     else:
         set_color(FOREGROUND_CYAN | FOREGROUND_INTENSITY)
-        XLogger.setTestResult("ERROR")
-        logging.info("ERROR-Result N/A: %s" % msg)
+        if XLogger.result == "PASS" or XLogger.result == "FAIL":
+            logging.info("------------")
+            tmsPacket.TestResult = XLogger.result
+            logging.info ("\n    FINAL TEST RESULT ---> %15s" % XLogger.result)
+            tmsPrint()
+            #PASS or FAIL status should not come into this logic, but if it does, it shouldn't print any error..
+        else :
+            XLogger.setTestResult("FAIL")
+            logging.info ("\n    FINAL TEST RESULT ---> %15s" % "FAIL")
+            tmsPacket.TestResult = "FAIL"
+            tmsPrint()
+
     #JIRA SIG-1298
     num_of_pass_required = 0
     total_checks = 0
@@ -2276,35 +2565,60 @@ def wfa_print_result(expt_flag, msg=""):
     XLogger.writeXML()
 ####################################################################
 
-def wfa_sys_exit(msg):
-    """Exiting because an error has occurred"""
-    time.sleep(2)
+def wfa_sys_exit(msg=""):
+    """Exiting because an error has occurred or r_info get called to finish the test"""
+    global errdisplayed
+
+    #time.sleep(2)
     if re.search("r_info", msg):
+        raise StandardError("%s" % msg)
+    if re.search("Sniffer returned FAIL", msg):
+        set_test_result("FAIL","-","Sniffer returned FAIL")
+        XLogger.setTestResult("FAIL")
+        XLogger.writeXML()
+        raise StandardError()
+    if re.search("ABORTED Response timeout", msg):
+        set_test_result("FAIL","-","thread waiting time out")
+        XLogger.setTestResult("FAIL")
+        XLogger.writeXML()
+        raise StandardError()
+    if re.search("NO ASSOCIATION", msg):
+        set_test_result("FAIL","-","NO ASSOCIATION")
+        XLogger.setTestResult("FAIL")
+        XLogger.writeXML()
         raise StandardError()
     set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
     if re.search("not applicable", msg) or re.search("not supported", msg):
         XLogger.setTestResult("TEST N/A")
     else:
         XLogger.setTestResult("ABORTED", msg)
-    logging.info("ABORTED-: %s" % msg)
+        if (errdisplayed == 0):
+            logging.info("ABORTED-: %s" % msg)
+            errdisplayed=1
     if msg.find("10060") != -1:
-        logging.info('Control Network Timeout - Please check the following:')
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info('Please check the following:')
         logging.info('	- Make sure destination IP Address is set correctly')
         logging.info('	- Make sure remote device has firewall turned off')
         logging.info('	- Make sure control network cable is connected')
+        set_color(FOREGROUND_INTENSITY)
     elif msg.find("10061") != -1:
-        logging.info('Control Network Timeout or Connection Refused - Please check the following:')
+        set_color(FOREGROUND_RED | FOREGROUND_INTENSITY)
+        logging.info('Connection Could Be Refused - Please check the following:')
         logging.info('	- Make sure WTS CA is started')
         logging.info('	- Make sure destination port number is set correctly')
+        set_color(FOREGROUND_INTENSITY)
 
     XLogger.writeXML()
-    raise StandardError("Exit - %s" % msg)
+    raise StandardError("%s" % msg)
 
 def wfa_sys_exit_0():
-    """Exiting because a failure has occurred"""
+    """Exiting because r_info command got called"""
+    global tmsPacket
     time.sleep(2)
     set_color(FOREGROUND_BLUE | FOREGROUND_INTENSITY)
     XLogger.writeXML()
+    tmsPacket.TestResult = "PASS"
     raise StandardError("END-0-r_info")
 
 class XMLLogHandler(logging.FileHandler):
@@ -2394,7 +2708,7 @@ def init_logging(_filename, level, loop=0):
 
 def reset():
     """Resets all global variables"""
-    global retValueTable, DisplayNameTable, streamSendResultArray, streamRecvResultArray, streamInfoArray, lhs, rhs, oper, boolOp, runningPhase, testRunning, threadCount, resultPrinted, ifcondBit, ifCondBit, iDNB, iINV, RTPCount
+    global retValueTable, DisplayNameTable, streamSendResultArray, streamRecvResultArray, streamInfoArray, streamInfoArrayTemp, lhs, rhs, oper, boolOp, runningPhase, testRunning, threadCount, resultPrinted, ifcondBit, ifCondBit, iDNB, iINV, RTPCount
     logging.debug("Reset After Test End")
 
     retValueTable = {}
@@ -2402,6 +2716,7 @@ def reset():
     streamSendResultArray = []
     streamRecvResultArray = []
     streamInfoArray = []
+    streamInfoArrayTemp = []
     lhs = []
     rhs = []
     oper = []
@@ -2426,12 +2741,17 @@ def firstword(line):
         if retValueTable["$WTS_ControlAgent_Support"] != "0":
             process_ipadd(command[1])
             retValueTable.setdefault(command[0], "%s:%s" % ((command[1].split(',')[0]).split('=')[1], (command[1].split(',')[1]).split('=')[1]))
+        else:
+            if ("$WTS_TrafficAgent_Support" in retValueTable):
+                if (retValueTable["$WTS_TrafficAgent_Support"] == "1"):
+                    process_ipadd(command[1])
+                    retValueTable.setdefault(command[0], "%s:%s" % ((command[1].split(',')[0]).split('=')[1], (command[1].split(',')[1]).split('=')[1]))
 
     elif  command[0] == 'wfa_console_ctrl' or command[0] == 'wfa_wfaemt_control_agent' or command[0] == 'wfa_adept_control_agent' or re.search('control_agent_testbed_sta', command[0]) or re.search('control_agent', command[0]) or re.search('TestbedAPConfigServer', command[0]) or re.search('wfa_sniffer', command[0]) or re.search('ethernet', command[0]):
         process_ipadd(command[1])
         retValueTable.setdefault(command[0], "%s:%s" % ((command[1].split(',')[0]).split('=')[1], (command[1].split(',')[1]).split('=')[1]))
     elif command[0].lower() == 'exit':
-        wfa_sys_exit("Exiting - %s" % command[1])
+        wfa_sys_exit("CAPI exit command - %s" % command[1])
     elif command[0].lower() == 'info':
         if command[1] in retValueTable:
             command[1] = retValueTable[command[1]]
@@ -2444,6 +2764,9 @@ def firstword(line):
         logging.debug("UCC Path = %s" % uccPath)
         s1 = command[1]
         scanner(open(uccPath + s1), firstword)
+    elif re.search('testfailreset',command[0]):
+        if len(command) >= 2:
+            retValueTable[command[0]] = command[1]
     if "$TestNA" in retValueTable:
         logging.error("%s" % retValueTable["%s" % "$TestNA"])
         wfa_sys_exit("%s" % retValueTable["%s" % "$TestNA"])

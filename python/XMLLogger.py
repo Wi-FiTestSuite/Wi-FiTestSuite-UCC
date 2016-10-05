@@ -82,15 +82,16 @@ class XMLLogger:
     def setTestResult(self, result, r1="", r2=""):
         self.result = result
         self.resultChangeCount += 1
-        if "FAIL" in result:
+        if "PASS" in result:
+            self.multiStepResultDict["PASS"] += 1
+            if self.conditional_chk_flag == 1 and "PASS" in result:
+                self.pass_count += 1
+        else:
             self.multiStepResultDict["FAIL"] += 1
             if self.conditional_chk_flag == 1:
                 self.fail_count += 1
-        else:
-            self.multiStepResultDict["PASS"] += 1
-            if self.conditional_chk_flag == 1:
-                self.pass_count += 1
-
+        
+            
     def setManualCheckInfo(self, mChk):
         self.Log.appendChild(self.doc.createElement("ManualCheckInfo", mChk))
 
