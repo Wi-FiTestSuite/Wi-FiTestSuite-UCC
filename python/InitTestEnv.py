@@ -155,6 +155,7 @@ class dutInfo:
                  STBC_TX=0,
                  MCS32=0,
                  WTSSupport=1,
+                 WTSTrafficSupport=1,
                  OBSS=0,
                  AMPDU_TX=0,
                  AP_Concurrent=0,
@@ -165,7 +166,11 @@ class dutInfo:
                  Open_Mode=0,
                  Mixedmode_WPA2WPA=0,
                  PMF_OOB=0,
-                 ASD=0):
+                 ASD=0,
+                 AC_VO=0,
+                 AC_VI=0,
+                 AC_BE=0,
+                 AC_BK=0):
         self.DUTType = DUTType
         self.DUTCategory = DUTCategory
         self.DUTBand = DUTBand
@@ -185,6 +190,7 @@ class dutInfo:
         self.STBC_TX = STBC_TX
         self.MCS32 = MCS32
         self.WTSSupport = WTSSupport
+        self.WTSTrafficSupport = WTSTrafficSupport
         self.OBSS = OBSS
         self.AMPDU_TX = AMPDU_TX
         self.AP_Concurrent = AP_Concurrent
@@ -198,6 +204,11 @@ class dutInfo:
         self.PUSleepSTA = PUSleepSTA
         #ASD Device
         self.ASD = ASD
+        #ASD AC stream support
+        self.AC_VO = AC_VO
+        self.AC_VI = AC_VI
+        self.AC_BE = AC_BE
+        self.AC_BK = AC_BK
 
     def __setattr__(self, attr, value):
         self.__dict__[attr] = value
@@ -208,10 +219,11 @@ class dutInfo:
                  Band = %s
                  EAP = %s
                  TestCase = %s
-                 WEP =%s
+                 WEP = %s
                  PreAuth = %s
                  11h = %s
-                 WTS Support =%s
+                 WTS Support = %s
+                 WTS Traffic Support = %s
                  11d = %s
                  STAUT_PM = %s""" %
                 (self.DUTType,
@@ -223,6 +235,7 @@ class dutInfo:
                  self.PreAuth,
                  self._11h,
                  self.WTSSupport,
+                 self.WTSTrafficSupport,
                  self._11d,
                  self.STAUT_PM))
 
@@ -431,11 +444,28 @@ def createUCCInitEnvFile(filename):
     -------
     Pass(1)/Fail(-1) : int
     """
+    global ProgName
+
+    if (ProgName == "N"):
+        prtcID="0"
+        if os.path.exists(uccPath+filename) == 1:
+            InitEnvHd = open(uccPath+filename, 'r')
+            FileCon = InitEnvHd.readlines()
+            for line in FileCon:
+                if "$tcID" in line:
+                    LineCon=line.split("!")
+                    prtcID = LineCon[2]
+            InitEnvHd.close()
+    
     LogMsg("Init file created --- > %s" % (uccPath+filename))
     uccInitFile = open(uccPath+filename, 'w')
     uccInitFile.write("# This is an auto generated file  - %s \n# For test case - %s\n#DO NOT modify this file manually \n\n" %(time.strftime("%b-%d-%y_%H:%M:%S", time.localtime()), dutInfoObject.TestCaseID))
     
     uccInitFile.write("\ndefine!$tcID!%s!\n"%(dutInfoObject.TestCaseID))
+
+    if (ProgName == "N"):
+        uccInitFile.write("\ndefine!$prtcID!%s!\n"%(prtcID))
+        
     uccInitFile.write(testEnvVariables.formatNameUCC())
     for p in testEnvVariables.APs:
         uccInitFile.write(testEnvVariables.APs[p].formatAPUCC())
@@ -482,6 +512,7 @@ def ReadDUTInfo(filename, TestCaseID):
     dutInfoObject.__setattr__("STBC_TX", ReadMapFile(DUTFile, "STBC_TX", "!"))
     dutInfoObject.__setattr__("MCS32", ReadMapFile(DUTFile, "MCS32", "!"))
     dutInfoObject.__setattr__("WTSSupport", ReadMapFile(DUTFile, "WTS_ControlAgent_Support", "!"))
+    dutInfoObject.__setattr__("WTSTrafficSupport", ReadMapFile(DUTFile, "WTS_TrafficAgent_Support", "!"))
     dutInfoObject.__setattr__("OBSS", ReadMapFile(DUTFile, "OBSS", "!"))
     dutInfoObject.__setattr__("AMPDU_TX", ReadMapFile(DUTFile, "AMPDU_TX", "!"))
     dutInfoObject.__setattr__("AP_Concurrent", ReadMapFile(DUTFile, "AP_Concurrent", "!"))
@@ -518,6 +549,12 @@ def ReadDUTInfo(filename, TestCaseID):
     #ASD device testing
     dutInfoObject.__setattr__("ASD", ReadMapFile(DUTFile, "ASD", "!"))
 
+    #ASD AC streams support
+    dutInfoObject.__setattr__("AC_VO", ReadMapFile(DUTFile, "AC_VO", "!"))
+    dutInfoObject.__setattr__("AC_VI", ReadMapFile(DUTFile, "AC_VI", "!"))
+    dutInfoObject.__setattr__("AC_BE", ReadMapFile(DUTFile, "AC_BE", "!"))
+    dutInfoObject.__setattr__("AC_BK", ReadMapFile(DUTFile, "AC_BK", "!"))
+
     for EAP in EAPList:
         Ret = ReadMapFile(DUTFile, EAP, "!")
         if int(Ret) == 1:
@@ -544,7 +581,9 @@ def ReadDUTInfo(filename, TestCaseID):
             ProgName == "VHT" or
             ProgName == "HS2-R2" or
             ProgName == "WMMPS" or
-            ProgName == "NAN"):
+            ProgName == "NAN" or
+            ProgName == "60GHz" or
+            ProgName == "WPS"):
         fFile = open(DUTFeatureInfoFile, "w")
         T = HTML.Table(col_width=['70%', '30%'])
         R1 = HTML.TableRow(cells=['Optional Feature', 'DUT Support'], bgcolor="Gray", header="True")
@@ -685,6 +724,7 @@ def GetServerSupplicantInfo(TestCaseID):
     setattr(serverInfo, "Port", ReadMapFile(uccPath+RADIUSServer, "%s%s"%(serverName, "Port"), "!"))
     setattr(serverInfo, "Password", ReadMapFile(uccPath+RADIUSServer, "%s%s"%(serverName, "SharedSecret"), "!"))
 
+    LogMsg(serverInfo)    
 def GetSnifferInfo(TestCaseID):
     """
     Gets the value set in init file and sets sniffer default
@@ -737,7 +777,11 @@ def GetTestbedDeviceInfo(TestCaseID):
         if AP == "":
             continue
         AddTestCaseAP(AP, iCount)
-        if int(testEnvVariables.Channel) > 35:
+        if ProgName == "60GHz":
+            VarList.setdefault("bssid", ("$%sAPMACAddress_60G"%AP))
+            VarList.setdefault(("AP%sMACAddress"%iCount), ("$%sAPMACAddress_60G"%AP))
+            VarList.setdefault("AP%s_wireless_ip"%iCount, ReadMapFile(uccPath+InitFile, "%s_ap_wireless_ip"%AP.lower(), "!"))
+        elif int(testEnvVariables.Channel) > 35 :
             VarList.setdefault("bssid", ("$%sAPMACAddress_5G" % AP))
             VarList.setdefault(("AP%sMACAddress"%iCount), ("$%sAPMACAddress_5G" % AP))
             VarList.setdefault(("AP%sMACAddress2"%iCount), ("$%sAPMACAddress2_5G" % AP))
@@ -1004,6 +1048,13 @@ def GetOtherVariables(TID):
     VarList.setdefault("Mixedmode_WPA2WPA", dutInfoObject.Mixedmode_WPA2WPA)
     VarList.setdefault("PMF_OOB", dutInfoObject.PMF_OOB)
     VarList.setdefault("ASD", dutInfoObject.ASD)
+    VarList.setdefault("AC_VO", dutInfoObject.AC_VO)
+    VarList.setdefault("AC_VI", dutInfoObject.AC_VI)
+    VarList.setdefault("AC_BE", dutInfoObject.AC_BE)
+    VarList.setdefault("AC_BK", dutInfoObject.AC_BK)
+    if ProgName == "N":
+        VarList.setdefault("WTS_ControlAgent_Support", dutInfoObject.WTSSupport)
+        VarList.setdefault("WTS_TrafficAgent_Support", dutInfoObject.WTSTrafficSupport)
 
     #Check for 11n Optional Test Cases Flag
     FindCheckFlag11n(TID)
@@ -1248,7 +1299,8 @@ def FindBandChannel(TestCaseID):
         Band = "AB"
     if Band == "AC":
         Band = "AC"
-
+    if Band == "AD":
+        Band = "AD"
     try:
         band = bandSelectionList["%s:%s" % (Band, dutInfoObject.DUTBand)]
     except KeyError:
@@ -1262,13 +1314,16 @@ def FindBandChannel(TestCaseID):
         channel1.append(Channel1[chan].split("/"))
         LogMsg("Test case Channel %s %s" % (channel1[chan][0], channel1[chan][1]))
 
-        if band != "11a" and band != "11na" and band != "11ac" and band != -1:
+        if band == "11ad":
+            testChannel.append(channel1[chan][2])
+        elif band != "11a" and band != "11na" and band != "11ac" and band != -1:
             testChannel.append(channel1[chan][1])
         elif band != -1:
             testChannel.append(channel1[chan][0])
-        if band == -1 and ProgName != "P2P":
+        elif band == -1 and ProgName != "P2P":
             VarList.setdefault("TestNA", "Invalid Band. DUT Capable Band is [%s] and Test requires [%s]" % (dutInfoObject.DUTBand, Band))
-
+        else:
+            LogMsg("band = %s and ProgName = %s" % (band,ProgName))
     LogMsg("Test execution in %s Band and Channel %s" % (band, testChannel))
 
     if band == "11a" or band == "11g":
@@ -1279,7 +1334,8 @@ def FindBandChannel(TestCaseID):
         VarList.setdefault("STAPHY", "11n")
     elif band == "11ac":
         VarList.setdefault("STAPHY", "11ac")
-
+    elif band == "11ad":
+        VarList.setdefault("STAPHY", "11ad")
     # APUT Band for 11n
     if int(testChannel[0]) > 35:
         if band == "11ac":
@@ -1309,6 +1365,10 @@ def FindBandChannel(TestCaseID):
             VarList.setdefault("APUT_Band", "11b")
             VarList.setdefault("STAUT_Band", "11b")
             VarList.setdefault("Band_Legacy", "11b")
+        elif DUTBAND == "AD":
+            VarList.setdefault("APUT_Band","11ad")
+            VarList.setdefault("STAUT_Band","11ad")
+            VarList.setdefault("PCPUT_Band","11ad")
 
     setattr(testEnvVariables, "Band", band)
     iCount = 1
@@ -1418,6 +1478,7 @@ def LoadBandSelection():
     bandSelectionList.setdefault("B:BGNAC", "11b")
     bandSelectionList.setdefault("BG:BGNAC", "11g")
     bandSelectionList.setdefault("BGN:BGNAC", "11ng")
+    bandSelectionList.setdefault("AD:AD", "11ad")
 
 def find_TestcaseInfo_Level1(testID, tag):
     """
@@ -1680,6 +1741,12 @@ def find_ASD_threshold_values(testID, tag):
             tag1 = "SetTopBox"
         elif asd_type == "5":
             tag1 = "MobileAP"
+        elif asd_type == "6":
+            tag1 = "Audio"
+        elif asd_type == "7":
+            tag1 = "NwCamera"
+        elif asd_type == "8":
+            tag1 = "ClientCard"
         LogMsg(" Test Running ASD -%s-%s- " % (asd_type, tag1))
         for node2 in L:
             for node3 in node2.childNodes:

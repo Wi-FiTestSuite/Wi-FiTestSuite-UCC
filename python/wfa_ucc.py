@@ -26,10 +26,12 @@ from myutils import process_cmdfile
 from myutils import firstword
 from myutils import init_logging
 from myutils import printStreamResults
+from myutils import close_conn
 from myutils import wfa_sys_exit
 from myutils import setUCCPath
 from myutils import reset
 from myutils import wfa_print_result
+from myutils import get_reset_default_file
 
 from InitTestEnv import InitTestEnv
 import logging
@@ -53,6 +55,7 @@ class UCCTestConfig:
         return "\n Test ID = [%s] CmdPath = [%s] Prog Name = [%s] initFile =[%s] TBFile =[%s]" % (self.testID, self.cmdPath, self.progName, self.initFile, self.TBFile)
 
 U = UCCTestConfig()
+starttime = time.time()
 
 def main():
     global U
@@ -70,6 +73,8 @@ def main():
         \n\r                      WPA2\
         \n\r                      WFDS\
         \n\r                      VHT\
+        \n\r                      60GHz\
+        \n\r                      WPS\
         \n\r                      WMMPS\
         \n\r                      NAN\
         \n\r\n\r [2] Test ID : Test case ID for that program            OR\
@@ -81,6 +86,7 @@ def main():
         \n\r        For example, To run group of P2P test cases listed in file L1.txt\
         \n\r\n\r    wfa_ucc P2P group L1.txt'
         return
+    starttime = time.time()
 
     cmdPath = ReadMapFile("WTS-UCC.txt", "%s_CMD_PATH" %(sys.argv[1]), "=")
     tbAP = ReadMapFile("WTS-UCC.txt", "%s_TESTBED_AP" %(sys.argv[1]), "=")
@@ -151,7 +157,7 @@ def main():
     return
 
 def runTestCase(testListFile, testID, grp=0):
-    global U
+    global U, starttime
     print "\n*** Running Test - %s *** \n" % testID
 
     initFile = ReadMapFile(testListFile, testID, "!")
@@ -167,6 +173,8 @@ def runTestCase(testListFile, testID, grp=0):
     init_logging(U.testID, 1, grp)
 
     tmsPacket.ProgramName = U.progName
+    tmsPacket.TestResult = "FAIL"
+    tmsPrint()
 
     logging.info("\n Test Info %s" % U)
 
@@ -230,13 +238,26 @@ def runTestCase(testListFile, testID, grp=0):
 
     except Exception:
         expt_msg = "%s" % sys.exc_info()[1]
-    finally:
+    finally:  
         if expt_msg != "":
-            wfa_print_result(0, expt_msg)
+            if re.search("r_info", expt_msg):
+                wfa_print_result(1)
+            else:
+                wfa_print_result(0, expt_msg)
         else:
             wfa_print_result(1)
 
+        if tmsPacket.TestResult != "PASS" and re.search("60G", U.testID):
+            logging.info("#####Resetting the devices to their 60GHz defaults.....#####")
+            resetFile = get_reset_default_file()
+            if resetFile is None:
+                logging.info("Reset file not found, skip resetting.....")
+            else:
+                resetFile= uccPath + resetFile
+                process_cmdfile(resetFile)
         logging.info("END: TEST CASE [%s] " % testID)
+        elapsed = (time.time() - starttime)
+        logging.info("END: TEST CASE [%s]        Execution Time [%s] seconds" % (testID, round(elapsed,2)))
         fileInit.close()
         reset()
 

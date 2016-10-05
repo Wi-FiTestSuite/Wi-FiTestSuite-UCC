@@ -615,6 +615,8 @@ def main():
         init_logging("debug-log-result-summary.txt")
         logging.info("LOG_PATH [%s] PROG_NAME [%s] UID [%s] OUTPUT_FILE [%s] TEST_CRITERIA_FILE [%s] FORMAT_STYLE [%s]"  % (log_path, prog_name, UID, f, test_criteria, format_style))
 
+        if prog_name == '60G':
+            prog_name = "_" + prog_name
         rSummary = ResultSummary(f, test_criteria, prog_name, UID, log_path, sm, format_style)
 
         signVerification = ReadMapFile(sys.argv[1], "SIGN_VERIFICATION", '=')
