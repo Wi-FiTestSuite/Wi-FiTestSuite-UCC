@@ -1982,6 +1982,7 @@ def process_resp(toaddr, status, capi_elem, command):
                     for s in stitems:
                         if(int(i)%2 == 0) and len(stitems) > i+1 and len(ret_data_def_type) > int(i/2):
                             logging.debug("--------> Adding %s = %s"%(ret_data_def_type[int(i/2)], stitems[i+1]))
+                            stitems[i+1] = stitems[i+1].lstrip()
                             stitems[i+1] = stitems[i+1].rstrip(' ')
                             stitems[i+1] = stitems[i+1].rstrip('\n')
                             stitems[i+1] = stitems[i+1].rstrip('\r')
