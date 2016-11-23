@@ -792,8 +792,8 @@ def responseWaitThreadFunc(_threadID, command, addr, receiverStream):
                     for p in streamInfoArrayTemp:
                         p.streamTimeout = "Invalid Return at " + str(addr) + resp
                     break
-                
-                if re.search("txActFrames", resp):
+
+                if re.search("60G", U.testID):
                     program_60G_flag = 1
 
                 resp = resp.strip()
