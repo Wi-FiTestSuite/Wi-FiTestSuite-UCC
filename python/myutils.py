@@ -2795,7 +2795,7 @@ def firstword(line):
         retValueTable.setdefault(command[0], command[1])
     elif re.search('stream', command[0]):
         logging.debug("STREAM = %s, Payload = %s Bytes, Percentage = %s %s of Maximum Throughput" %(command[0], payloadValue, command[1], "%"))
-        frameRate = int(maxThroughput) * int(command[1])*1250/int(payloadValue)
+        frameRate = int(int(maxThroughput) * int(command[1])*1250/int(payloadValue))
         logging.info("%s %s Frames / second"  % (command[0], frameRate ))
         retValueTable.setdefault(command[0], "%s" % frameRate)
     if len(command) == 2:
